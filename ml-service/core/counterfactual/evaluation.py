@@ -27,9 +27,16 @@ def evaluate_counterfactual_result(
     if original_score is not None and counterfactual_score is not None:
         score_delta = round(counterfactual_score - original_score, 4)
 
+    hire_probability_delta = None
+    if isinstance(original_probabilities, dict) and isinstance(counterfactual_probabilities, dict):
+        original_hire = float(original_probabilities.get("Hire", 0.0))
+        counterfactual_hire = float(counterfactual_probabilities.get("Hire", 0.0))
+        hire_probability_delta = round(counterfactual_hire - original_hire, 4)
+
     return {
         "outcome_changed": original_label != counterfactual_label,
         "original_prediction": original_label,
         "counterfactual_prediction": counterfactual_label,
         "confidence_delta": score_delta,
+        "hire_probability_delta": hire_probability_delta,
     }

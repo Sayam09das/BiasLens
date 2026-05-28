@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field
 
-from app.api.schemas.prediction_schema import PREDICTION_RESPONSE_EXAMPLE, PredictionResponse
+from app.api.schemas.prediction_schema import PredictionResponse
 from app.api.schemas.report_schema import TEXT_REPORT_REQUEST_EXAMPLE, ExtractedFeaturesResponse
 
 
@@ -13,7 +13,13 @@ COUNTERFACTUAL_RESPONSE_EXAMPLE = {
         "job_role": "Data Scientist",
         "ai_score": 58.0,
     },
-    "original_prediction": PREDICTION_RESPONSE_EXAMPLE,
+    "original_prediction": {
+        "prediction": "Reject",
+        "probabilities": {
+            "Hire": 0.5617,
+            "Reject": 0.4383
+        }
+    },
     "candidates": [
         {
             "candidate_features": {
@@ -33,7 +39,8 @@ COUNTERFACTUAL_RESPONSE_EXAMPLE = {
                 "outcome_changed": True,
                 "original_prediction": "Reject",
                 "counterfactual_prediction": "Hire",
-                "confidence_delta": 0.1804
+                "confidence_delta": 0.1804,
+                "hire_probability_delta": 0.1804
             },
             "summary": "Added skills: statistics, scikit-learn. Increased experience by 1.0 year(s). new outcome: Hire."
         }
@@ -54,6 +61,7 @@ class CounterfactualEvaluationResponse(BaseModel):
     original_prediction: str
     counterfactual_prediction: str
     confidence_delta: float | None = None
+    hire_probability_delta: float | None = None
 
 
 class CounterfactualCandidateResponse(BaseModel):

@@ -55,7 +55,13 @@ def counterfactual(request: CounterfactualRequest) -> CounterfactualResponse:
 
     response_candidates: list[CounterfactualCandidateResponse] = []
     best_candidate_index: int | None = None
-    best_hire_score = -1.0
+    best_improvement_score = float("-inf")
+    original_probabilities = original_prediction.get("probabilities") or {}
+    original_hire_score = (
+        float(original_probabilities.get("Hire", 0.0))
+        if isinstance(original_probabilities, dict)
+        else 0.0
+    )
 
     for index, candidate_features in enumerate(generated_candidates):
         candidate_input_df = build_input_frame(
@@ -72,8 +78,11 @@ def counterfactual(request: CounterfactualRequest) -> CounterfactualResponse:
 
         probabilities = candidate_prediction.get("probabilities") or {}
         hire_score = float(probabilities.get("Hire", 0.0)) if isinstance(probabilities, dict) else 0.0
-        if hire_score > best_hire_score:
-            best_hire_score = hire_score
+        hire_improvement = hire_score - original_hire_score
+        outcome_changed = bool(evaluation.get("outcome_changed"))
+        ranking_score = hire_improvement + (1.0 if outcome_changed else 0.0)
+        if ranking_score > best_improvement_score:
+            best_improvement_score = ranking_score
             best_candidate_index = index
 
         response_candidates.append(
