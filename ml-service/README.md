@@ -47,3 +47,29 @@ After training the baseline model, you can test one sample prediction with:
 ```bash
 python3 ml-service/app/predictor.py
 ```
+
+## API prediction
+
+You can also expose the trained model as a local API:
+
+```bash
+cd ml-service
+uvicorn app.main:app --reload
+```
+
+Then send a request to `POST /predict` with JSON like:
+
+```json
+{
+  "skills": "Python, SQL, Tableau, Machine Learning, Data Analysis",
+  "experience_years": 3,
+  "job_role": "Data Scientist",
+  "ai_score": 82
+}
+```
+
+You can also fetch the saved fairness analysis from:
+
+```bash
+GET /fairness
+```

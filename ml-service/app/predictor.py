@@ -37,17 +37,33 @@ def load_model():
     return model
 
 
-def build_sample_input() -> pd.DataFrame:
-    """Build one sample row using the same columns seen during training."""
-    sample = pd.DataFrame(
+def build_input_frame(
+    *,
+    skills: str,
+    experience_years: float,
+    job_role: str,
+    ai_score: float,
+) -> pd.DataFrame:
+    """Build one input row using the same columns seen during training."""
+    return pd.DataFrame(
         [
             {
-                "Skills": "Python, SQL, Tableau, Machine Learning, Data Analysis",
-                "Experience (Years)": 3,
-                "Job Role": "Data Scientist",
-                "AI Score (0-100)": 82,
+                "Skills": skills,
+                "Experience (Years)": experience_years,
+                "Job Role": job_role,
+                "AI Score (0-100)": ai_score,
             }
         ]
+    )
+
+
+def build_sample_input() -> pd.DataFrame:
+    """Build one sample row for local manual testing."""
+    sample = build_input_frame(
+        skills="Python, SQL, Tableau, Machine Learning, Data Analysis",
+        experience_years=3,
+        job_role="Data Scientist",
+        ai_score=82,
     )
 
     print("Sample input:")
@@ -55,18 +71,33 @@ def build_sample_input() -> pd.DataFrame:
     return sample
 
 
-def predict_decision(model, input_df: pd.DataFrame) -> None:
-    """Run the model on the sample input and print the prediction."""
+def predict_with_probabilities(model, input_df: pd.DataFrame) -> dict[str, object]:
+    """Run the model and return the predicted label with class probabilities."""
     prediction = model.predict(input_df)[0]
-
-    print("\nPrediction result:")
-    print(f"Predicted Recruiter Decision: {prediction}")
+    result: dict[str, object] = {"prediction": str(prediction)}
 
     if hasattr(model, "predict_proba"):
         probabilities = model.predict_proba(input_df)[0]
         labels = model.classes_
+        result["probabilities"] = {
+            str(label): float(probability)
+            for label, probability in zip(labels, probabilities)
+        }
+
+    return result
+
+
+def predict_decision(model, input_df: pd.DataFrame) -> None:
+    """Run the model on the sample input and print the prediction."""
+    result = predict_with_probabilities(model, input_df)
+
+    print("\nPrediction result:")
+    print(f"Predicted Recruiter Decision: {result['prediction']}")
+
+    probabilities = result.get("probabilities")
+    if isinstance(probabilities, dict):
         print("\nPrediction probabilities:")
-        for label, probability in zip(labels, probabilities):
+        for label, probability in probabilities.items():
             print(f"{label}: {probability:.4f}")
 
 
