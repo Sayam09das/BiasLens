@@ -21,6 +21,64 @@ app = FastAPI(title="BiasLens ML Service", version="0.1.0")
 _model = None
 FAIRNESS_REPORT_PATH = ROOT / "artifacts" / "metrics" / "fairness_evaluation.json"
 
+PREDICTION_REQUEST_EXAMPLE = {
+    "skills": "Python, SQL, Tableau, Machine Learning, Data Analysis",
+    "experience_years": 3,
+    "job_role": "Data Scientist",
+    "ai_score": 82,
+}
+
+PREDICTION_RESPONSE_EXAMPLE = {
+    "prediction": "Hire",
+    "probabilities": {
+        "Hire": 0.9969,
+        "Reject": 0.0031,
+    },
+}
+
+FAIRNESS_RESPONSE_EXAMPLE = {
+    "dataset_rows": 2000,
+    "overall_selection_rate": 0.4025,
+    "by_gender": {
+        "female": {
+            "rows": 984,
+            "selection_rate": 0.42073170731707316,
+            "average_screening_score": 70.3668024545096,
+        },
+        "male": {
+            "rows": 1016,
+            "selection_rate": 0.38484251968503935,
+            "average_screening_score": 70.04126798138351,
+        },
+    },
+    "by_age_group": {
+        "18-29": {
+            "rows": 613,
+            "selection_rate": 0.3964110929853181,
+            "average_screening_score": 70.28181058995548,
+        },
+        "30-39": {
+            "rows": 686,
+            "selection_rate": 0.4096209912536443,
+            "average_screening_score": 70.00355587296603,
+        },
+        "40-49": {
+            "rows": 701,
+            "selection_rate": 0.4008559201141227,
+            "average_screening_score": 70.32478268734046,
+        },
+        "50+": {
+            "rows": 0,
+            "selection_rate": None,
+            "average_screening_score": None,
+        },
+    },
+    "gender_demographic_parity_difference": 0.0358891876320338,
+    "age_demographic_parity_difference": 0.013209898268326192,
+    "gender_disparate_impact_ratio": 0.9146981627296588,
+    "age_disparate_impact_ratio": 0.9677509245122001,
+}
+
 
 class PredictionRequest(BaseModel):
     skills: str = Field(..., example="Python, SQL, Tableau, Machine Learning")
@@ -28,16 +86,38 @@ class PredictionRequest(BaseModel):
     job_role: str = Field(..., example="Data Scientist")
     ai_score: float = Field(..., ge=0, le=100, example=82)
 
+    model_config = {
+        "json_schema_extra": {
+            "example": PREDICTION_REQUEST_EXAMPLE,
+        }
+    }
+
 
 class PredictionResponse(BaseModel):
     prediction: str
     probabilities: dict[str, float] | None = None
+
+    model_config = {
+        "json_schema_extra": {
+            "example": PREDICTION_RESPONSE_EXAMPLE,
+        }
+    }
 
 
 class GroupMetric(BaseModel):
     rows: int
     selection_rate: float | None = None
     average_screening_score: float | None = None
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "rows": 984,
+                "selection_rate": 0.42073170731707316,
+                "average_screening_score": 70.3668024545096,
+            }
+        }
+    }
 
 
 class FairnessResponse(BaseModel):
@@ -49,6 +129,12 @@ class FairnessResponse(BaseModel):
     age_demographic_parity_difference: float
     gender_disparate_impact_ratio: float | None = None
     age_disparate_impact_ratio: float | None = None
+
+    model_config = {
+        "json_schema_extra": {
+            "example": FAIRNESS_RESPONSE_EXAMPLE,
+        }
+    }
 
 
 def get_model():
@@ -87,7 +173,20 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.get("/fairness", response_model=FairnessResponse)
+@app.get(
+    "/fairness",
+    response_model=FairnessResponse,
+    responses={
+        200: {
+            "description": "Latest saved fairness analysis",
+            "content": {
+                "application/json": {
+                    "example": FAIRNESS_RESPONSE_EXAMPLE,
+                }
+            },
+        }
+    },
+)
 def fairness() -> FairnessResponse:
     """Return the latest saved fairness analysis."""
     try:
@@ -98,7 +197,20 @@ def fairness() -> FairnessResponse:
     return FairnessResponse(**report)
 
 
-@app.post("/predict", response_model=PredictionResponse)
+@app.post(
+    "/predict",
+    response_model=PredictionResponse,
+    responses={
+        200: {
+            "description": "Prediction generated successfully",
+            "content": {
+                "application/json": {
+                    "example": PREDICTION_RESPONSE_EXAMPLE,
+                }
+            },
+        }
+    },
+)
 def predict(request: PredictionRequest) -> PredictionResponse:
     """Predict the recruiter decision from one resume-like payload."""
     try:
