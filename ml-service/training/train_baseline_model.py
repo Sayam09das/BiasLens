@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import pickle
 from pathlib import Path
+import sys
 
 import pandas as pd
 from sklearn.compose import ColumnTransformer
@@ -20,8 +21,12 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import FunctionTransformer, OneHotEncoder, StandardScaler
 
-
 ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from app.model_utils import combine_text_columns
+
 DATA_PATH = ROOT / "data" / "processed" / "resume_screening_clean.csv"
 ARTIFACTS_DIR = ROOT / "artifacts" / "models"
 METRICS_DIR = ROOT / "artifacts" / "metrics"
@@ -77,9 +82,7 @@ def build_pipeline() -> Pipeline:
             (
                 "combine_text",
                 FunctionTransformer(
-                    lambda frame: (
-                        frame["Skills"].fillna("") + " " + frame["Job Role"].fillna("")
-                    ),
+                    combine_text_columns,
                     validate=False,
                 ),
             ),

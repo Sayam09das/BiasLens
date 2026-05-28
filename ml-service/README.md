@@ -39,3 +39,11 @@ The raw files are large and inconsistent. Before training a model or exposing an
 1. Build feature engineering in `training/`.
 2. Train a first baseline screening model.
 3. Expose prediction and fairness endpoints from `app/`.
+
+## Manual prediction
+
+After training the baseline model, you can test one sample prediction with:
+
+```bash
+python3 ml-service/app/predictor.py
+```
