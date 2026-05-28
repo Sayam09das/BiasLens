@@ -18,8 +18,8 @@ from app.api.schemas import (
     TextReportResponse,
 )
 from app.predictor import build_input_frame, predict_with_probabilities
+from core.extraction import extract_experience_years, extract_skills_from_text
 from core.preprocessing.feature_builder import build_feature_set, build_fit_explanation
-from core.preprocessing.parser import extract_experience_years, extract_skills_from_text
 
 
 def build_features_from_resume_text(
