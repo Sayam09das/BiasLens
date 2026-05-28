@@ -2,6 +2,13 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+import sys
+
+ROOT = Path(__file__).resolve().parents[2]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from app.api.schemas import (
     ExtractedFeaturesResponse,
     FairnessResponse,
@@ -88,4 +95,11 @@ def build_report_payload_from_features(
         prediction=item.prediction,
         fairness=FairnessResponse(**fairness_report),
         extracted_features=item.extracted_features,
+    )
+
+
+if __name__ == "__main__":
+    print(
+        "app.api.services is a support module, not a standalone script. "
+        "Run the FastAPI app via 'uvicorn app.main:app --reload' from the ml-service directory."
     )

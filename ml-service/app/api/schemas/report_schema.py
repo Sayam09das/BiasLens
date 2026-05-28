@@ -1,62 +1,13 @@
-"""Pydantic schemas and OpenAPI examples for API routes."""
-
-from __future__ import annotations
+"""Report and comparison schemas."""
 
 from pydantic import BaseModel, Field
 
+from app.api.schemas.fairness_schema import FAIRNESS_RESPONSE_EXAMPLE, FairnessResponse
+from app.api.schemas.prediction_schema import (
+    PREDICTION_RESPONSE_EXAMPLE,
+    PredictionResponse,
+)
 
-PREDICTION_REQUEST_EXAMPLE = {
-    "skills": "Python, SQL, Tableau, Machine Learning, Data Analysis",
-    "experience_years": 3,
-    "job_role": "Data Scientist",
-    "ai_score": 82,
-}
-
-PREDICTION_RESPONSE_EXAMPLE = {
-    "prediction": "Hire",
-    "probabilities": {
-        "Hire": 0.9969,
-        "Reject": 0.0031,
-    },
-}
-
-FAIRNESS_RESPONSE_EXAMPLE = {
-    "dataset_rows": 2000,
-    "overall_selection_rate": 0.4025,
-    "by_gender": {
-        "female": {
-            "rows": 984,
-            "selection_rate": 0.42073170731707316,
-            "average_screening_score": 70.3668024545096,
-        },
-        "male": {
-            "rows": 1016,
-            "selection_rate": 0.38484251968503935,
-            "average_screening_score": 70.04126798138351,
-        },
-    },
-    "by_age_group": {
-        "18-29": {
-            "rows": 613,
-            "selection_rate": 0.3964110929853181,
-            "average_screening_score": 70.28181058995548,
-        },
-        "30-39": {
-            "rows": 686,
-            "selection_rate": 0.4096209912536443,
-            "average_screening_score": 70.00355587296603,
-        },
-        "40-49": {
-            "rows": 701,
-            "selection_rate": 0.4008559201141227,
-            "average_screening_score": 70.32478268734046,
-        },
-    },
-    "gender_demographic_parity_difference": 0.0358891876320338,
-    "age_demographic_parity_difference": 0.013209898268326192,
-    "gender_disparate_impact_ratio": 0.9146981627296588,
-    "age_disparate_impact_ratio": 0.9677509245122001,
-}
 
 REPORT_RESPONSE_EXAMPLE = {
     "prediction": PREDICTION_RESPONSE_EXAMPLE,
@@ -117,49 +68,11 @@ UPLOAD_ROLE_COMPARISON_RESPONSE_EXAMPLE = {
 }
 
 
-class PredictionRequest(BaseModel):
-    skills: str = Field(..., example="Python, SQL, Tableau, Machine Learning")
-    experience_years: float = Field(..., ge=0, example=3)
-    job_role: str = Field(..., example="Data Scientist")
-    ai_score: float = Field(..., ge=0, le=100, example=82)
-
-    model_config = {"json_schema_extra": {"example": PREDICTION_REQUEST_EXAMPLE}}
-
-
-class PredictionResponse(BaseModel):
-    prediction: str
-    probabilities: dict[str, float] | None = None
-
-    model_config = {"json_schema_extra": {"example": PREDICTION_RESPONSE_EXAMPLE}}
-
-
-class GroupMetric(BaseModel):
-    rows: int
-    selection_rate: float | None = None
-    average_screening_score: float | None = None
-
-    model_config = {
-        "json_schema_extra": {
-            "example": {
-                "rows": 984,
-                "selection_rate": 0.42073170731707316,
-                "average_screening_score": 70.3668024545096,
-            }
-        }
-    }
-
-
-class FairnessResponse(BaseModel):
-    dataset_rows: int
-    overall_selection_rate: float
-    by_gender: dict[str, GroupMetric]
-    by_age_group: dict[str, GroupMetric]
-    gender_demographic_parity_difference: float
-    age_demographic_parity_difference: float
-    gender_disparate_impact_ratio: float | None = None
-    age_disparate_impact_ratio: float | None = None
-
-    model_config = {"json_schema_extra": {"example": FAIRNESS_RESPONSE_EXAMPLE}}
+class ExtractedFeaturesResponse(BaseModel):
+    skills: str
+    experience_years: float
+    job_role: str
+    ai_score: float
 
 
 class ReportResponse(BaseModel):
@@ -174,20 +87,6 @@ class TextReportRequest(BaseModel):
     job_role: str = Field(..., example="Data Scientist")
 
     model_config = {"json_schema_extra": {"example": TEXT_REPORT_REQUEST_EXAMPLE}}
-
-
-class RoleComparisonRequest(BaseModel):
-    resume_text: str = Field(..., min_length=20)
-    job_roles: list[str] = Field(..., min_length=2, max_length=6)
-
-    model_config = {"json_schema_extra": {"example": ROLE_COMPARISON_REQUEST_EXAMPLE}}
-
-
-class ExtractedFeaturesResponse(BaseModel):
-    skills: str
-    experience_years: float
-    job_role: str
-    ai_score: float
 
 
 class TextReportResponse(BaseModel):
@@ -215,6 +114,13 @@ class RoleComparisonItem(BaseModel):
     prediction: PredictionResponse
     extracted_features: ExtractedFeaturesResponse
     fit_explanation: RoleFitExplanation
+
+
+class RoleComparisonRequest(BaseModel):
+    resume_text: str = Field(..., min_length=20)
+    job_roles: list[str] = Field(..., min_length=2, max_length=6)
+
+    model_config = {"json_schema_extra": {"example": ROLE_COMPARISON_REQUEST_EXAMPLE}}
 
 
 class RoleComparisonResponse(BaseModel):
