@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pandas as pd
 
+from core.fairness.report_generator import generate_fairness_report_payload
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = ROOT / "data" / "processed" / "recruitment_bias_clean.csv"
@@ -60,63 +61,19 @@ def add_age_groups(df: pd.DataFrame) -> pd.DataFrame:
     return enriched
 
 
-def compute_selection_rates(df: pd.DataFrame, column: str) -> dict[str, dict[str, float]]:
-    """Measure how often each group is shortlisted."""
-    results: dict[str, dict[str, float]] = {}
-    grouped = df.groupby(column, observed=True)
-
-    for group_name, group_df in grouped:
-        if pd.isna(group_name) or group_df.empty:
-            continue
-
-        group_key = str(group_name)
-        selection_rate = float(group_df["shortlisted"].mean())
-        average_score = float(group_df["screening_score"].mean())
-        results[group_key] = {
-            "rows": int(len(group_df)),
-            "selection_rate": selection_rate,
-            "average_screening_score": average_score,
-        }
-
-    return results
-
-
-def demographic_parity_difference(group_metrics: dict[str, dict[str, float]]) -> float:
-    """Return max selection-rate gap between any two groups."""
-    rates = [values["selection_rate"] for values in group_metrics.values()]
-    return float(max(rates) - min(rates)) if rates else 0.0
-
-
-def disparate_impact_ratio(group_metrics: dict[str, dict[str, float]]) -> float | None:
-    """Return min/max selection-rate ratio as a simple disparate-impact signal."""
-    rates = [
-        values["selection_rate"]
-        for values in group_metrics.values()
-        if values["selection_rate"] > 0
-    ]
-    if len(rates) < 2:
-        return None
-    return float(min(rates) / max(rates))
-
-
 def build_report(df: pd.DataFrame) -> dict[str, object]:
     """Create a compact fairness summary for gender and age groups."""
-    gender_metrics = compute_selection_rates(df, "gender")
-    age_metrics = compute_selection_rates(df, "age_group")
-
-    report = {
-        "dataset_rows": int(len(df)),
-        "overall_selection_rate": float(df["shortlisted"].mean()),
-        "by_gender": gender_metrics,
-        "by_age_group": age_metrics,
-        "gender_demographic_parity_difference": demographic_parity_difference(
-            gender_metrics
-        ),
-        "age_demographic_parity_difference": demographic_parity_difference(age_metrics),
-        "gender_disparate_impact_ratio": disparate_impact_ratio(gender_metrics),
-        "age_disparate_impact_ratio": disparate_impact_ratio(age_metrics),
+    report = generate_fairness_report_payload(df)
+    return {
+        "dataset_rows": report["dataset_rows"],
+        "overall_selection_rate": report["overall_selection_rate"],
+        "by_gender": report["by_gender"],
+        "by_age_group": report["by_age_group"],
+        "gender_demographic_parity_difference": report["gender_demographic_parity_difference"],
+        "age_demographic_parity_difference": report["age_demographic_parity_difference"],
+        "gender_disparate_impact_ratio": report["gender_disparate_impact_ratio"],
+        "age_disparate_impact_ratio": report["age_disparate_impact_ratio"],
     }
-    return report
 
 
 def save_report(report: dict[str, object]) -> None:
