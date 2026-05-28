@@ -26,6 +26,14 @@ from app.api.schemas.fairness_schema import (
     GroupMetric,
 )
 from app.api.schemas.health_schema import HealthResponse, RootResponse
+from app.api.schemas.metrics_schema import (
+    METRICS_RESPONSE_EXAMPLE,
+    ArtifactMetricsInfo,
+    CacheMetricsInfo,
+    MetricsResponse,
+    ModelMetricsInfo,
+    SavedMetricsInfo,
+)
 from app.api.schemas.prediction_schema import (
     PREDICTION_REQUEST_EXAMPLE,
     PREDICTION_RESPONSE_EXAMPLE,
@@ -70,6 +78,11 @@ __all__ = [
     "GroupMetric",
     "HealthResponse",
     "LimeExplanationResponse",
+    "METRICS_RESPONSE_EXAMPLE",
+    "MetricsResponse",
+    "ArtifactMetricsInfo",
+    "CacheMetricsInfo",
+    "ModelMetricsInfo",
     "RootResponse",
     "ProxyAttributionResponse",
     "ProxySignalResponse",
@@ -92,6 +105,7 @@ __all__ = [
     "RoleComparisonResponse",
     "RoleFitExplanation",
     "ShapExplanationResponse",
+    "SavedMetricsInfo",
     "TextReportRequest",
     "TextReportResponse",
     "TopProbabilityResponse",
