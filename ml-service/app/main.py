@@ -264,7 +264,7 @@ def build_features_from_resume_text(
     """Convert raw resume text into the structured fields used by the baseline model."""
     skills = extract_skills_from_text(resume_text)
     experience_years = extract_experience_years(resume_text)
-    ai_score = estimate_ai_score(skills, experience_years)
+    ai_score = estimate_ai_score(skills, experience_years, job_role)
 
     return {
         "skills": ", ".join(skills) if skills else "general experience",

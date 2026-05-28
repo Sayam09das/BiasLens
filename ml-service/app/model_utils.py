@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import date
 import re
 import zipfile
 from pathlib import Path
@@ -9,23 +10,71 @@ from xml.etree import ElementTree
 
 import pandas as pd
 
-KNOWN_SKILLS = [
-    "python",
-    "sql",
-    "tableau",
-    "machine learning",
-    "data analysis",
-    "excel",
-    "power bi",
-    "tensorflow",
-    "pytorch",
-    "nlp",
-    "statistics",
-    "scikit-learn",
-    "aws",
-    "spark",
-    "java",
-]
+SKILL_PATTERNS = {
+    "python": [r"\bpython\b"],
+    "sql": [r"\bsql\b", r"\bmysql\b", r"\bpostgresql\b", r"\bpostgres\b"],
+    "tableau": [r"\btableau\b"],
+    "machine learning": [r"\bmachine learning\b", r"\bml\b"],
+    "data analysis": [r"\bdata analysis\b", r"\banalytics\b", r"\bdata analyst\b"],
+    "excel": [r"\bexcel\b", r"\bms excel\b"],
+    "power bi": [r"\bpower\s*bi\b"],
+    "tensorflow": [r"\btensorflow\b"],
+    "pytorch": [r"\bpytorch\b"],
+    "nlp": [r"\bnlp\b", r"\bnatural language processing\b"],
+    "statistics": [r"\bstatistics\b", r"\bstatistical\b"],
+    "scikit-learn": [r"\bscikit-learn\b", r"\bsklearn\b"],
+    "aws": [r"\baws\b", r"\bamazon web services\b"],
+    "spark": [r"\bspark\b", r"\bapache spark\b"],
+    "java": [r"\bjava\b"],
+    "javascript": [r"\bjavascript\b"],
+    "typescript": [r"\btypescript\b"],
+    "react": [r"\breact(?:\.js)?\b"],
+    "next.js": [r"\bnext(?:\.js)?\b"],
+    "node.js": [r"\bnode(?:\.js)?\b"],
+    "express": [r"\bexpress(?:\.js)?\b", r"\bexpress\b"],
+    "mongodb": [r"\bmongodb\b", r"\bmongo\b"],
+    "html": [r"\bhtml\b", r"\bhtml5\b"],
+    "css": [r"\bcss\b", r"\bcss3\b"],
+    "git": [r"\bgit\b", r"\bgithub\b"],
+    "docker": [r"\bdocker\b"],
+    "api development": [r"\bapi\b", r"\brest api\b", r"\bbackend\b"],
+    "full-stack development": [r"\bfull[- ]stack\b", r"\bfull stack\b"],
+}
+
+ROLE_SKILL_WEIGHTS = {
+    "data scientist": {
+        "high_value": {
+            "python",
+            "sql",
+            "machine learning",
+            "data analysis",
+            "statistics",
+            "tableau",
+            "power bi",
+            "tensorflow",
+            "pytorch",
+            "scikit-learn",
+            "nlp",
+            "spark",
+        },
+        "medium_value": {"aws", "excel", "java"},
+        "low_value": {
+            "react",
+            "next.js",
+            "node.js",
+            "express",
+            "mongodb",
+            "html",
+            "css",
+            "full-stack development",
+            "api development",
+            "javascript",
+            "typescript",
+            "docker",
+            "git",
+        },
+    }
+}
 
 
 def combine_text_columns(frame: pd.DataFrame) -> pd.Series:
@@ -39,35 +88,99 @@ def normalize_text(value: str) -> str:
 
 
 def extract_skills_from_text(text: str) -> list[str]:
-    """Pull a small set of known skills from resume text using keyword matches."""
+    """Pull a broader set of skills from resume text using regex aliases."""
     lowered = text.lower()
-    matches = [skill for skill in KNOWN_SKILLS if skill in lowered]
+    matches: list[str] = []
+    for skill, patterns in SKILL_PATTERNS.items():
+        if any(re.search(pattern, lowered) for pattern in patterns):
+            matches.append(skill)
     return sorted(dict.fromkeys(matches))
 
 
 def extract_experience_years(text: str) -> float:
-    """Infer years of experience from common resume text patterns."""
+    """Infer years of experience from summary phrases and date ranges."""
     patterns = [
         r"(\d+(?:\.\d+)?)\+?\s+years?\s+of\s+experience",
         r"experience\s+of\s+(\d+(?:\.\d+)?)\+?\s+years?",
         r"(\d+(?:\.\d+)?)\+?\s+years?\s+experience",
+        r"over\s+(\d+(?:\.\d+)?)\+?\s+years?",
+        r"(\d+(?:\.\d+)?)\+?\s+yrs?\b",
     ]
 
     lowered = text.lower()
+    explicit_years: list[float] = []
     for pattern in patterns:
-        match = re.search(pattern, lowered)
-        if match:
-            return float(match.group(1))
+        for match in re.finditer(pattern, lowered):
+            explicit_years.append(float(match.group(1)))
 
-    return 0.0
+    inferred_from_dates = infer_experience_from_date_ranges(lowered)
+    if explicit_years and inferred_from_dates > 0:
+        return min(max(explicit_years), inferred_from_dates)
+    if explicit_years:
+        return min(max(explicit_years), 12.0)
+    return inferred_from_dates
 
 
-def estimate_ai_score(skills: list[str], experience_years: float) -> float:
-    """Create a simple heuristic score for raw-text requests."""
-    skill_points = min(len(skills) * 12, 72)
-    experience_points = min(experience_years * 4, 28)
-    score = skill_points + experience_points
+def estimate_ai_score(
+    skills: list[str],
+    experience_years: float,
+    job_role: str | None = None,
+) -> float:
+    """Create a more conservative, role-aware heuristic score."""
+    normalized_role = (job_role or "").strip().lower()
+    role_config = ROLE_SKILL_WEIGHTS.get(normalized_role)
+
+    if not role_config:
+        skill_points = min(len(skills) * 4.5, 45)
+        experience_points = min(experience_years * 6, 30)
+        diversity_bonus = 4 if len(skills) >= 6 else 0
+        score = skill_points + experience_points + diversity_bonus
+        return round(max(0.0, min(score, 85.0)), 2)
+
+    skill_set = set(skills)
+    high_value_hits = len(skill_set & role_config["high_value"])
+    medium_value_hits = len(skill_set & role_config["medium_value"])
+    low_value_hits = len(skill_set & role_config["low_value"])
+
+    skill_points = min(high_value_hits * 7 + medium_value_hits * 3 + low_value_hits * 1, 50)
+    experience_points = min(experience_years * 5, 25)
+    alignment_bonus = 8 if high_value_hits >= 4 else 4 if high_value_hits >= 2 else 0
+    diversity_bonus = 4 if len(skill_set) >= 7 else 0
+    score = skill_points + experience_points + alignment_bonus + diversity_bonus
     return round(max(0.0, min(score, 100.0)), 2)
+
+
+def infer_experience_from_date_ranges(text: str) -> float:
+    """Estimate experience by reading ranges such as '2023 - Present'."""
+    current_year = date.today().year
+    max_years = 0.0
+
+    year_ranges = re.findall(
+        r"\b(20\d{2})\s*[-–]\s*(present|current|now|20\d{2})\b",
+        text,
+        flags=re.IGNORECASE,
+    )
+    for start_raw, end_raw in year_ranges:
+        start_year = int(start_raw)
+        end_year = current_year if end_raw.lower() in {"present", "current", "now"} else int(end_raw)
+        if end_year >= start_year:
+            max_years = max(max_years, float(end_year - start_year))
+
+    month_ranges = re.findall(
+        r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+(20\d{2})\s*[-–]\s*(?:present|current|now|(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\s+(20\d{2}))\b",
+        text,
+        flags=re.IGNORECASE,
+    )
+    for start_raw, end_raw in month_ranges:
+        start_year = int(start_raw)
+        end_year = current_year if not end_raw else int(end_raw)
+        if end_year >= start_year:
+            max_years = max(max_years, float(end_year - start_year))
+
+    if max_years <= 0:
+        return 0.0
+
+    return min(round(max_years, 1), 12.0)
 
 
 def extract_text_from_docx(path: Path) -> str:
