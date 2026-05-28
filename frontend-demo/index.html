@@ -46,6 +46,45 @@
               />
             </label>
 
+            <fieldset class="field mode-field">
+              <legend>Input Mode</legend>
+              <div class="mode-toggle">
+                <label class="mode-option">
+                  <input
+                    type="radio"
+                    name="inputMode"
+                    value="text"
+                    checked
+                  />
+                  <span>Paste Resume Text</span>
+                </label>
+                <label class="mode-option">
+                  <input
+                    type="radio"
+                    name="inputMode"
+                    value="file"
+                  />
+                  <span>Upload Resume File</span>
+                </label>
+              </div>
+              <p id="mode-help" class="mode-help">
+                Paste resume text directly into the box below.
+              </p>
+            </fieldset>
+
+            <label class="field file-field hidden" id="file-field">
+              <span>Resume File</span>
+              <input
+                id="resume-file"
+                name="resumeFile"
+                type="file"
+                accept=".txt,.docx,.pdf"
+              />
+              <small class="field-help">
+                Supported: `.txt`, `.docx`, `.pdf`. PDF upload needs the backend package `pypdf`.
+              </small>
+            </label>
+
             <label class="field">
               <span>Target Job Role</span>
               <input
@@ -58,7 +97,7 @@
               />
             </label>
 
-            <label class="field">
+            <label class="field" id="text-field">
               <span>Resume Text</span>
               <textarea
                 id="resume-text"
@@ -79,6 +118,7 @@
           <div class="panel-heading">
             <h2>Report Output</h2>
             <p>The response below updates after each successful request.</p>
+            <p id="source-file-banner" class="source-file-banner hidden"></p>
           </div>
 
           <div id="empty-state" class="empty-state">
@@ -122,6 +162,11 @@
                   <p id="feature-score" class="info-value">-</p>
                 </article>
               </div>
+            </section>
+
+            <section class="result-block hidden" id="resume-preview-block">
+              <h3>Extracted Text Preview</h3>
+              <pre id="resume-preview" class="json-viewer preview-viewer"></pre>
             </section>
 
             <section class="result-block">

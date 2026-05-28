@@ -2,6 +2,11 @@ const form = document.getElementById("analysis-form");
 const submitButton = document.getElementById("submit-button");
 const formStatus = document.getElementById("form-status");
 const endpointPreview = document.getElementById("endpoint-preview");
+const inputModeInputs = document.querySelectorAll('input[name="inputMode"]');
+const fileField = document.getElementById("file-field");
+const textField = document.getElementById("text-field");
+const modeHelp = document.getElementById("mode-help");
+const sourceFileBanner = document.getElementById("source-file-banner");
 const emptyState = document.getElementById("empty-state");
 const results = document.getElementById("results");
 
@@ -13,6 +18,8 @@ const featureSkills = document.getElementById("feature-skills");
 const featureExperience = document.getElementById("feature-experience");
 const featureRole = document.getElementById("feature-role");
 const featureScore = document.getElementById("feature-score");
+const resumePreviewBlock = document.getElementById("resume-preview-block");
+const resumePreview = document.getElementById("resume-preview");
 
 const probabilityList = document.getElementById("probability-list");
 const genderList = document.getElementById("gender-list");
@@ -35,6 +42,20 @@ function formatNumber(value) {
 function setStatus(message, isError = false) {
   formStatus.textContent = message;
   formStatus.style.color = isError ? "#a12d2d" : "#665c50";
+}
+
+function getFriendlyErrorMessage(error, isFileMode) {
+  const rawMessage = String(error?.message || "Unknown error");
+
+  if (rawMessage.includes("PDF parsing requires the 'pypdf' package")) {
+    return "PDF upload is not enabled yet. Install the backend package 'pypdf', restart the API, or upload a .txt/.docx file.";
+  }
+
+  if (isFileMode && rawMessage.includes("Unsupported file type")) {
+    return "That file type is not supported yet. Upload a .txt, .docx, or .pdf resume.";
+  }
+
+  return rawMessage;
 }
 
 function createStackItem(title, details) {
@@ -91,6 +112,22 @@ function renderReport(report) {
   featureRole.textContent = extractedFeatures.job_role;
   featureScore.textContent = String(extractedFeatures.ai_score);
 
+  if (report.extracted_resume_text_preview) {
+    resumePreview.textContent = report.extracted_resume_text_preview;
+    resumePreviewBlock.classList.remove("hidden");
+  } else {
+    resumePreview.textContent = "";
+    resumePreviewBlock.classList.add("hidden");
+  }
+
+  if (report.source_filename) {
+    sourceFileBanner.textContent = `Analyzed file: ${report.source_filename}`;
+    sourceFileBanner.classList.remove("hidden");
+  } else {
+    sourceFileBanner.textContent = "";
+    sourceFileBanner.classList.add("hidden");
+  }
+
   renderProbabilityList(probabilities);
   renderFairnessList(genderList, fairness.by_gender);
   renderFairnessList(ageList, fairness.by_age_group);
@@ -111,11 +148,28 @@ function renderReport(report) {
 
 function updateEndpointPreview() {
   const apiBaseUrl = document.getElementById("api-base-url").value.trim().replace(/\/$/, "");
-  endpointPreview.textContent = `${apiBaseUrl}/report-from-text`;
+  const selectedMode = document.querySelector('input[name="inputMode"]:checked')?.value || "text";
+  const endpoint =
+    selectedMode === "file" ? "/upload-resume" : "/report-from-text";
+  endpointPreview.textContent = `${apiBaseUrl}${endpoint}`;
+}
+
+function updateInputMode() {
+  const selectedMode = document.querySelector('input[name="inputMode"]:checked')?.value || "text";
+  const isFileMode = selectedMode === "file";
+  fileField.classList.toggle("hidden", !isFileMode);
+  textField.classList.toggle("hidden", isFileMode);
+  modeHelp.textContent = isFileMode
+    ? "Choose a resume file to upload and analyze."
+    : "Paste resume text directly into the box below.";
+  updateEndpointPreview();
 }
 
 document.getElementById("api-base-url").addEventListener("input", updateEndpointPreview);
-updateEndpointPreview();
+inputModeInputs.forEach((input) => {
+  input.addEventListener("change", updateInputMode);
+});
+updateInputMode();
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -124,19 +178,40 @@ form.addEventListener("submit", async (event) => {
 
   const formData = new FormData(form);
   const apiBaseUrl = String(formData.get("apiBaseUrl")).trim().replace(/\/$/, "");
-  const payload = {
-    job_role: String(formData.get("jobRole")).trim(),
-    resume_text: String(formData.get("resumeText")).trim(),
-  };
+  const isFileMode = formData.get("inputMode") === "file";
+  const jobRole = String(formData.get("jobRole")).trim();
 
   try {
-    const response = await fetch(`${apiBaseUrl}/report-from-text`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
+    let response;
+
+    if (isFileMode) {
+      const file = document.getElementById("resume-file").files[0];
+      if (!file) {
+        throw new Error("Choose a .txt, .docx, or .pdf file first.");
+      }
+
+      const uploadData = new FormData();
+      uploadData.append("file", file);
+      uploadData.append("job_role", jobRole);
+
+      response = await fetch(`${apiBaseUrl}/upload-resume`, {
+        method: "POST",
+        body: uploadData,
+      });
+    } else {
+      const payload = {
+        job_role: jobRole,
+        resume_text: String(formData.get("resumeText")).trim(),
+      };
+
+      response = await fetch(`${apiBaseUrl}/report-from-text`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+    }
 
     const data = await response.json();
     if (!response.ok) {
@@ -147,7 +222,7 @@ form.addEventListener("submit", async (event) => {
     renderReport(data);
     setStatus("Report generated successfully.");
   } catch (error) {
-    setStatus(`Request failed: ${error.message}`, true);
+    setStatus(`Request failed: ${getFriendlyErrorMessage(error, isFileMode)}`, true);
   } finally {
     submitButton.disabled = false;
   }

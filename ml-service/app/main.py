@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 import sys
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
@@ -15,7 +16,12 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from app.model_utils import estimate_ai_score, extract_experience_years, extract_skills_from_text
+from app.model_utils import (
+    estimate_ai_score,
+    extract_experience_years,
+    extract_skills_from_text,
+    extract_text_from_resume_file,
+)
 from app.predictor import build_input_frame, load_model, predict_with_probabilities
 
 
@@ -100,6 +106,12 @@ TEXT_REPORT_RESPONSE_EXAMPLE = {
         "job_role": "Data Scientist",
         "ai_score": 72.0,
     },
+}
+
+UPLOAD_REPORT_RESPONSE_EXAMPLE = {
+    **TEXT_REPORT_RESPONSE_EXAMPLE,
+    "source_filename": "resume.docx",
+    "extracted_resume_text_preview": "Experienced data scientist with 3 years of experience in Python, SQL, Tableau, and machine learning. Built dashboards and predictive models...",
 }
 
 app.add_middleware(
@@ -213,6 +225,17 @@ class TextReportResponse(BaseModel):
     }
 
 
+class UploadReportResponse(TextReportResponse):
+    source_filename: str
+    extracted_resume_text_preview: str
+
+    model_config = {
+        "json_schema_extra": {
+            "example": UPLOAD_REPORT_RESPONSE_EXAMPLE,
+        }
+    }
+
+
 def get_model():
     """Load the model once and reuse it across requests."""
     global _model
@@ -249,6 +272,36 @@ def build_features_from_resume_text(
         "job_role": job_role,
         "ai_score": ai_score,
     }
+
+
+def build_resume_text_preview(resume_text: str, limit: int = 320) -> str:
+    """Return a trimmed preview of extracted resume text for debugging and trust."""
+    compact = " ".join(resume_text.split())
+    if len(compact) <= limit:
+        return compact
+    return f"{compact[:limit].rstrip()}..."
+
+
+def build_report_payload_from_features(
+    *,
+    model,
+    fairness_report: dict[str, object],
+    extracted_features: dict[str, object],
+) -> TextReportResponse:
+    """Create a combined response after feature extraction has completed."""
+    input_df = build_input_frame(
+        skills=str(extracted_features["skills"]),
+        experience_years=float(extracted_features["experience_years"]),
+        job_role=str(extracted_features["job_role"]),
+        ai_score=float(extracted_features["ai_score"]),
+    )
+    prediction_result = predict_with_probabilities(model, input_df)
+
+    return TextReportResponse(
+        prediction=PredictionResponse(**prediction_result),
+        fairness=FairnessResponse(**fairness_report),
+        extracted_features=ExtractedFeaturesResponse(**extracted_features),
+    )
 
 
 @app.get("/")
@@ -384,16 +437,74 @@ def report_from_text(request: TextReportRequest) -> TextReportResponse:
         resume_text=request.resume_text,
         job_role=request.job_role,
     )
-    input_df = build_input_frame(
-        skills=str(extracted_features["skills"]),
-        experience_years=float(extracted_features["experience_years"]),
-        job_role=str(extracted_features["job_role"]),
-        ai_score=float(extracted_features["ai_score"]),
+    return build_report_payload_from_features(
+        model=model,
+        fairness_report=fairness_report,
+        extracted_features=extracted_features,
     )
-    prediction_result = predict_with_probabilities(model, input_df)
 
-    return TextReportResponse(
-        prediction=PredictionResponse(**prediction_result),
-        fairness=FairnessResponse(**fairness_report),
-        extracted_features=ExtractedFeaturesResponse(**extracted_features),
-    )
+
+@app.post(
+    "/upload-resume",
+    response_model=UploadReportResponse,
+    responses={
+        200: {
+            "description": "Combined report generated from an uploaded resume file",
+            "content": {
+                "application/json": {
+                    "example": UPLOAD_REPORT_RESPONSE_EXAMPLE,
+                }
+            },
+        }
+    },
+)
+async def upload_resume(
+    file: UploadFile = File(...),
+    job_role: str = Form(...),
+) -> UploadReportResponse:
+    """Extract resume text from an uploaded file, then return prediction and fairness."""
+    try:
+        model = get_model()
+        fairness_report = load_fairness_report()
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    filename = file.filename or "uploaded_resume"
+    suffix = Path(filename).suffix.lower()
+    if suffix not in {".pdf", ".docx", ".txt"}:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported file type. Upload a .pdf, .docx, or .txt resume.",
+        )
+
+    temp_path: Path | None = None
+    try:
+        file_bytes = await file.read()
+        with NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            temp_file.write(file_bytes)
+            temp_path = Path(temp_file.name)
+
+        resume_text = extract_text_from_resume_file(temp_path)
+        extracted_features = build_features_from_resume_text(
+            resume_text=resume_text,
+            job_role=job_role,
+        )
+        report_response = build_report_payload_from_features(
+            model=model,
+            fairness_report=fairness_report,
+            extracted_features=extracted_features,
+        )
+        return UploadReportResponse(
+            prediction=report_response.prediction,
+            fairness=report_response.fairness,
+            extracted_features=report_response.extracted_features,
+            source_filename=filename,
+            extracted_resume_text_preview=build_resume_text_preview(resume_text),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=501, detail=str(exc)) from exc
+    finally:
+        if temp_path and temp_path.exists():
+            temp_path.unlink(missing_ok=True)

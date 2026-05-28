@@ -52,6 +52,15 @@ python3 ml-service/app/predictor.py
 
 You can also expose the trained model as a local API:
 
+Install dependencies first:
+
+```bash
+cd ml-service
+pip install -r requirements.txt
+```
+
+Then run:
+
 ```bash
 cd ml-service
 uvicorn app.main:app --reload
@@ -102,3 +111,31 @@ with JSON like:
 ```
 
 This endpoint also returns the extracted features used for prediction.
+
+For uploaded resume files, use:
+
+```bash
+POST /upload-resume
+```
+
+Supported file types:
+
+- `.txt`
+- `.docx`
+- `.pdf` when `pypdf` is installed
+
+If PDF uploads fail with a missing parser message, install dependencies again:
+
+```bash
+cd ml-service
+pip install -r requirements.txt
+```
+
+This endpoint returns:
+
+- prediction label
+- prediction probabilities
+- latest fairness summary
+- extracted features
+- original source filename
+- a trimmed extracted resume text preview
