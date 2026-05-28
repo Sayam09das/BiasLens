@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+data/raw/
+artifacts/
+data/processed/*.csv
+data/processed/*.json
+!data/processed/.gitkeep
+
+data/samples/*.csv
+data/samples/*.json
+!data/samples/.gitkeep
