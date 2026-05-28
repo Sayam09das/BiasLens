@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 import sys
@@ -16,6 +15,9 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from app.config import get_settings
+from app.dependencies import get_fairness_report, get_model
+from app.lifespan import lifespan
 from app.model_utils import (
     estimate_ai_score,
     explain_role_fit,
@@ -23,12 +25,14 @@ from app.model_utils import (
     extract_skills_from_text,
     extract_text_from_resume_file,
 )
-from app.predictor import build_input_frame, load_model, predict_with_probabilities
+from app.predictor import build_input_frame, predict_with_probabilities
 
-
-app = FastAPI(title="BiasLens ML Service", version="0.1.0")
-_model = None
-FAIRNESS_REPORT_PATH = ROOT / "artifacts" / "metrics" / "fairness_evaluation.json"
+settings = get_settings()
+app = FastAPI(
+    title=settings.service_name,
+    version=settings.service_version,
+    lifespan=lifespan,
+)
 
 PREDICTION_REQUEST_EXAMPLE = {
     "skills": "Python, SQL, Tableau, Machine Learning, Data Analysis",
@@ -165,7 +169,7 @@ UPLOAD_REPORT_RESPONSE_EXAMPLE = {
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.allowed_origins,
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -323,27 +327,6 @@ class UploadRoleComparisonResponse(RoleComparisonResponse):
         }
     }
 
-
-def get_model():
-    """Load the model once and reuse it across requests."""
-    global _model
-    if _model is None:
-        _model = load_model()
-    return _model
-
-
-def load_fairness_report() -> dict[str, object]:
-    """Load the saved fairness report from disk."""
-    if not FAIRNESS_REPORT_PATH.exists():
-        raise FileNotFoundError(
-            "Fairness report not found. Run "
-            "'python3 ml-service/training/evaluate_fairness.py' first."
-        )
-
-    with FAIRNESS_REPORT_PATH.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
-
-
 def build_features_from_resume_text(
     *,
     resume_text: str,
@@ -458,7 +441,7 @@ def health() -> dict[str, str]:
 def fairness() -> FairnessResponse:
     """Return the latest saved fairness analysis."""
     try:
-        report = load_fairness_report()
+        report = get_fairness_report()
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -514,7 +497,7 @@ def report(request: PredictionRequest) -> ReportResponse:
     """Return a combined payload with prediction output and fairness context."""
     try:
         model = get_model()
-        fairness_report = load_fairness_report()
+        fairness_report = get_fairness_report()
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -550,7 +533,7 @@ def report_from_text(request: TextReportRequest) -> TextReportResponse:
     """Extract simple features from resume text, then return prediction and fairness."""
     try:
         model = get_model()
-        fairness_report = load_fairness_report()
+        fairness_report = get_fairness_report()
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -583,7 +566,7 @@ def compare_roles(request: RoleComparisonRequest) -> RoleComparisonResponse:
     """Compare the same resume text against multiple target roles."""
     try:
         model = get_model()
-        fairness_report = load_fairness_report()
+        fairness_report = get_fairness_report()
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -629,7 +612,7 @@ async def compare_upload_resume(
     """Compare one uploaded resume file across multiple target roles."""
     try:
         model = get_model()
-        fairness_report = load_fairness_report()
+        fairness_report = get_fairness_report()
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -700,7 +683,7 @@ async def upload_resume(
     """Extract resume text from an uploaded file, then return prediction and fairness."""
     try:
         model = get_model()
-        fairness_report = load_fairness_report()
+        fairness_report = get_fairness_report()
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
