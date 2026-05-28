@@ -14,12 +14,14 @@ import pandas as pd
 
 
 ROOT = Path(__file__).resolve().parents[1]
-MODEL_PATH = ROOT / "artifacts" / "models" / "baseline_resume_screening_model.pkl"
 
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from app.model_utils import combine_text_columns as _combine_text_columns  # noqa: F401
+from core.models.model_loader import DEFAULT_MODEL_ARTIFACT
+
+MODEL_PATH = DEFAULT_MODEL_ARTIFACT.artifact_path
 
 
 def load_model():

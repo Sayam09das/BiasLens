@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 from app.config import get_settings
-from app.predictor import load_model
+from core.models.model_registry import get_default_model
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -18,7 +18,7 @@ def get_model():
     """Return a cached prediction model instance."""
     global _cached_model
     if _cached_model is None:
-        _cached_model = load_model()
+        _cached_model = get_default_model()
     return _cached_model
 
 
