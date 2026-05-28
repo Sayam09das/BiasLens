@@ -20,6 +20,7 @@ from app.api.schemas import (
 from app.predictor import build_input_frame, predict_with_probabilities
 from core.extraction import extract_experience_years, extract_skills_from_text
 from core.preprocessing.feature_builder import build_feature_set, build_fit_explanation
+from core.reporting.report_payload import build_complete_report_payload
 
 
 def build_features_from_resume_text(
@@ -89,6 +90,25 @@ def build_report_payload_from_features(
         prediction=item.prediction,
         fairness=FairnessResponse(**fairness_report),
         extracted_features=item.extracted_features,
+    )
+
+
+def build_extended_report_payload_from_features(
+    *,
+    model,
+    fairness_report: dict[str, object],
+    extracted_features: dict[str, object],
+    source_filename: str | None = None,
+    extracted_resume_text_preview: str | None = None,
+) -> dict[str, object]:
+    """Create a richer reporting payload for future report/export endpoints."""
+    item = build_prediction_from_features(model, extracted_features)
+    return build_complete_report_payload(
+        prediction=item.prediction.model_dump(),
+        fairness_report=fairness_report,
+        extracted_features=item.extracted_features.model_dump(),
+        source_filename=source_filename,
+        extracted_resume_text_preview=extracted_resume_text_preview,
     )
 
 
