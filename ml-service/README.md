@@ -127,6 +127,23 @@ with JSON like:
 }
 ```
 
+For side-by-side role comparison from an uploaded resume file, use:
+
+```bash
+POST /compare-upload-resume
+```
+
+Submit multipart form data with:
+
+- `file`
+- `job_roles`
+
+Where `job_roles` is a comma-separated string such as:
+
+```text
+Data Scientist, Full Stack Developer, Machine Learning Engineer
+```
+
 For uploaded resume files, use:
 
 ```bash

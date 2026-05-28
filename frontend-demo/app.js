@@ -3,6 +3,7 @@ const submitButton = document.getElementById("submit-button");
 const formStatus = document.getElementById("form-status");
 const endpointPreview = document.getElementById("endpoint-preview");
 const inputModeInputs = document.querySelectorAll('input[name="inputMode"]');
+const compareRoleInputs = document.querySelectorAll('input[name="compareRoleOption"]');
 const fileField = document.getElementById("file-field");
 const textField = document.getElementById("text-field");
 const modeHelp = document.getElementById("mode-help");
@@ -22,6 +23,7 @@ const resumePreviewBlock = document.getElementById("resume-preview-block");
 const resumePreview = document.getElementById("resume-preview");
 const comparisonBlock = document.getElementById("comparison-block");
 const comparisonGrid = document.getElementById("comparison-grid");
+const bestMatchSummary = document.getElementById("best-match-summary");
 
 const probabilityList = document.getElementById("probability-list");
 const genderList = document.getElementById("gender-list");
@@ -104,23 +106,82 @@ function renderRoleComparisons(comparisons = []) {
   comparisonGrid.innerHTML = "";
   if (!comparisons.length) {
     comparisonBlock.classList.add("hidden");
+    bestMatchSummary.textContent = "";
     return;
   }
 
+  const rankedComparisons = [...comparisons].sort((left, right) => {
+    const leftHire = left.prediction.probabilities?.Hire ?? 0;
+    const rightHire = right.prediction.probabilities?.Hire ?? 0;
+    return rightHire - leftHire;
+  });
+  const bestItem = rankedComparisons[0];
+  const bestRole = bestItem?.extracted_features?.job_role;
+  const bestSkills = String(bestItem?.extracted_features?.skills || "")
+    .split(",")
+    .map((skill) => skill.trim())
+    .filter(Boolean)
+    .slice(0, 4)
+    .join(", ");
+  const bestHire = bestItem?.prediction?.probabilities?.Hire ?? 0;
+  bestMatchSummary.textContent = bestRole
+    ? `${bestRole} ranks highest for this resume with ${formatPercent(bestHire)} hire confidence, driven by skills like ${bestSkills || "the extracted profile"}.`
+    : "";
+
+  const getRankLabel = (hireProbability) => {
+    if (hireProbability >= 0.85) {
+      return "Best Match";
+    }
+    if (hireProbability >= 0.6) {
+      return "Strong Match";
+    }
+    if (hireProbability >= 0.35) {
+      return "Possible Match";
+    }
+    return "Weak Match";
+  };
+
   comparisons.forEach((item) => {
     const card = document.createElement("article");
-    card.className = "comparison-card";
+    const isBestMatch = item.extracted_features.job_role === bestRole;
+    card.className = `comparison-card${isBestMatch ? " best-match" : ""}`;
 
     const probabilities = item.prediction.probabilities || {};
     const topEntry = Object.entries(probabilities).sort((a, b) => b[1] - a[1])[0];
+    const hireProbability = probabilities.Hire ?? 0;
+    const explanation = item.fit_explanation || {};
+    const matchedStrengths = Array.isArray(explanation.matched_strengths)
+      ? explanation.matched_strengths.join(", ")
+      : "";
+    const weakerAlignment = Array.isArray(explanation.weaker_alignment)
+      ? explanation.weaker_alignment.join(", ")
+      : "";
+    const rankLabel = getRankLabel(hireProbability);
+    const rankBadgeMarkup = isBestMatch ? "" : `<span class="rank-badge">${rankLabel}</span>`;
 
     card.innerHTML = `
+      ${isBestMatch ? '<span class="best-match-badge">Best Match</span>' : ""}
+      ${rankBadgeMarkup}
       <h4>${item.extracted_features.job_role}</h4>
+      <div class="match-meter">
+        <div class="match-meter-label">
+          <span>Hire Confidence</span>
+          <span>${formatPercent(hireProbability)}</span>
+        </div>
+        <div class="match-meter-track">
+          <div class="match-meter-fill" style="width: ${Math.max(0, Math.min(hireProbability * 100, 100))}%"></div>
+        </div>
+      </div>
       <p><strong>Decision:</strong> ${item.prediction.prediction}</p>
       <p><strong>Confidence:</strong> ${topEntry ? formatPercent(topEntry[1]) : "N/A"}</p>
       <p><strong>AI Score:</strong> ${item.extracted_features.ai_score}</p>
       <p><strong>Experience:</strong> ${item.extracted_features.experience_years} years</p>
       <p><strong>Skills:</strong> ${item.extracted_features.skills}</p>
+      <p><strong>Why:</strong> ${explanation.summary || "No explanation available yet."}</p>
+      <ul>
+        ${matchedStrengths ? `<li><strong>Matched strengths:</strong> ${matchedStrengths}</li>` : ""}
+        ${weakerAlignment ? `<li><strong>Weaker alignment:</strong> ${weakerAlignment}</li>` : ""}
+      </ul>
     `;
     comparisonGrid.appendChild(card);
   });
@@ -197,8 +258,13 @@ function renderComparisonReport(report) {
 function updateEndpointPreview() {
   const apiBaseUrl = document.getElementById("api-base-url").value.trim().replace(/\/$/, "");
   const selectedMode = document.querySelector('input[name="inputMode"]:checked')?.value || "text";
-  const endpoint =
-    selectedMode === "file" ? "/upload-resume" : "/report-from-text";
+  const selectedComparisonRoles = getSelectedComparisonRoles();
+  let endpoint = "/report-from-text";
+  if (selectedMode === "file") {
+    endpoint = selectedComparisonRoles.length >= 2 ? "/compare-upload-resume" : "/upload-resume";
+  } else if (selectedComparisonRoles.length >= 2) {
+    endpoint = "/compare-roles";
+  }
   endpointPreview.textContent = `${apiBaseUrl}${endpoint}`;
 }
 
@@ -213,9 +279,18 @@ function updateInputMode() {
   updateEndpointPreview();
 }
 
+function getSelectedComparisonRoles() {
+  return Array.from(compareRoleInputs)
+    .filter((input) => input.checked)
+    .map((input) => input.value);
+}
+
 document.getElementById("api-base-url").addEventListener("input", updateEndpointPreview);
 inputModeInputs.forEach((input) => {
   input.addEventListener("change", updateInputMode);
+});
+compareRoleInputs.forEach((input) => {
+  input.addEventListener("change", updateEndpointPreview);
 });
 updateInputMode();
 
@@ -228,7 +303,7 @@ form.addEventListener("submit", async (event) => {
   const apiBaseUrl = String(formData.get("apiBaseUrl")).trim().replace(/\/$/, "");
   const isFileMode = formData.get("inputMode") === "file";
   const jobRole = String(formData.get("jobRole")).trim();
-  const compareRoles = String(formData.get("compareRoles") || "").trim();
+  const selectedComparisonRoles = getSelectedComparisonRoles();
 
   try {
     let response;
@@ -242,19 +317,22 @@ form.addEventListener("submit", async (event) => {
 
       const uploadData = new FormData();
       uploadData.append("file", file);
-      uploadData.append("job_role", jobRole);
-
-      response = await fetch(`${apiBaseUrl}/upload-resume`, {
-        method: "POST",
-        body: uploadData,
-      });
+      if (selectedComparisonRoles.length >= 2) {
+        isComparisonMode = true;
+        uploadData.append("job_roles", selectedComparisonRoles.join(", "));
+        response = await fetch(`${apiBaseUrl}/compare-upload-resume`, {
+          method: "POST",
+          body: uploadData,
+        });
+      } else {
+        uploadData.append("job_role", jobRole);
+        response = await fetch(`${apiBaseUrl}/upload-resume`, {
+          method: "POST",
+          body: uploadData,
+        });
+      }
     } else {
-      const parsedRoles = compareRoles
-        .split(",")
-        .map((role) => role.trim())
-        .filter(Boolean);
-
-      if (parsedRoles.length >= 2) {
+      if (selectedComparisonRoles.length >= 2) {
         isComparisonMode = true;
         response = await fetch(`${apiBaseUrl}/compare-roles`, {
           method: "POST",
@@ -263,7 +341,7 @@ form.addEventListener("submit", async (event) => {
           },
           body: JSON.stringify({
             resume_text: String(formData.get("resumeText")).trim(),
-            job_roles: parsedRoles,
+            job_roles: selectedComparisonRoles,
           }),
         });
       } else {
@@ -288,7 +366,7 @@ form.addEventListener("submit", async (event) => {
       throw new Error(detail);
     }
 
-    if (!isFileMode && Array.isArray(data.comparisons)) {
+    if (Array.isArray(data.comparisons)) {
       renderComparisonReport(data);
     } else {
       renderReport(data);

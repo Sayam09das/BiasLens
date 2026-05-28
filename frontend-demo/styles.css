@@ -225,6 +225,38 @@ textarea {
   line-height: 1.5;
 }
 
+.role-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.role-chip {
+  position: relative;
+  cursor: pointer;
+}
+
+.role-chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.role-chip span {
+  display: inline-block;
+  padding: 12px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(46, 34, 22, 0.14);
+  background: rgba(255, 255, 255, 0.78);
+  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+}
+
+.role-chip input:checked + span {
+  background: linear-gradient(135deg, rgba(28, 106, 99, 0.14), rgba(177, 77, 43, 0.08));
+  border-color: rgba(28, 106, 99, 0.4);
+  transform: translateY(-1px);
+}
+
 input:focus,
 textarea:focus {
   outline: 3px solid var(--glow);
@@ -340,11 +372,74 @@ button:disabled {
   margin-top: 12px;
 }
 
+.comparison-summary {
+  margin: 10px 0 0;
+  color: var(--muted);
+}
+
+.rank-badge {
+  display: inline-block;
+  margin-bottom: 10px;
+  margin-right: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(177, 77, 43, 0.12);
+  color: var(--accent);
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.match-meter {
+  margin: 12px 0 14px;
+}
+
+.match-meter-label {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.match-meter-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(46, 34, 22, 0.08);
+  overflow: hidden;
+}
+
+.match-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #d87045, #1c6a63);
+}
+
 .comparison-card {
   padding: 18px;
   border-radius: 18px;
   background: rgba(255, 250, 242, 0.92);
   border: 1px solid rgba(46, 34, 22, 0.08);
+}
+
+.comparison-card.best-match {
+  border-color: rgba(28, 106, 99, 0.45);
+  background: linear-gradient(180deg, rgba(28, 106, 99, 0.12), rgba(255, 250, 242, 0.95));
+  box-shadow: 0 16px 30px rgba(28, 106, 99, 0.14);
+}
+
+.best-match-badge {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(28, 106, 99, 0.12);
+  color: var(--accent-2);
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .comparison-card h4 {
@@ -354,6 +449,16 @@ button:disabled {
 .comparison-card p {
   margin: 6px 0;
   color: var(--muted);
+}
+
+.comparison-card ul {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+}
+
+.comparison-card li {
+  margin: 4px 0;
 }
 
 .stack-list {

@@ -73,7 +73,70 @@ ROLE_SKILL_WEIGHTS = {
             "docker",
             "git",
         },
-    }
+    },
+    "full stack developer": {
+        "high_value": {
+            "javascript",
+            "typescript",
+            "react",
+            "next.js",
+            "node.js",
+            "express",
+            "mongodb",
+            "html",
+            "css",
+            "api development",
+            "full-stack development",
+            "git",
+        },
+        "medium_value": {"python", "sql", "docker", "aws", "java"},
+        "low_value": {
+            "tableau",
+            "power bi",
+            "statistics",
+            "nlp",
+            "tensorflow",
+            "pytorch",
+            "scikit-learn",
+            "spark",
+            "data analysis",
+        },
+    },
+    "machine learning engineer": {
+        "high_value": {
+            "python",
+            "machine learning",
+            "tensorflow",
+            "pytorch",
+            "scikit-learn",
+            "nlp",
+            "statistics",
+            "sql",
+            "spark",
+        },
+        "medium_value": {
+            "aws",
+            "docker",
+            "data analysis",
+            "java",
+            "api development",
+        },
+        "low_value": {
+            "react",
+            "next.js",
+            "node.js",
+            "express",
+            "mongodb",
+            "html",
+            "css",
+            "full-stack development",
+            "javascript",
+            "typescript",
+            "git",
+            "tableau",
+            "power bi",
+        },
+    },
 }
 
 
@@ -148,6 +211,40 @@ def estimate_ai_score(
     diversity_bonus = 4 if len(skill_set) >= 7 else 0
     score = skill_points + experience_points + alignment_bonus + diversity_bonus
     return round(max(0.0, min(score, 100.0)), 2)
+
+
+def explain_role_fit(skills: list[str], job_role: str | None = None) -> dict[str, list[str] | str]:
+    """Explain why a role scored the way it did based on matched and missing signals."""
+    normalized_role = (job_role or "").strip().lower()
+    role_config = ROLE_SKILL_WEIGHTS.get(normalized_role)
+    skill_set = set(skills)
+
+    if not role_config:
+        return {
+            "summary": "This role is using generic scoring because no role-specific profile is configured yet.",
+            "matched_strengths": sorted(skill_set)[:5],
+            "weaker_alignment": [],
+        }
+
+    matched_high = sorted(skill_set & role_config["high_value"])
+    matched_medium = sorted(skill_set & role_config["medium_value"])
+    missing_high = sorted(role_config["high_value"] - skill_set)
+
+    matched_strengths = (matched_high + matched_medium)[:6]
+    weaker_alignment = missing_high[:4]
+
+    if matched_high:
+        summary = f"Strongest alignment comes from core {job_role} skills such as {', '.join(matched_high[:3])}."
+    elif matched_medium:
+        summary = f"This resume shows partial {job_role} alignment through supporting skills like {', '.join(matched_medium[:3])}."
+    else:
+        summary = f"This resume has limited direct alignment with the core skill profile for {job_role}."
+
+    return {
+        "summary": summary,
+        "matched_strengths": matched_strengths,
+        "weaker_alignment": weaker_alignment,
+    }
 
 
 def infer_experience_from_date_ranges(text: str) -> float:

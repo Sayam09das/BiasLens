@@ -18,6 +18,7 @@ if str(ROOT) not in sys.path:
 
 from app.model_utils import (
     estimate_ai_score,
+    explain_role_fit,
     extract_experience_years,
     extract_skills_from_text,
     extract_text_from_resume_file,
@@ -107,6 +108,11 @@ ROLE_COMPARISON_RESPONSE_EXAMPLE = {
                 "job_role": "Data Scientist",
                 "ai_score": 72.0,
             },
+            "fit_explanation": {
+                "summary": "Strongest alignment comes from core Data Scientist skills such as python, sql, machine learning.",
+                "matched_strengths": ["python", "sql", "machine learning", "data analysis", "tableau"],
+                "weaker_alignment": ["statistics", "scikit-learn"],
+            },
         },
         {
             "prediction": {
@@ -119,9 +125,20 @@ ROLE_COMPARISON_RESPONSE_EXAMPLE = {
                 "job_role": "Full Stack Developer",
                 "ai_score": 78.0,
             },
+            "fit_explanation": {
+                "summary": "Strongest alignment comes from core Full Stack Developer skills such as javascript, react, node.js.",
+                "matched_strengths": ["javascript", "react", "node.js", "next.js", "typescript"],
+                "weaker_alignment": ["html", "css"],
+            },
         },
     ],
     "fairness": FAIRNESS_RESPONSE_EXAMPLE,
+}
+
+UPLOAD_ROLE_COMPARISON_RESPONSE_EXAMPLE = {
+    **ROLE_COMPARISON_RESPONSE_EXAMPLE,
+    "source_filename": "resume.pdf",
+    "extracted_resume_text_preview": "Experienced engineer with Python, SQL, React, Node.js, and machine learning project work...",
 }
 
 TEXT_REPORT_REQUEST_EXAMPLE = {
@@ -282,6 +299,7 @@ class UploadReportResponse(TextReportResponse):
 class RoleComparisonItem(BaseModel):
     prediction: PredictionResponse
     extracted_features: ExtractedFeaturesResponse
+    fit_explanation: dict[str, object]
 
 
 class RoleComparisonResponse(BaseModel):
@@ -291,6 +309,17 @@ class RoleComparisonResponse(BaseModel):
     model_config = {
         "json_schema_extra": {
             "example": ROLE_COMPARISON_RESPONSE_EXAMPLE,
+        }
+    }
+
+
+class UploadRoleComparisonResponse(RoleComparisonResponse):
+    source_filename: str
+    extracted_resume_text_preview: str
+
+    model_config = {
+        "json_schema_extra": {
+            "example": UPLOAD_ROLE_COMPARISON_RESPONSE_EXAMPLE,
         }
     }
 
@@ -375,7 +404,25 @@ def build_prediction_from_features(model, extracted_features: dict[str, object])
     return RoleComparisonItem(
         prediction=PredictionResponse(**prediction_result),
         extracted_features=ExtractedFeaturesResponse(**extracted_features),
+        fit_explanation=explain_role_fit(
+            [
+                skill.strip()
+                for skill in str(extracted_features["skills"]).split(",")
+                if skill.strip()
+            ],
+            str(extracted_features["job_role"]),
+        ),
     )
+
+
+def clean_distinct_roles(job_roles: list[str]) -> list[str]:
+    """Normalize and deduplicate requested job roles while preserving order."""
+    cleaned_roles: list[str] = []
+    for role in job_roles:
+        normalized = role.strip()
+        if normalized and normalized not in cleaned_roles:
+            cleaned_roles.append(normalized)
+    return cleaned_roles
 
 
 @app.get("/")
@@ -540,12 +587,7 @@ def compare_roles(request: RoleComparisonRequest) -> RoleComparisonResponse:
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
-    cleaned_roles = []
-    for role in request.job_roles:
-        normalized = role.strip()
-        if normalized and normalized not in cleaned_roles:
-            cleaned_roles.append(normalized)
-
+    cleaned_roles = clean_distinct_roles(request.job_roles)
     if len(cleaned_roles) < 2:
         raise HTTPException(
             status_code=400,
@@ -564,6 +606,77 @@ def compare_roles(request: RoleComparisonRequest) -> RoleComparisonResponse:
         comparisons=comparisons,
         fairness=FairnessResponse(**fairness_report),
     )
+
+
+@app.post(
+    "/compare-upload-resume",
+    response_model=UploadRoleComparisonResponse,
+    responses={
+        200: {
+            "description": "Side-by-side role comparison for an uploaded resume file",
+            "content": {
+                "application/json": {
+                    "example": UPLOAD_ROLE_COMPARISON_RESPONSE_EXAMPLE,
+                }
+            },
+        }
+    },
+)
+async def compare_upload_resume(
+    file: UploadFile = File(...),
+    job_roles: str = Form(...),
+) -> UploadRoleComparisonResponse:
+    """Compare one uploaded resume file across multiple target roles."""
+    try:
+        model = get_model()
+        fairness_report = load_fairness_report()
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    filename = file.filename or "uploaded_resume"
+    suffix = Path(filename).suffix.lower()
+    if suffix not in {".pdf", ".docx", ".txt"}:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported file type. Upload a .pdf, .docx, or .txt resume.",
+        )
+
+    cleaned_roles = clean_distinct_roles(job_roles.split(","))
+    if len(cleaned_roles) < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide at least two distinct job roles for comparison.",
+        )
+
+    temp_path: Path | None = None
+    try:
+        file_bytes = await file.read()
+        with NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            temp_file.write(file_bytes)
+            temp_path = Path(temp_file.name)
+
+        resume_text = extract_text_from_resume_file(temp_path)
+        comparisons = []
+        for role in cleaned_roles:
+            extracted_features = build_features_from_resume_text(
+                resume_text=resume_text,
+                job_role=role,
+            )
+            comparisons.append(build_prediction_from_features(model, extracted_features))
+
+        return UploadRoleComparisonResponse(
+            comparisons=comparisons,
+            fairness=FairnessResponse(**fairness_report),
+            source_filename=filename,
+            extracted_resume_text_preview=build_resume_text_preview(resume_text),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=501, detail=str(exc)) from exc
+    finally:
+        if temp_path and temp_path.exists():
+            temp_path.unlink(missing_ok=True)
 
 
 @app.post(

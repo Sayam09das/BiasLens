@@ -7,7 +7,7 @@ This is a lightweight standalone client for the ML service.
 1. Start the FastAPI app in `ml-service`.
 2. Open [index.html](/Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/frontend-demo/index.html:1) in your browser.
 3. Choose either pasted text or file upload mode.
-4. Submit to `POST /report-from-text` or `POST /upload-resume`.
+4. Submit to `POST /report-from-text`, `POST /upload-resume`, `POST /compare-roles`, or `POST /compare-upload-resume` depending on the selected mode and roles.
 
 ## Notes
 
