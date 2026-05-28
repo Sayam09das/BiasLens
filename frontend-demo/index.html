@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BiasLens Demo Client</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">BiasLens Demo Client</p>
+          <h1>Turn raw resume text into a hiring signal and fairness snapshot.</h1>
+          <p class="hero-text">
+            This standalone page calls the ML service's <code>/report-from-text</code>
+            endpoint and visualizes the prediction, extracted features, and fairness
+            context in one place.
+          </p>
+        </div>
+        <div class="hero-card">
+          <p class="card-label">Live Endpoint</p>
+          <code id="endpoint-preview">http://127.0.0.1:8000/report-from-text</code>
+          <p class="hero-note">
+            Start the FastAPI server first, then submit resume text below.
+          </p>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="panel input-panel">
+          <div class="panel-heading">
+            <h2>Analyze Resume</h2>
+            <p>Paste a resume snippet and choose the target role.</p>
+          </div>
+
+          <form id="analysis-form" class="analysis-form">
+            <label class="field">
+              <span>API Base URL</span>
+              <input
+                id="api-base-url"
+                name="apiBaseUrl"
+                type="url"
+                value="http://127.0.0.1:8000"
+                placeholder="http://127.0.0.1:8000"
+              />
+            </label>
+
+            <label class="field">
+              <span>Target Job Role</span>
+              <input
+                id="job-role"
+                name="jobRole"
+                type="text"
+                value="Data Scientist"
+                placeholder="Data Scientist"
+                required
+              />
+            </label>
+
+            <label class="field">
+              <span>Resume Text</span>
+              <textarea
+                id="resume-text"
+                name="resumeText"
+                rows="12"
+                required
+              >Data Scientist with 3 years of experience in Python, SQL, Tableau, machine learning, and data analysis. Built dashboards, automated reporting, and predictive models for business decisions.</textarea>
+            </label>
+
+            <div class="actions">
+              <button type="submit" id="submit-button">Generate Report</button>
+              <p id="form-status" class="form-status" aria-live="polite"></p>
+            </div>
+          </form>
+        </section>
+
+        <section class="panel output-panel">
+          <div class="panel-heading">
+            <h2>Report Output</h2>
+            <p>The response below updates after each successful request.</p>
+          </div>
+
+          <div id="empty-state" class="empty-state">
+            <p>No report yet.</p>
+            <span>Submit the form to see prediction, extracted features, and fairness metrics.</span>
+          </div>
+
+          <div id="results" class="results hidden">
+            <section class="result-block hero-result">
+              <div class="metric-card">
+                <p class="metric-label">Prediction</p>
+                <h3 id="prediction-label">-</h3>
+              </div>
+              <div class="metric-card">
+                <p class="metric-label">Top Probability</p>
+                <h3 id="top-probability">-</h3>
+              </div>
+              <div class="metric-card">
+                <p class="metric-label">Overall Selection Rate</p>
+                <h3 id="selection-rate">-</h3>
+              </div>
+            </section>
+
+            <section class="result-block">
+              <h3>Extracted Features</h3>
+              <div class="feature-grid">
+                <article class="info-card">
+                  <p class="info-label">Skills</p>
+                  <p id="feature-skills" class="info-value">-</p>
+                </article>
+                <article class="info-card">
+                  <p class="info-label">Experience</p>
+                  <p id="feature-experience" class="info-value">-</p>
+                </article>
+                <article class="info-card">
+                  <p class="info-label">Job Role</p>
+                  <p id="feature-role" class="info-value">-</p>
+                </article>
+                <article class="info-card">
+                  <p class="info-label">Estimated AI Score</p>
+                  <p id="feature-score" class="info-value">-</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="result-block">
+              <h3>Prediction Probabilities</h3>
+              <div id="probability-list" class="stack-list"></div>
+            </section>
+
+            <section class="result-block">
+              <h3>Fairness By Gender</h3>
+              <div id="gender-list" class="stack-list"></div>
+            </section>
+
+            <section class="result-block">
+              <h3>Fairness By Age Group</h3>
+              <div id="age-list" class="stack-list"></div>
+            </section>
+
+            <section class="result-block">
+              <h3>Fairness Summary</h3>
+              <div class="feature-grid">
+                <article class="info-card">
+                  <p class="info-label">Gender Parity Difference</p>
+                  <p id="gender-parity" class="info-value">-</p>
+                </article>
+                <article class="info-card">
+                  <p class="info-label">Age Parity Difference</p>
+                  <p id="age-parity" class="info-value">-</p>
+                </article>
+                <article class="info-card">
+                  <p class="info-label">Gender Disparate Impact</p>
+                  <p id="gender-impact" class="info-value">-</p>
+                </article>
+                <article class="info-card">
+                  <p class="info-label">Age Disparate Impact</p>
+                  <p id="age-impact" class="info-value">-</p>
+                </article>
+              </div>
+            </section>
+
+            <section class="result-block">
+              <h3>Raw JSON</h3>
+              <pre id="raw-json" class="json-viewer"></pre>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="./app.js"></script>
+  </body>
+  </html>

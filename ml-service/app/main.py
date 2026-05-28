@@ -7,6 +7,7 @@ from pathlib import Path
 import sys
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
 
@@ -100,6 +101,14 @@ TEXT_REPORT_RESPONSE_EXAMPLE = {
         "ai_score": 72.0,
     },
 }
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 class PredictionRequest(BaseModel):
