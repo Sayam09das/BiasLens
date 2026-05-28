@@ -17,13 +17,9 @@ from app.api.schemas import (
     RoleFitExplanation,
     TextReportResponse,
 )
-from app.model_utils import (
-    estimate_ai_score,
-    explain_role_fit,
-    extract_experience_years,
-    extract_skills_from_text,
-)
 from app.predictor import build_input_frame, predict_with_probabilities
+from core.preprocessing.feature_builder import build_feature_set, build_fit_explanation
+from core.preprocessing.parser import extract_experience_years, extract_skills_from_text
 
 
 def build_features_from_resume_text(
@@ -34,13 +30,11 @@ def build_features_from_resume_text(
     """Convert raw resume text into the structured fields used by the model."""
     skills = extract_skills_from_text(resume_text)
     experience_years = extract_experience_years(resume_text)
-    ai_score = estimate_ai_score(skills, experience_years, job_role)
-    return {
-        "skills": ", ".join(skills) if skills else "general experience",
-        "experience_years": experience_years,
-        "job_role": job_role,
-        "ai_score": ai_score,
-    }
+    return build_feature_set(
+        skills=skills,
+        experience_years=experience_years,
+        job_role=job_role,
+    )
 
 
 def build_resume_text_preview(resume_text: str, limit: int = 320) -> str:
@@ -75,7 +69,7 @@ def build_prediction_from_features(model, extracted_features: dict[str, object])
         for skill in str(extracted_features["skills"]).split(",")
         if skill.strip()
     ]
-    fit = explain_role_fit(parsed_skills, str(extracted_features["job_role"]))
+    fit = build_fit_explanation(parsed_skills, str(extracted_features["job_role"]))
     return RoleComparisonItem(
         prediction=PredictionResponse(**prediction_result),
         extracted_features=ExtractedFeaturesResponse(**extracted_features),
