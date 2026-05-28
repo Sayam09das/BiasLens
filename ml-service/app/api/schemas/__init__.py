@@ -1,5 +1,12 @@
 """Schema package exports for the BiasLens ML service API."""
 
+from app.api.schemas.counterfactual_schema import (
+    COUNTERFACTUAL_RESPONSE_EXAMPLE,
+    CounterfactualCandidateResponse,
+    CounterfactualEvaluationResponse,
+    CounterfactualRequest,
+    CounterfactualResponse,
+)
 from app.api.schemas.error_schema import ErrorResponse
 from app.api.schemas.explain_schema import (
     EXPLAIN_RESPONSE_EXAMPLE,
@@ -47,6 +54,11 @@ from app.api.schemas.report_schema import (
 from app.api.schemas.resume_schema import ParseUploadResponse
 
 __all__ = [
+    "COUNTERFACTUAL_RESPONSE_EXAMPLE",
+    "CounterfactualCandidateResponse",
+    "CounterfactualEvaluationResponse",
+    "CounterfactualRequest",
+    "CounterfactualResponse",
     "ErrorResponse",
     "EXPLAIN_RESPONSE_EXAMPLE",
     "ExplainRequest",
