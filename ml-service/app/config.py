@@ -17,6 +17,9 @@ class Settings(BaseModel):
     fairness_report_path: str = Field(
         default="artifacts/metrics/fairness_evaluation.json"
     )
+    cache_backend: str = Field(default="memory")
+    redis_url: str | None = Field(default=None)
+    cache_default_ttl_seconds: int = Field(default=300)
 
 
 @lru_cache(maxsize=1)
@@ -31,5 +34,10 @@ def get_settings() -> Settings:
         fairness_report_path=os.getenv(
             "BIASLENS_FAIRNESS_REPORT_PATH",
             "artifacts/metrics/fairness_evaluation.json",
+        ),
+        cache_backend=os.getenv("BIASLENS_CACHE_BACKEND", "memory"),
+        redis_url=os.getenv("BIASLENS_REDIS_URL"),
+        cache_default_ttl_seconds=int(
+            os.getenv("BIASLENS_CACHE_DEFAULT_TTL_SECONDS", "300")
         ),
     )
