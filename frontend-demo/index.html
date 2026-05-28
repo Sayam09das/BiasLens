@@ -97,6 +97,18 @@
               />
             </label>
 
+            <label class="field">
+              <span>Compare Roles</span>
+              <input
+                id="compare-roles"
+                name="compareRoles"
+                type="text"
+                value="Data Scientist, Full Stack Developer, Machine Learning Engineer"
+                placeholder="Data Scientist, Full Stack Developer, Machine Learning Engineer"
+              />
+              <small class="field-help">Optional. Comma-separated roles for side-by-side comparison when using pasted text.</small>
+            </label>
+
             <label class="field" id="text-field">
               <span>Resume Text</span>
               <textarea
@@ -167,6 +179,11 @@
             <section class="result-block hidden" id="resume-preview-block">
               <h3>Extracted Text Preview</h3>
               <pre id="resume-preview" class="json-viewer preview-viewer"></pre>
+            </section>
+
+            <section class="result-block hidden" id="comparison-block">
+              <h3>Role Comparison</h3>
+              <div id="comparison-grid" class="comparison-grid"></div>
             </section>
 
             <section class="result-block">

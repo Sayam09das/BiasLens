@@ -92,6 +92,38 @@ REPORT_RESPONSE_EXAMPLE = {
     "fairness": FAIRNESS_RESPONSE_EXAMPLE,
 }
 
+ROLE_COMPARISON_REQUEST_EXAMPLE = {
+    "resume_text": "Data Scientist with 3 years of experience in Python, SQL, Tableau, machine learning, and data analysis. Built dashboards and predictive models.",
+    "job_roles": ["Data Scientist", "Full Stack Developer", "Machine Learning Engineer"],
+}
+
+ROLE_COMPARISON_RESPONSE_EXAMPLE = {
+    "comparisons": [
+        {
+            "prediction": PREDICTION_RESPONSE_EXAMPLE,
+            "extracted_features": {
+                "skills": "data analysis, machine learning, python, sql, tableau",
+                "experience_years": 3.0,
+                "job_role": "Data Scientist",
+                "ai_score": 72.0,
+            },
+        },
+        {
+            "prediction": {
+                "prediction": "Hire",
+                "probabilities": {"Hire": 0.8124, "Reject": 0.1876},
+            },
+            "extracted_features": {
+                "skills": "javascript, next.js, node.js, python, react, sql, typescript",
+                "experience_years": 3.0,
+                "job_role": "Full Stack Developer",
+                "ai_score": 78.0,
+            },
+        },
+    ],
+    "fairness": FAIRNESS_RESPONSE_EXAMPLE,
+}
+
 TEXT_REPORT_REQUEST_EXAMPLE = {
     "resume_text": "Data Scientist with 3 years of experience in Python, SQL, Tableau, machine learning, and data analysis. Built dashboards and predictive models.",
     "job_role": "Data Scientist",
@@ -206,6 +238,17 @@ class TextReportRequest(BaseModel):
     }
 
 
+class RoleComparisonRequest(BaseModel):
+    resume_text: str = Field(..., min_length=20)
+    job_roles: list[str] = Field(..., min_length=2, max_length=6)
+
+    model_config = {
+        "json_schema_extra": {
+            "example": ROLE_COMPARISON_REQUEST_EXAMPLE,
+        }
+    }
+
+
 class ExtractedFeaturesResponse(BaseModel):
     skills: str
     experience_years: float
@@ -232,6 +275,22 @@ class UploadReportResponse(TextReportResponse):
     model_config = {
         "json_schema_extra": {
             "example": UPLOAD_REPORT_RESPONSE_EXAMPLE,
+        }
+    }
+
+
+class RoleComparisonItem(BaseModel):
+    prediction: PredictionResponse
+    extracted_features: ExtractedFeaturesResponse
+
+
+class RoleComparisonResponse(BaseModel):
+    comparisons: list[RoleComparisonItem]
+    fairness: FairnessResponse
+
+    model_config = {
+        "json_schema_extra": {
+            "example": ROLE_COMPARISON_RESPONSE_EXAMPLE,
         }
     }
 
@@ -300,6 +359,21 @@ def build_report_payload_from_features(
     return TextReportResponse(
         prediction=PredictionResponse(**prediction_result),
         fairness=FairnessResponse(**fairness_report),
+        extracted_features=ExtractedFeaturesResponse(**extracted_features),
+    )
+
+
+def build_prediction_from_features(model, extracted_features: dict[str, object]) -> RoleComparisonItem:
+    """Return prediction and extracted features for one role-specific evaluation."""
+    input_df = build_input_frame(
+        skills=str(extracted_features["skills"]),
+        experience_years=float(extracted_features["experience_years"]),
+        job_role=str(extracted_features["job_role"]),
+        ai_score=float(extracted_features["ai_score"]),
+    )
+    prediction_result = predict_with_probabilities(model, input_df)
+    return RoleComparisonItem(
+        prediction=PredictionResponse(**prediction_result),
         extracted_features=ExtractedFeaturesResponse(**extracted_features),
     )
 
@@ -441,6 +515,54 @@ def report_from_text(request: TextReportRequest) -> TextReportResponse:
         model=model,
         fairness_report=fairness_report,
         extracted_features=extracted_features,
+    )
+
+
+@app.post(
+    "/compare-roles",
+    response_model=RoleComparisonResponse,
+    responses={
+        200: {
+            "description": "Side-by-side role comparison for one resume",
+            "content": {
+                "application/json": {
+                    "example": ROLE_COMPARISON_RESPONSE_EXAMPLE,
+                }
+            },
+        }
+    },
+)
+def compare_roles(request: RoleComparisonRequest) -> RoleComparisonResponse:
+    """Compare the same resume text against multiple target roles."""
+    try:
+        model = get_model()
+        fairness_report = load_fairness_report()
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    cleaned_roles = []
+    for role in request.job_roles:
+        normalized = role.strip()
+        if normalized and normalized not in cleaned_roles:
+            cleaned_roles.append(normalized)
+
+    if len(cleaned_roles) < 2:
+        raise HTTPException(
+            status_code=400,
+            detail="Provide at least two distinct job roles for comparison.",
+        )
+
+    comparisons = []
+    for role in cleaned_roles:
+        extracted_features = build_features_from_resume_text(
+            resume_text=request.resume_text,
+            job_role=role,
+        )
+        comparisons.append(build_prediction_from_features(model, extracted_features))
+
+    return RoleComparisonResponse(
+        comparisons=comparisons,
+        fairness=FairnessResponse(**fairness_report),
     )
 
 

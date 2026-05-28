@@ -112,6 +112,21 @@ with JSON like:
 
 This endpoint also returns the extracted features used for prediction.
 
+For side-by-side role comparison from the same resume text, use:
+
+```bash
+POST /compare-roles
+```
+
+with JSON like:
+
+```json
+{
+  "resume_text": "Candidate with experience in Python, SQL, React, and machine learning.",
+  "job_roles": ["Data Scientist", "Full Stack Developer", "Machine Learning Engineer"]
+}
+```
+
 For uploaded resume files, use:
 
 ```bash

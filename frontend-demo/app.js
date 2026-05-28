@@ -20,6 +20,8 @@ const featureRole = document.getElementById("feature-role");
 const featureScore = document.getElementById("feature-score");
 const resumePreviewBlock = document.getElementById("resume-preview-block");
 const resumePreview = document.getElementById("resume-preview");
+const comparisonBlock = document.getElementById("comparison-block");
+const comparisonGrid = document.getElementById("comparison-grid");
 
 const probabilityList = document.getElementById("probability-list");
 const genderList = document.getElementById("gender-list");
@@ -98,6 +100,34 @@ function renderFairnessList(container, metrics = {}) {
   });
 }
 
+function renderRoleComparisons(comparisons = []) {
+  comparisonGrid.innerHTML = "";
+  if (!comparisons.length) {
+    comparisonBlock.classList.add("hidden");
+    return;
+  }
+
+  comparisons.forEach((item) => {
+    const card = document.createElement("article");
+    card.className = "comparison-card";
+
+    const probabilities = item.prediction.probabilities || {};
+    const topEntry = Object.entries(probabilities).sort((a, b) => b[1] - a[1])[0];
+
+    card.innerHTML = `
+      <h4>${item.extracted_features.job_role}</h4>
+      <p><strong>Decision:</strong> ${item.prediction.prediction}</p>
+      <p><strong>Confidence:</strong> ${topEntry ? formatPercent(topEntry[1]) : "N/A"}</p>
+      <p><strong>AI Score:</strong> ${item.extracted_features.ai_score}</p>
+      <p><strong>Experience:</strong> ${item.extracted_features.experience_years} years</p>
+      <p><strong>Skills:</strong> ${item.extracted_features.skills}</p>
+    `;
+    comparisonGrid.appendChild(card);
+  });
+
+  comparisonBlock.classList.remove("hidden");
+}
+
 function renderReport(report) {
   const { prediction, fairness, extracted_features: extractedFeatures } = report;
   const probabilities = prediction.probabilities || {};
@@ -144,6 +174,24 @@ function renderReport(report) {
   rawJson.textContent = JSON.stringify(report, null, 2);
   emptyState.classList.add("hidden");
   results.classList.remove("hidden");
+  comparisonBlock.classList.add("hidden");
+  comparisonGrid.innerHTML = "";
+}
+
+function renderComparisonReport(report) {
+  const comparisons = report.comparisons || [];
+  if (!comparisons.length) {
+    return;
+  }
+
+  const primary = comparisons[0];
+  renderReport({
+    prediction: primary.prediction,
+    fairness: report.fairness,
+    extracted_features: primary.extracted_features,
+  });
+  renderRoleComparisons(comparisons);
+  rawJson.textContent = JSON.stringify(report, null, 2);
 }
 
 function updateEndpointPreview() {
@@ -180,9 +228,11 @@ form.addEventListener("submit", async (event) => {
   const apiBaseUrl = String(formData.get("apiBaseUrl")).trim().replace(/\/$/, "");
   const isFileMode = formData.get("inputMode") === "file";
   const jobRole = String(formData.get("jobRole")).trim();
+  const compareRoles = String(formData.get("compareRoles") || "").trim();
 
   try {
     let response;
+    let isComparisonMode = false;
 
     if (isFileMode) {
       const file = document.getElementById("resume-file").files[0];
@@ -199,18 +249,37 @@ form.addEventListener("submit", async (event) => {
         body: uploadData,
       });
     } else {
-      const payload = {
-        job_role: jobRole,
-        resume_text: String(formData.get("resumeText")).trim(),
-      };
+      const parsedRoles = compareRoles
+        .split(",")
+        .map((role) => role.trim())
+        .filter(Boolean);
 
-      response = await fetch(`${apiBaseUrl}/report-from-text`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
+      if (parsedRoles.length >= 2) {
+        isComparisonMode = true;
+        response = await fetch(`${apiBaseUrl}/compare-roles`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            resume_text: String(formData.get("resumeText")).trim(),
+            job_roles: parsedRoles,
+          }),
+        });
+      } else {
+        const payload = {
+          job_role: jobRole,
+          resume_text: String(formData.get("resumeText")).trim(),
+        };
+
+        response = await fetch(`${apiBaseUrl}/report-from-text`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
+      }
     }
 
     const data = await response.json();
@@ -219,7 +288,11 @@ form.addEventListener("submit", async (event) => {
       throw new Error(detail);
     }
 
-    renderReport(data);
+    if (!isFileMode && Array.isArray(data.comparisons)) {
+      renderComparisonReport(data);
+    } else {
+      renderReport(data);
+    }
     setStatus("Report generated successfully.");
   } catch (error) {
     setStatus(`Request failed: ${getFriendlyErrorMessage(error, isFileMode)}`, true);
