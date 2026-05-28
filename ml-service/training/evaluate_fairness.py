@@ -8,12 +8,16 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import sys
 
 import pandas as pd
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
 from core.fairness.report_generator import generate_fairness_report_payload
 
-ROOT = Path(__file__).resolve().parents[1]
 DATA_PATH = ROOT / "data" / "processed" / "recruitment_bias_clean.csv"
 METRICS_DIR = ROOT / "artifacts" / "metrics"
 OUTPUT_PATH = METRICS_DIR / "fairness_evaluation.json"

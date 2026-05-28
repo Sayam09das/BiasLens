@@ -1,6 +1,18 @@
 """Schema package exports for the BiasLens ML service API."""
 
 from app.api.schemas.error_schema import ErrorResponse
+from app.api.schemas.explain_schema import (
+    EXPLAIN_RESPONSE_EXAMPLE,
+    ExplainRequest,
+    ExplainResponse,
+    ExplainerMethodResponse,
+    FeatureContribution,
+    LimeExplanationResponse,
+    ProxyAttributionResponse,
+    ProxySignalResponse,
+    ShapExplanationResponse,
+    TopProbabilityResponse,
+)
 from app.api.schemas.fairness_schema import (
     FAIRNESS_RESPONSE_EXAMPLE,
     FairnessResponse,
@@ -36,11 +48,19 @@ from app.api.schemas.resume_schema import ParseUploadResponse
 
 __all__ = [
     "ErrorResponse",
+    "EXPLAIN_RESPONSE_EXAMPLE",
+    "ExplainRequest",
+    "ExplainResponse",
+    "ExplainerMethodResponse",
     "FAIRNESS_RESPONSE_EXAMPLE",
     "FairnessResponse",
+    "FeatureContribution",
     "GroupMetric",
     "HealthResponse",
+    "LimeExplanationResponse",
     "RootResponse",
+    "ProxyAttributionResponse",
+    "ProxySignalResponse",
     "PREDICTION_REQUEST_EXAMPLE",
     "PREDICTION_RESPONSE_EXAMPLE",
     "PredictionRequest",
@@ -59,8 +79,10 @@ __all__ = [
     "RoleComparisonRequest",
     "RoleComparisonResponse",
     "RoleFitExplanation",
+    "ShapExplanationResponse",
     "TextReportRequest",
     "TextReportResponse",
+    "TopProbabilityResponse",
     "UploadReportResponse",
     "UploadRoleComparisonResponse",
 ]
