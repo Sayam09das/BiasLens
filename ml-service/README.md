@@ -73,3 +73,15 @@ You can also fetch the saved fairness analysis from:
 ```bash
 GET /fairness
 ```
+
+For a single UI-friendly payload, use:
+
+```bash
+POST /report
+```
+
+with the same request body as `/predict`. The response includes:
+
+- prediction label
+- prediction probabilities
+- latest fairness summary

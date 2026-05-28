@@ -79,6 +79,11 @@ FAIRNESS_RESPONSE_EXAMPLE = {
     "age_disparate_impact_ratio": 0.9677509245122001,
 }
 
+REPORT_RESPONSE_EXAMPLE = {
+    "prediction": PREDICTION_RESPONSE_EXAMPLE,
+    "fairness": FAIRNESS_RESPONSE_EXAMPLE,
+}
+
 
 class PredictionRequest(BaseModel):
     skills: str = Field(..., example="Python, SQL, Tableau, Machine Learning")
@@ -133,6 +138,17 @@ class FairnessResponse(BaseModel):
     model_config = {
         "json_schema_extra": {
             "example": FAIRNESS_RESPONSE_EXAMPLE,
+        }
+    }
+
+
+class ReportResponse(BaseModel):
+    prediction: PredictionResponse
+    fairness: FairnessResponse
+
+    model_config = {
+        "json_schema_extra": {
+            "example": REPORT_RESPONSE_EXAMPLE,
         }
     }
 
@@ -226,3 +242,39 @@ def predict(request: PredictionRequest) -> PredictionResponse:
     )
     result = predict_with_probabilities(model, input_df)
     return PredictionResponse(**result)
+
+
+@app.post(
+    "/report",
+    response_model=ReportResponse,
+    responses={
+        200: {
+            "description": "Combined prediction and fairness report",
+            "content": {
+                "application/json": {
+                    "example": REPORT_RESPONSE_EXAMPLE,
+                }
+            },
+        }
+    },
+)
+def report(request: PredictionRequest) -> ReportResponse:
+    """Return a combined payload with prediction output and fairness context."""
+    try:
+        model = get_model()
+        fairness_report = load_fairness_report()
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    input_df = build_input_frame(
+        skills=request.skills,
+        experience_years=request.experience_years,
+        job_role=request.job_role,
+        ai_score=request.ai_score,
+    )
+    prediction_result = predict_with_probabilities(model, input_df)
+
+    return ReportResponse(
+        prediction=PredictionResponse(**prediction_result),
+        fairness=FairnessResponse(**fairness_report),
+    )
