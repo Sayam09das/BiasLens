@@ -85,3 +85,20 @@ with the same request body as `/predict`. The response includes:
 - prediction label
 - prediction probabilities
 - latest fairness summary
+
+For raw resume text input, use:
+
+```bash
+POST /report-from-text
+```
+
+with JSON like:
+
+```json
+{
+  "resume_text": "Data Scientist with 3 years of experience in Python, SQL, Tableau, machine learning, and data analysis.",
+  "job_role": "Data Scientist"
+}
+```
+
+This endpoint also returns the extracted features used for prediction.

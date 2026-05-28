@@ -63,9 +63,12 @@ def add_age_groups(df: pd.DataFrame) -> pd.DataFrame:
 def compute_selection_rates(df: pd.DataFrame, column: str) -> dict[str, dict[str, float]]:
     """Measure how often each group is shortlisted."""
     results: dict[str, dict[str, float]] = {}
-    grouped = df.groupby(column)
+    grouped = df.groupby(column, observed=True)
 
     for group_name, group_df in grouped:
+        if pd.isna(group_name) or group_df.empty:
+            continue
+
         group_key = str(group_name)
         selection_rate = float(group_df["shortlisted"].mean())
         average_score = float(group_df["screening_score"].mean())
@@ -86,7 +89,11 @@ def demographic_parity_difference(group_metrics: dict[str, dict[str, float]]) ->
 
 def disparate_impact_ratio(group_metrics: dict[str, dict[str, float]]) -> float | None:
     """Return min/max selection-rate ratio as a simple disparate-impact signal."""
-    rates = [values["selection_rate"] for values in group_metrics.values() if values["selection_rate"] > 0]
+    rates = [
+        values["selection_rate"]
+        for values in group_metrics.values()
+        if values["selection_rate"] > 0
+    ]
     if len(rates) < 2:
         return None
     return float(min(rates) / max(rates))

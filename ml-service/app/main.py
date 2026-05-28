@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from app.model_utils import estimate_ai_score, extract_experience_years, extract_skills_from_text
 from app.predictor import build_input_frame, load_model, predict_with_probabilities
 
 
@@ -82,6 +83,22 @@ FAIRNESS_RESPONSE_EXAMPLE = {
 REPORT_RESPONSE_EXAMPLE = {
     "prediction": PREDICTION_RESPONSE_EXAMPLE,
     "fairness": FAIRNESS_RESPONSE_EXAMPLE,
+}
+
+TEXT_REPORT_REQUEST_EXAMPLE = {
+    "resume_text": "Data Scientist with 3 years of experience in Python, SQL, Tableau, machine learning, and data analysis. Built dashboards and predictive models.",
+    "job_role": "Data Scientist",
+}
+
+TEXT_REPORT_RESPONSE_EXAMPLE = {
+    "prediction": PREDICTION_RESPONSE_EXAMPLE,
+    "fairness": FAIRNESS_RESPONSE_EXAMPLE,
+    "extracted_features": {
+        "skills": "data analysis, machine learning, python, sql, tableau",
+        "experience_years": 3.0,
+        "job_role": "Data Scientist",
+        "ai_score": 72.0,
+    },
 }
 
 
@@ -153,6 +170,40 @@ class ReportResponse(BaseModel):
     }
 
 
+class TextReportRequest(BaseModel):
+    resume_text: str = Field(
+        ...,
+        min_length=20,
+        example="Data Scientist with 3 years of experience in Python, SQL, Tableau, and machine learning.",
+    )
+    job_role: str = Field(..., example="Data Scientist")
+
+    model_config = {
+        "json_schema_extra": {
+            "example": TEXT_REPORT_REQUEST_EXAMPLE,
+        }
+    }
+
+
+class ExtractedFeaturesResponse(BaseModel):
+    skills: str
+    experience_years: float
+    job_role: str
+    ai_score: float
+
+
+class TextReportResponse(BaseModel):
+    prediction: PredictionResponse
+    fairness: FairnessResponse
+    extracted_features: ExtractedFeaturesResponse
+
+    model_config = {
+        "json_schema_extra": {
+            "example": TEXT_REPORT_RESPONSE_EXAMPLE,
+        }
+    }
+
+
 def get_model():
     """Load the model once and reuse it across requests."""
     global _model
@@ -171,6 +222,24 @@ def load_fairness_report() -> dict[str, object]:
 
     with FAIRNESS_REPORT_PATH.open("r", encoding="utf-8") as handle:
         return json.load(handle)
+
+
+def build_features_from_resume_text(
+    *,
+    resume_text: str,
+    job_role: str,
+) -> dict[str, object]:
+    """Convert raw resume text into the structured fields used by the baseline model."""
+    skills = extract_skills_from_text(resume_text)
+    experience_years = extract_experience_years(resume_text)
+    ai_score = estimate_ai_score(skills, experience_years)
+
+    return {
+        "skills": ", ".join(skills) if skills else "general experience",
+        "experience_years": experience_years,
+        "job_role": job_role,
+        "ai_score": ai_score,
+    }
 
 
 @app.get("/")
@@ -277,4 +346,45 @@ def report(request: PredictionRequest) -> ReportResponse:
     return ReportResponse(
         prediction=PredictionResponse(**prediction_result),
         fairness=FairnessResponse(**fairness_report),
+    )
+
+
+@app.post(
+    "/report-from-text",
+    response_model=TextReportResponse,
+    responses={
+        200: {
+            "description": "Combined report generated from raw resume text",
+            "content": {
+                "application/json": {
+                    "example": TEXT_REPORT_RESPONSE_EXAMPLE,
+                }
+            },
+        }
+    },
+)
+def report_from_text(request: TextReportRequest) -> TextReportResponse:
+    """Extract simple features from resume text, then return prediction and fairness."""
+    try:
+        model = get_model()
+        fairness_report = load_fairness_report()
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    extracted_features = build_features_from_resume_text(
+        resume_text=request.resume_text,
+        job_role=request.job_role,
+    )
+    input_df = build_input_frame(
+        skills=str(extracted_features["skills"]),
+        experience_years=float(extracted_features["experience_years"]),
+        job_role=str(extracted_features["job_role"]),
+        ai_score=float(extracted_features["ai_score"]),
+    )
+    prediction_result = predict_with_probabilities(model, input_df)
+
+    return TextReportResponse(
+        prediction=PredictionResponse(**prediction_result),
+        fairness=FairnessResponse(**fairness_report),
+        extracted_features=ExtractedFeaturesResponse(**extracted_features),
     )
