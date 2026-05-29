@@ -16,6 +16,9 @@ The next training milestone is:
 - `train_ats_model.py`
   Alias entry point for the current ATS-style baseline model.
 
+- `train_random_forest_model.py`
+  Trains a real random forest model, saves `rf-model-v1.pkl`, and updates `versions.json` to make it active.
+
 - `evaluate_fairness.py`
   Computes group-level fairness metrics from the recruitment bias dataset and saves a JSON report.
 

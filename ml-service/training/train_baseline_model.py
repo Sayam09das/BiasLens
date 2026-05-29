@@ -120,7 +120,11 @@ def build_pipeline() -> Pipeline:
     )
 
 
-def train_model(df: pd.DataFrame) -> tuple[Pipeline, dict[str, object]]:
+def train_model(
+    df: pd.DataFrame,
+    *,
+    pipeline_builder=build_pipeline,
+) -> tuple[Pipeline, dict[str, object]]:
     """Split the data, train the baseline, and collect simple metrics."""
     X = df[["Skills", "Experience (Years)", "Job Role", "AI Score (0-100)"]]
     y = df["Recruiter Decision"]
@@ -136,7 +140,7 @@ def train_model(df: pd.DataFrame) -> tuple[Pipeline, dict[str, object]]:
     print(f"Train rows: {len(X_train)}")
     print(f"Test rows: {len(X_test)}")
 
-    pipeline = build_pipeline()
+    pipeline = pipeline_builder()
     pipeline.fit(X_train, y_train)
 
     predictions = pipeline.predict(X_test)
