@@ -2,6 +2,7 @@ import type { Server } from "node:http";
 
 import mongoose from "mongoose";
 
+import { disconnectPrisma } from "../config/prisma.js";
 import { logger } from "../lib/logger.js";
 
 export function registerShutdown(server: Server): void {
@@ -15,6 +16,8 @@ export function registerShutdown(server: Server): void {
       }
 
       try {
+        await disconnectPrisma();
+        logger.info("Prisma connection closed");
         await mongoose.connection.close();
         logger.info("MongoDB connection closed");
         process.exit(0);

@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum AuditStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
+  fullName     String
+  passwordHash String?
+  role         String   @default("user")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  audits       Audit[]
+  reports      Report[]
+  uploads      UploadedFile[]
+}
+
+model Audit {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  title       String
+  status      AuditStatus @default(QUEUED)
+  resumeText  String?
+  jobRole     String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  userId      String?     @db.ObjectId
+  user        User?       @relation(fields: [userId], references: [id])
+  report      Report?
+}
+
+model Report {
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  title            String
+  predictionLabel  String?
+  topProbability   Float?
+  fairnessSnapshot Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  auditId          String?  @unique @db.ObjectId
+  audit            Audit?   @relation(fields: [auditId], references: [id])
+
+  userId           String?  @db.ObjectId
+  user             User?    @relation(fields: [userId], references: [id])
+}
+
+model UploadedFile {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  filename     String
+  originalName String
+  mimeType     String
+  size         Int
+  buffer       Bytes
+  tags         String[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userId       String?  @db.ObjectId
+  user         User?    @relation(fields: [userId], references: [id])
+}

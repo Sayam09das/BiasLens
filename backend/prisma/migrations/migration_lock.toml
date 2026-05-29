@@ -1,0 +1,3 @@
+# Prisma migration lock placeholder.
+# MongoDB projects commonly use `prisma db push` rather than SQL migrations.
+provider = "mongodb"

@@ -1,0 +1,3 @@
+-- Placeholder migration record for architecture parity.
+-- The active Prisma datasource uses MongoDB Atlas.
+-- Apply schema changes with `npx prisma db push`.

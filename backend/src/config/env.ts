@@ -3,6 +3,10 @@ import { bool, cleanEnv, num, port, str } from "envalid";
 
 dotenv.config();
 
+if (!process.env.DATABASE_URL && process.env.MONGODB_URI) {
+  process.env.DATABASE_URL = process.env.MONGODB_URI;
+}
+
 export const env = cleanEnv(process.env, {
   NODE_ENV: str({
     choices: ["development", "test", "production"],
@@ -10,6 +14,7 @@ export const env = cleanEnv(process.env, {
   }),
   PORT: port({ default: 4000 }),
   CLIENT_ORIGIN: str({ default: "http://localhost:3000" }),
+  DATABASE_URL: str(),
   MONGODB_URI: str(),
   JWT_ACCESS_SECRET: str(),
   JWT_REFRESH_SECRET: str(),

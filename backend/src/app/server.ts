@@ -3,6 +3,7 @@ import { createServer } from "node:http";
 import { connectDatabase } from "../config/database.js";
 import { env } from "../config/env.js";
 import { logger } from "../config/logger.js";
+import { connectPrisma } from "../config/prisma.js";
 import { initializeTelemetry } from "../config/telemetry.js";
 import { createApp } from "./app.js";
 import { registerShutdown } from "./shutdown.js";
@@ -10,6 +11,7 @@ import { registerShutdown } from "./shutdown.js";
 async function bootstrap() {
   initializeTelemetry();
   await connectDatabase();
+  await connectPrisma();
 
   const app = createApp();
   const server = createServer(app);
