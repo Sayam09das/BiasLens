@@ -9,7 +9,7 @@ from app.api.schemas import (
     ExtractedFeaturesResponse,
 )
 from app.api.services import build_features_from_resume_text
-from app.dependencies import get_model
+from app.dependencies import get_model, get_shap_explainer
 from app.predictor import build_input_frame, predict_with_probabilities
 from core.explainability import (
     attribute_proxy_signals,
@@ -34,6 +34,7 @@ router = APIRouter(prefix="/explain", tags=["explain"])
 def explain(request: ExplainRequest) -> ExplainResponse:
     try:
         model = get_model()
+        shap_explainer = get_shap_explainer()
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -51,6 +52,8 @@ def explain(request: ExplainRequest) -> ExplainResponse:
     shap_explanation = build_shap_like_explanation(
         model=model,
         extracted_features=extracted_features,
+        input_frame=input_df,
+        explainer_artifact=shap_explainer,
     )
     lime_explanation = build_lime_like_explanation(
         model=model,
