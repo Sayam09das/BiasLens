@@ -1,13 +1,10 @@
 import compression from "compression";
-import cookieParser from "cookie-parser";
-import cors from "cors";
 import express from "express";
-import rateLimit from "express-rate-limit";
-import helmet from "helmet";
 import { pinoHttp } from "pino-http";
 
-import { env } from "../config/env.js";
-import { logger } from "../lib/logger.js";
+import { corsMiddleware } from "../config/cors.js";
+import { logger } from "../config/logger.js";
+import { securityMiddleware } from "../config/security.js";
 import { errorHandler, notFoundHandler } from "../middleware/error-handler.js";
 import { registerRoutes } from "./routes.js";
 
@@ -15,24 +12,12 @@ export function createApp() {
   const app = express();
 
   app.disable("x-powered-by");
-  app.use(helmet());
-  app.use(
-    cors({
-      origin: env.CLIENT_ORIGIN,
-      credentials: true,
-    })
-  );
-  app.use(
-    rateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 300,
-      standardHeaders: true,
-      legacyHeaders: false,
-    })
-  );
+  app.use(securityMiddleware.helmet);
+  app.use(corsMiddleware);
+  app.use(securityMiddleware.rateLimit);
   app.use(pinoHttp({ logger }));
   app.use(compression());
-  app.use(cookieParser());
+  app.use(securityMiddleware.cookies);
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ extended: true }));
 

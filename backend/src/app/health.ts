@@ -1,13 +1,15 @@
 import { Router } from "express";
-import mongoose from "mongoose";
+
+import { getDatabaseHealth } from "../config/database.js";
 
 const router = Router();
 
 router.get("/health", (_req, res) => {
+  const database = getDatabaseHealth();
   res.json({
     service: "BiasLens Backend",
     status: "ok",
-    database: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
+    database: database.status,
     timestamp: new Date().toISOString(),
   });
 });

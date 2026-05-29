@@ -1,0 +1,10 @@
+import cors, { type CorsOptions } from "cors";
+
+import { env } from "./env.js";
+
+export const corsOptions: CorsOptions = {
+  origin: env.CLIENT_ORIGIN,
+  credentials: true,
+};
+
+export const corsMiddleware = cors(corsOptions);

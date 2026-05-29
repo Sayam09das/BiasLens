@@ -1,12 +1,14 @@
 import { createServer } from "node:http";
 
-import { connectDatabase } from "../config/db.js";
+import { connectDatabase } from "../config/database.js";
 import { env } from "../config/env.js";
-import { logger } from "../lib/logger.js";
+import { logger } from "../config/logger.js";
+import { initializeTelemetry } from "../config/telemetry.js";
 import { createApp } from "./app.js";
 import { registerShutdown } from "./shutdown.js";
 
 async function bootstrap() {
+  initializeTelemetry();
   await connectDatabase();
 
   const app = createApp();
@@ -29,4 +31,3 @@ bootstrap().catch((error) => {
   logger.error({ error }, "Failed to start backend server");
   process.exit(1);
 });
-

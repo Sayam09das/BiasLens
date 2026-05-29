@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import { cleanEnv, num, port, str } from "envalid";
+import { bool, cleanEnv, num, port, str } from "envalid";
 
 dotenv.config();
 
@@ -18,6 +18,9 @@ export const env = cleanEnv(process.env, {
   SMTP_USER: str(),
   SMTP_PASS: str(),
   MAIL_FROM: str(),
+  REDIS_URL: str({ default: "" }),
+  FEATURE_ENABLE_EMAIL: bool({ default: true }),
+  FEATURE_ENABLE_CLOUDINARY_UPLOADS: bool({ default: true }),
   CLOUDINARY_CLOUD_NAME: str(),
   CLOUDINARY_API_KEY: str(),
   CLOUDINARY_API_SECRET: str(),
