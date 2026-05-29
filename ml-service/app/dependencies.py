@@ -8,6 +8,7 @@ from pathlib import Path
 from app.cache import build_cache_manager
 from app.cache.invalidation import FAIRNESS_REPORT_CACHE_KEY
 from app.config import get_settings
+from core.explainability.lime_explainer import load_active_lime_artifact
 from core.explainability.shap_explainer import load_active_shap_artifact
 from core.models.model_registry import get_default_model
 
@@ -16,6 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 _cached_model = None
 _cached_fairness_report: dict[str, object] | None = None
 _cached_shap_explainer: dict[str, object] | None = None
+_cached_lime_explainer: dict[str, object] | None = None
 _cache_manager = None
 
 
@@ -41,6 +43,14 @@ def get_shap_explainer():
     if _cached_shap_explainer is None:
         _cached_shap_explainer = load_active_shap_artifact()
     return _cached_shap_explainer
+
+
+def get_lime_explainer():
+    """Return the cached LIME explainer artifact when present."""
+    global _cached_lime_explainer
+    if _cached_lime_explainer is None:
+        _cached_lime_explainer = load_active_lime_artifact()
+    return _cached_lime_explainer
 
 
 def get_fairness_report() -> dict[str, object]:
@@ -74,14 +84,16 @@ def prime_runtime_state() -> None:
     get_model()
     get_fairness_report()
     get_shap_explainer()
+    get_lime_explainer()
 
 
 def clear_runtime_state() -> None:
     """Clear in-memory caches during shutdown or tests."""
-    global _cached_model, _cached_fairness_report, _cached_shap_explainer, _cache_manager
+    global _cached_model, _cached_fairness_report, _cached_shap_explainer, _cached_lime_explainer, _cache_manager
     _cached_model = None
     _cached_fairness_report = None
     _cached_shap_explainer = None
+    _cached_lime_explainer = None
     if _cache_manager is not None:
         _cache_manager.clear()
     _cache_manager = None

@@ -21,29 +21,29 @@ EXPLAIN_RESPONSE_EXAMPLE = {
         "ai_score": 72.0,
     },
     "shap": {
-        "method": "shap_like_fallback",
-        "available": False,
-        "message": "True SHAP computation is not wired yet; returning heuristic contribution estimates instead.",
+        "method": "tree_shap",
+        "available": True,
+        "message": "Real SHAP values were computed from the active model and saved explainer metadata.",
         "feature_contributions": [
             {
-                "feature": "ai_score",
-                "value": 72.0,
-                "importance": 0.72,
-                "reason": "The heuristic AI score is a direct strong signal in the baseline model input.",
+                "feature": "numeric__AI Score (0-100)",
+                "value": -1.2631,
+                "importance": 0.5336,
+                "reason": "Negative SHAP contribution toward the current prediction.",
             }
         ],
         "model_name": "random_forest",
     },
     "lime": {
-        "method": "lime_like_fallback",
-        "available": False,
-        "message": "True LIME sampling is not wired yet; returning a local heuristic explanation instead.",
+        "method": "lime_tabular",
+        "available": True,
+        "message": "Real LIME local explanations were computed from the active model and saved explainer metadata.",
         "top_local_features": [
             {
-                "feature": "ai_score",
-                "value": 72.0,
-                "importance": 0.72,
-                "reason": "The heuristic AI score is a direct strong signal in the baseline model input.",
+                "feature": "numeric__AI Score (0-100) <= -1.00",
+                "value": "numeric__AI Score (0-100) <= -1.00",
+                "importance": 0.41,
+                "reason": "Negative LIME contribution toward the local prediction.",
             }
         ],
         "model_name": "random_forest",

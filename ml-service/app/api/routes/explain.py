@@ -9,7 +9,7 @@ from app.api.schemas import (
     ExtractedFeaturesResponse,
 )
 from app.api.services import build_features_from_resume_text
-from app.dependencies import get_model, get_shap_explainer
+from app.dependencies import get_lime_explainer, get_model, get_shap_explainer
 from app.predictor import build_input_frame, predict_with_probabilities
 from core.explainability import (
     attribute_proxy_signals,
@@ -35,6 +35,7 @@ def explain(request: ExplainRequest) -> ExplainResponse:
     try:
         model = get_model()
         shap_explainer = get_shap_explainer()
+        lime_explainer = get_lime_explainer()
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
@@ -58,6 +59,8 @@ def explain(request: ExplainRequest) -> ExplainResponse:
     lime_explanation = build_lime_like_explanation(
         model=model,
         extracted_features=extracted_features,
+        input_frame=input_df,
+        explainer_artifact=lime_explainer,
     )
     proxy_attribution = attribute_proxy_signals(
         resume_text=request.resume_text,
