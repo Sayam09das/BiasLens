@@ -4,6 +4,9 @@ import multer from "multer";
 
 import { featureFlags } from "../../config/feature-flags.js";
 import { UploadedFileModel } from "../../models/uploaded-file.model.js";
+import { successResponse } from "../../utils/api-response.js";
+import { isAllowedResumeMimeType, isWithinFileSizeLimit } from "../../utils/file.js";
+import { ValidationError } from "../../utils/errors.js";
 
 const router = Router();
 const upload = multer({
@@ -22,8 +25,18 @@ router.post("/upload/resume", upload.single("file"), async (req, res, next) => {
     }
 
     if (!req.file) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        message: "No file uploaded.",
+      throw new ValidationError("No file uploaded.");
+    }
+
+    if (!isAllowedResumeMimeType(req.file.mimetype)) {
+      throw new ValidationError("Unsupported resume file type.", {
+        mimeType: req.file.mimetype,
+      });
+    }
+
+    if (!isWithinFileSizeLimit(req.file.size)) {
+      throw new ValidationError("Uploaded file exceeds the allowed size limit.", {
+        size: req.file.size,
       });
     }
 
@@ -36,14 +49,19 @@ router.post("/upload/resume", upload.single("file"), async (req, res, next) => {
       tags: ["resume", "atlas-storage"],
     });
 
-    return res.status(StatusCodes.CREATED).json({
-      id: savedFile.id,
-      originalName: savedFile.originalName,
-      size: savedFile.size,
-      mimeType: savedFile.mimeType,
-      storage: "mongodb-atlas",
-      virusScan: "not_configured",
-    });
+    return res.status(StatusCodes.CREATED).json(
+      successResponse(
+        {
+          id: savedFile.id,
+          originalName: savedFile.originalName,
+          size: savedFile.size,
+          mimeType: savedFile.mimeType,
+          storage: "mongodb-atlas",
+          virusScan: "not_configured",
+        },
+        "Resume uploaded successfully"
+      )
+    );
   } catch (error) {
     return next(error);
   }
