@@ -1,0 +1,19 @@
+import { Router } from "express";
+
+import { auditRoutes } from "./audit.routes.js";
+import { authRoutes } from "./auth.routes.js";
+import { healthRoutes } from "./health.routes.js";
+import { reportRoutes } from "./report.routes.js";
+import { uploadRoutes } from "./upload.routes.js";
+import { userRoutes } from "./user.routes.js";
+
+const router = Router();
+
+router.use("/auth", authRoutes);
+router.use("/", healthRoutes);
+router.use("/", userRoutes);
+router.use("/", auditRoutes);
+router.use("/", uploadRoutes);
+router.use("/", reportRoutes);
+
+export { router as v1Routes };

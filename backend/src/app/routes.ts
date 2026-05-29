@@ -1,6 +1,6 @@
 import type { Express } from "express";
 
-import { healthRouter } from "./health.js";
+import { apiRoutes } from "../routes/index.js";
 
 export function registerRoutes(app: Express): void {
   app.get("/", (_req, res) => {
@@ -10,5 +10,5 @@ export function registerRoutes(app: Express): void {
     });
   });
 
-  app.use("/", healthRouter);
+  app.use("/", apiRoutes);
 }

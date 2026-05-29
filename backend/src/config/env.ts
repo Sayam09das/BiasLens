@@ -20,8 +20,8 @@ export const env = cleanEnv(process.env, {
   MAIL_FROM: str(),
   REDIS_URL: str({ default: "" }),
   FEATURE_ENABLE_EMAIL: bool({ default: true }),
-  FEATURE_ENABLE_CLOUDINARY_UPLOADS: bool({ default: true }),
-  CLOUDINARY_CLOUD_NAME: str(),
-  CLOUDINARY_API_KEY: str(),
-  CLOUDINARY_API_SECRET: str(),
+  FEATURE_ENABLE_FILE_UPLOADS: bool({ default: true }),
+  CLOUDINARY_CLOUD_NAME: str({ default: "" }),
+  CLOUDINARY_API_KEY: str({ default: "" }),
+  CLOUDINARY_API_SECRET: str({ default: "" }),
 });
