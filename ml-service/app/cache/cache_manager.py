@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 from app.config import Settings
 
@@ -41,14 +41,14 @@ class InMemoryCacheManager(CacheManager):
             return None
 
         value, expires_at = item
-        if expires_at is not None and datetime.utcnow() >= expires_at:
+        if expires_at is not None and datetime.now(UTC) >= expires_at:
             self.delete(key)
             return None
         return value
 
     def set(self, key: str, value, ttl_seconds: int | None = None) -> None:
         ttl = self.default_ttl_seconds if ttl_seconds is None else ttl_seconds
-        expires_at = None if ttl <= 0 else datetime.utcnow() + timedelta(seconds=ttl)
+        expires_at = None if ttl <= 0 else datetime.now(UTC) + timedelta(seconds=ttl)
         self._store[key] = (value, expires_at)
 
     def delete(self, key: str) -> None:

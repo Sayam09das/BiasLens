@@ -84,7 +84,7 @@ class ReportResponse(BaseModel):
 
 class TextReportRequest(BaseModel):
     resume_text: str = Field(..., min_length=20)
-    job_role: str = Field(..., example="Data Scientist")
+    job_role: str = Field(..., json_schema_extra={"example": "Data Scientist"})
 
     model_config = {"json_schema_extra": {"example": TEXT_REPORT_REQUEST_EXAMPLE}}
 

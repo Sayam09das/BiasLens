@@ -20,10 +20,10 @@ PREDICTION_RESPONSE_EXAMPLE = {
 
 
 class PredictionRequest(BaseModel):
-    skills: str = Field(..., example="Python, SQL, Tableau, Machine Learning")
-    experience_years: float = Field(..., ge=0, example=3)
-    job_role: str = Field(..., example="Data Scientist")
-    ai_score: float = Field(..., ge=0, le=100, example=82)
+    skills: str = Field(..., json_schema_extra={"example": "Python, SQL, Tableau, Machine Learning"})
+    experience_years: float = Field(..., ge=0, json_schema_extra={"example": 3})
+    job_role: str = Field(..., json_schema_extra={"example": "Data Scientist"})
+    ai_score: float = Field(..., ge=0, le=100, json_schema_extra={"example": 82})
 
     model_config = {"json_schema_extra": {"example": PREDICTION_REQUEST_EXAMPLE}}
 
