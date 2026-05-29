@@ -32,7 +32,7 @@ EXPLAIN_RESPONSE_EXAMPLE = {
                 "reason": "The heuristic AI score is a direct strong signal in the baseline model input.",
             }
         ],
-        "model_name": "logistic_regression",
+        "model_name": "random_forest",
     },
     "lime": {
         "method": "lime_like_fallback",
@@ -46,7 +46,7 @@ EXPLAIN_RESPONSE_EXAMPLE = {
                 "reason": "The heuristic AI score is a direct strong signal in the baseline model input.",
             }
         ],
-        "model_name": "logistic_regression",
+        "model_name": "random_forest",
     },
     "proxy_attribution": {
         "proxy_signal_count": 0,

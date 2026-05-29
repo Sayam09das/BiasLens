@@ -8,7 +8,7 @@ METRICS_RESPONSE_EXAMPLE = {
     "version": "0.1.0",
     "status": "available",
     "model": {
-        "name": "logistic_regression",
+        "name": "random_forest",
         "classes": ["Hire", "Reject"],
         "artifact_ready": True,
     },
