@@ -6,6 +6,8 @@ from app.api.schemas.counterfactual_schema import (
     CounterfactualEvaluationResponse,
     CounterfactualRequest,
     CounterfactualResponse,
+    UPLOAD_COUNTERFACTUAL_RESPONSE_EXAMPLE,
+    UploadCounterfactualResponse,
 )
 from app.api.schemas.error_schema import ErrorResponse
 from app.api.schemas.explain_schema import (
@@ -67,6 +69,8 @@ __all__ = [
     "CounterfactualEvaluationResponse",
     "CounterfactualRequest",
     "CounterfactualResponse",
+    "UPLOAD_COUNTERFACTUAL_RESPONSE_EXAMPLE",
+    "UploadCounterfactualResponse",
     "ErrorResponse",
     "EXPLAIN_RESPONSE_EXAMPLE",
     "ExplainRequest",

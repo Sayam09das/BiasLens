@@ -1,6 +1,9 @@
 """Counterfactual endpoints."""
 
-from fastapi import APIRouter, HTTPException
+from pathlib import Path
+from tempfile import NamedTemporaryFile
+
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 
 from app.api.schemas import (
     COUNTERFACTUAL_RESPONSE_EXAMPLE,
@@ -10,9 +13,12 @@ from app.api.schemas import (
     CounterfactualResponse,
     ExtractedFeaturesResponse,
     PredictionResponse,
+    UPLOAD_COUNTERFACTUAL_RESPONSE_EXAMPLE,
+    UploadCounterfactualResponse,
 )
-from app.api.services import build_features_from_resume_text
+from app.api.services import build_features_from_resume_text, build_resume_text_preview
 from app.dependencies import get_model
+from app.model_utils import extract_text_from_resume_file
 from app.predictor import build_input_frame, predict_with_probabilities
 from core.counterfactual import generate_role_counterfactuals
 from core.counterfactual.evaluation import evaluate_counterfactual_result
@@ -36,9 +42,81 @@ def counterfactual(request: CounterfactualRequest) -> CounterfactualResponse:
     except FileNotFoundError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
 
-    original_features = build_features_from_resume_text(
+    return _build_counterfactual_response(
+        model=model,
         resume_text=request.resume_text,
         job_role=request.job_role,
+    )
+
+
+@router.post(
+    "/upload",
+    response_model=UploadCounterfactualResponse,
+    responses={
+        200: {
+            "description": "Counterfactual candidates generated from an uploaded resume file",
+            "content": {"application/json": {"example": UPLOAD_COUNTERFACTUAL_RESPONSE_EXAMPLE}},
+        }
+    },
+)
+async def counterfactual_upload(
+    file: UploadFile = File(...),
+    job_role: str = Form(...),
+) -> UploadCounterfactualResponse:
+    try:
+        model = get_model()
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    filename = file.filename or "uploaded_resume"
+    suffix = Path(filename).suffix.lower()
+    if suffix not in {".pdf", ".docx", ".txt"}:
+        raise HTTPException(
+            status_code=400,
+            detail="Unsupported file type. Upload a .pdf, .docx, or .txt resume.",
+        )
+
+    temp_path: Path | None = None
+    try:
+        file_bytes = await file.read()
+        with NamedTemporaryFile(delete=False, suffix=suffix) as temp_file:
+            temp_file.write(file_bytes)
+            temp_path = Path(temp_file.name)
+
+        resume_text = extract_text_from_resume_file(temp_path)
+        response = _build_counterfactual_response(
+            model=model,
+            resume_text=resume_text,
+            job_role=job_role,
+        )
+        return UploadCounterfactualResponse(
+            original_features=response.original_features,
+            original_prediction=response.original_prediction,
+            candidates=response.candidates,
+            best_candidate_index=response.best_candidate_index,
+            source_filename=filename,
+            extracted_resume_text_preview=build_resume_text_preview(resume_text),
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=501, detail=str(exc)) from exc
+    finally:
+        if temp_path and temp_path.exists():
+            temp_path.unlink(missing_ok=True)
+
+
+def _build_counterfactual_response(
+    *,
+    model,
+    resume_text: str,
+    job_role: str,
+) -> CounterfactualResponse:
+    """Build the counterfactual response for either text or uploaded resume input."""
+
+    original_features = build_features_from_resume_text(
+        resume_text=resume_text,
+        job_role=job_role,
     )
     original_input_df = build_input_frame(
         skills=str(original_features["skills"]),
@@ -50,7 +128,7 @@ def counterfactual(request: CounterfactualRequest) -> CounterfactualResponse:
 
     generated_candidates = generate_role_counterfactuals(
         extracted_features=original_features,
-        target_role=request.job_role,
+        target_role=job_role,
     )
 
     response_candidates: list[CounterfactualCandidateResponse] = []

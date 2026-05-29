@@ -48,6 +48,12 @@ COUNTERFACTUAL_RESPONSE_EXAMPLE = {
     "best_candidate_index": 0
 }
 
+UPLOAD_COUNTERFACTUAL_RESPONSE_EXAMPLE = {
+    **COUNTERFACTUAL_RESPONSE_EXAMPLE,
+    "source_filename": "resume.pdf",
+    "extracted_resume_text_preview": "Experienced engineer with Python, SQL, React, Node.js, and machine learning project work..."
+}
+
 
 class CounterfactualRequest(BaseModel):
     resume_text: str = Field(..., min_length=20)
@@ -78,3 +84,10 @@ class CounterfactualResponse(BaseModel):
     best_candidate_index: int | None = None
 
     model_config = {"json_schema_extra": {"example": COUNTERFACTUAL_RESPONSE_EXAMPLE}}
+
+
+class UploadCounterfactualResponse(CounterfactualResponse):
+    source_filename: str
+    extracted_resume_text_preview: str
+
+    model_config = {"json_schema_extra": {"example": UPLOAD_COUNTERFACTUAL_RESPONSE_EXAMPLE}}
