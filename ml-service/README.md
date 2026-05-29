@@ -1,116 +1,159 @@
 # BiasLens ML Service
 
-This directory is the starting point for the Python-side data and model workflow.
+Production-oriented FastAPI service for resume parsing, role-fit prediction, fairness analysis, explainability, and counterfactual generation.
 
-## Current status
+This service is structured in the style of modern ML platform teams at companies like Google, Amazon, Microsoft, and Anthropic: clear separation between API, core modeling logic, training workflows, artifacts, tests, and observability scaffolding.
 
-- Raw CSV datasets are stored in `data/raw/`.
-- `scripts/prepare_datasets.py` validates those files and creates cleaned, smaller outputs in `data/processed/` and `data/samples/`.
-- The API and training layers are not built out yet; this step prepares the data foundation for them.
+## Overview
 
-## Dataset prep
+`ml-service` is the decision and analysis engine behind BiasLens. It supports:
 
-Run:
+- structured prediction from engineered resume features
+- raw resume text analysis
+- uploaded resume file analysis for `.txt`, `.docx`, and `.pdf`
+- role comparison across multiple target job families
+- fairness metric reporting
+- SHAP and LIME explainability
+- counterfactual candidate generation
+- model version control through artifact metadata
 
-```bash
-python3 scripts/prepare_datasets.py
+## Service Responsibilities
+
+- Parse raw resume text and uploaded files into normalized feature sets
+- Score candidates against role-aware skill profiles
+- Surface fairness metrics from the reference dataset
+- Provide interpretable outputs for product and audit workflows
+- Expose stable API contracts for frontend and downstream backend layers
+
+## Repository Layout
+
+```text
+ml-service/
+├── app/            # FastAPI runtime, dependency wiring, schemas, route layer
+├── core/           # Parsing, extraction, modeling, fairness, explainability logic
+├── data/           # Raw, processed, synthetic, and sample datasets
+├── artifacts/      # Saved models, explainers, metrics, version metadata
+├── training/       # Model training, evaluation, and artifact export scripts
+├── tests/          # Unit, integration, performance, contract, and smoke tests
+├── scripts/        # Utility and operational scripts
+├── monitoring/     # Monitoring and observability scaffolding
+└── notebooks/      # Research and experimentation notebooks
 ```
 
-This will generate:
+## Runtime Architecture
 
-- `data/processed/dataset_summary.json`
-- `data/processed/resume_screening_clean.csv`
-- `data/processed/recruitment_bias_clean.csv`
-- `data/processed/job_descriptions_sample.csv`
-- `data/processed/resume_ranking_sample.csv`
-- `data/samples/modeling_candidates.json`
+### API Layer
 
-## Why this is the next step
+The FastAPI application lives in [app/](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/ml-service/app) and is split into:
 
-The raw files are large and inconsistent. Before training a model or exposing an API, we need:
+- `main.py`: ASGI entry point
+- `config.py`: environment-backed settings
+- `dependencies.py`: model/cache/runtime dependency providers
+- `lifespan.py`: startup and shutdown orchestration
+- `api/routes/`: endpoint handlers
+- `api/schemas/`: request and response contracts
 
-- schema validation
-- lightweight cleaning
-- smaller working datasets
-- a quick summary of what can drive scoring and fairness analysis
+### Core Layer
 
-## Next steps after this
+The reusable ML and analysis logic lives in [core/](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/ml-service/core):
 
-1. Build feature engineering in `training/`.
-2. Train a first baseline screening model.
-3. Expose prediction and fairness endpoints from `app/`.
+- `preprocessing/`: cleaning, parsing, normalization, feature construction
+- `extraction/`: skills, experience, education, proxy detection
+- `models/`: artifact loading, registry, wrappers, ensemble hooks
+- `fairness/`: demographic parity, equalized odds, bias scoring
+- `explainability/`: SHAP, LIME, feature importance, proxy attribution
+- `counterfactual/`: perturbation and candidate generation logic
+- `reporting/`: report payload construction and frontend-facing summaries
+- `cache/`: compatibility wrapper over the active cache implementation
 
-## Manual prediction
+## Supported Endpoints
 
-After training the baseline model, you can test one sample prediction with:
+| Method | Path | Purpose |
+| --- | --- | --- |
+| `GET` | `/` | Root service metadata |
+| `GET` | `/health` | Liveness/readiness check |
+| `GET` | `/metrics` | Runtime and saved metrics summary |
+| `GET` | `/fairness` | Fairness report snapshot |
+| `POST` | `/predict` | Predict from engineered resume features |
+| `POST` | `/report` | Combined prediction and fairness report |
+| `POST` | `/report-from-text` | Build report directly from resume text |
+| `POST` | `/upload-resume` | Build report from uploaded resume file |
+| `POST` | `/compare-roles` | Compare one resume text across roles |
+| `POST` | `/compare-upload-resume` | Compare one uploaded resume across roles |
+| `POST` | `/explain` | Generate SHAP/LIME explanation payload |
+| `POST` | `/counterfactual` | Generate counterfactuals from resume text |
+| `POST` | `/counterfactual/upload` | Generate counterfactuals from uploaded resume |
 
-```bash
-python3 ml-service/app/predictor.py
-```
+### Core
 
-## API prediction
+- `GET /`
+- `GET /health`
+- `GET /metrics`
 
-You can also expose the trained model as a local API:
+### Prediction and Reporting
 
-Install dependencies first:
+- `POST /predict`
+- `POST /report`
+- `POST /report-from-text`
+- `POST /upload-resume`
+
+### Role Comparison
+
+- `POST /compare-roles`
+- `POST /compare-upload-resume`
+
+### Explainability and What-If Analysis
+
+- `POST /explain`
+- `POST /counterfactual`
+- `POST /counterfactual/upload`
+
+### Fairness
+
+- `GET /fairness`
+
+## Quick Start
+
+### 1. Install Dependencies
 
 ```bash
 cd ml-service
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
-Then run:
+### 2. Start the Service
 
 ```bash
 cd ml-service
-uvicorn app.main:app --reload
+python -m uvicorn app.main:app --reload
 ```
 
-## Smoke tests
+### 3. Open API Docs
 
-To run the API smoke tests:
-
-```bash
-cd ml-service
-pytest tests
+```text
+http://127.0.0.1:8000/docs
 ```
 
-Then send a request to `POST /predict` with JSON like:
+## Common Workflows
+
+### Predict from Engineered Features
 
 ```json
 {
   "skills": "Python, SQL, Tableau, Machine Learning, Data Analysis",
   "experience_years": 3,
   "job_role": "Data Scientist",
-  "ai_score": 82
+  "ai_score": 58
 }
 ```
 
-You can also fetch the saved fairness analysis from:
+Send to:
 
-```bash
-GET /fairness
+```text
+POST /predict
 ```
 
-For a single UI-friendly payload, use:
-
-```bash
-POST /report
-```
-
-with the same request body as `/predict`. The response includes:
-
-- prediction label
-- prediction probabilities
-- latest fairness summary
-
-For raw resume text input, use:
-
-```bash
-POST /report-from-text
-```
-
-with JSON like:
+### Predict from Resume Text
 
 ```json
 {
@@ -119,43 +162,37 @@ with JSON like:
 }
 ```
 
-This endpoint also returns the extracted features used for prediction.
+Send to:
 
-For side-by-side role comparison from the same resume text, use:
-
-```bash
-POST /compare-roles
+```text
+POST /report-from-text
 ```
 
-with JSON like:
+### Compare Roles from Text
 
 ```json
 {
-  "resume_text": "Candidate with experience in Python, SQL, React, and machine learning.",
-  "job_roles": ["Data Scientist", "Full Stack Developer", "Machine Learning Engineer"]
+  "resume_text": "Candidate with experience in Python, SQL, React, machine learning, and dashboarding.",
+  "job_roles": ["Data Scientist", "Machine Learning Engineer", "Full Stack Developer"]
 }
 ```
 
-For side-by-side role comparison from an uploaded resume file, use:
-
-```bash
-POST /compare-upload-resume
-```
-
-Submit multipart form data with:
-
-- `file`
-- `job_roles`
-
-Where `job_roles` is a comma-separated string such as:
+Send to:
 
 ```text
-Data Scientist, Full Stack Developer, Machine Learning Engineer
+POST /compare-roles
 ```
 
-For uploaded resume files, use:
+### Upload a Resume
 
-```bash
+Use multipart form data:
+
+- `file`
+- `job_role`
+
+Send to:
+
+```text
 POST /upload-resume
 ```
 
@@ -163,20 +200,199 @@ Supported file types:
 
 - `.txt`
 - `.docx`
-- `.pdf` when `pypdf` is installed
+- `.pdf`
 
-If PDF uploads fail with a missing parser message, install dependencies again:
+### Compare Roles from an Uploaded Resume
+
+Use multipart form data:
+
+- `file`
+- `job_roles`
+
+Where `job_roles` is a comma-separated string:
+
+```text
+Data Scientist, Machine Learning Engineer, Full Stack Developer
+```
+
+Send to:
+
+```text
+POST /compare-upload-resume
+```
+
+## Model and Artifact Management
+
+Artifacts live under [artifacts/](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/ml-service/artifacts):
+
+- `models/`
+- `explainers/`
+- `encoders/`
+- `metrics/`
+- `versions.json`
+
+Runtime model selection is controlled by:
+
+- [artifacts/versions.json](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/ml-service/artifacts/versions.json:1)
+
+This allows the active model and explainer artifacts to be switched without rewriting API code.
+
+## Training and Evaluation
+
+### Baseline / Core Model Training
+
+```bash
+python training/train_baseline_model.py
+python training/train_random_forest_model.py
+```
+
+### Evaluation
+
+```bash
+python training/evaluate_model.py
+python training/evaluate_fairness.py
+python training/cross_validate.py
+```
+
+### Explainer Export
+
+```bash
+python training/export_shap_explainer.py
+python training/export_lime_explainer.py
+```
+
+### Artifact Export
+
+```bash
+python training/export_artifacts.py
+```
+
+## Testing
+
+### Full Test Suite
 
 ```bash
 cd ml-service
-pip install -r requirements.txt
+python -m pytest tests
 ```
 
-This endpoint returns:
+### Fast Safety Check
 
-- prediction label
-- prediction probabilities
-- latest fairness summary
-- extracted features
-- original source filename
-- a trimmed extracted resume text preview
+```bash
+python3 -m compileall ml-service
+```
+
+### Current Coverage Layers
+
+- `tests/unit/`
+- `tests/integration/`
+- `tests/performance/`
+- `tests/contract/`
+- `tests/test_api_smoke.py`
+
+## Data Pipeline
+
+Raw datasets are kept in [data/raw/](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/ml-service/data/raw).
+
+To regenerate cleaned datasets:
+
+```bash
+python scripts/prepare_datasets.py
+```
+
+This produces processed artifacts in:
+
+- `data/processed/`
+- `data/samples/`
+
+## Explainability
+
+The service supports:
+
+- real SHAP for the active tree-based model
+- real LIME local explanations
+- proxy attribution summaries
+
+Single-analysis UI flows can surface:
+
+- feature-level SHAP contributions
+- local LIME explanations
+- proxy-sensitive signal summaries
+- counterfactual suggestion candidates
+
+## Fairness
+
+The fairness layer currently exposes:
+
+- group selection rates
+- demographic parity differences
+- disparate impact ratios
+- grouped score averages
+
+The core scaffolding also includes:
+
+- equalized odds helpers
+- bias severity scoring
+- counterfactual consistency support
+
+## Monitoring and Operations
+
+The [monitoring/](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/ml-service/monitoring) package contains starter support for:
+
+- service metrics
+- tracing configuration
+- structured logging
+- health probe helpers
+
+These are intentionally lightweight today, but the folder is already in the right place for production hardening.
+
+## Environment Configuration
+
+Reference environment files:
+
+- [.env.example](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/ml-service/.env.example:1)
+- [.env.test](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/ml-service/.env.test:1)
+
+Current supported settings include:
+
+- API title and version
+- cache backend
+- cache TTL
+- Redis URL placeholder
+
+## Development Commands
+
+The [Makefile](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/ml-service/Makefile:1) includes:
+
+- `make run`
+- `make test`
+- `make lint`
+- `make train`
+
+## Current State
+
+This service is beyond the early prototype stage. It now has:
+
+- a working FastAPI runtime
+- stable report, fairness, explainability, and counterfactual flows
+- real PDF resume upload support
+- active random forest model selection through version metadata
+- real SHAP and LIME integration
+- a green automated test suite
+
+## Known Limitations
+
+- some role profiles are heuristic rather than learned from large labeled datasets
+- performance tests are lightweight guardrails, not full load benchmarks
+- monitoring integrations are scaffolded rather than fully wired to Prometheus/OpenTelemetry
+- Poetry is not the active dependency manager, so `poetry.lock` is intentionally not present
+
+## Recommended Next Steps
+
+Inside `ml-service`, the highest-value future improvements would be:
+
+1. add stronger learned role profiles and more training data
+2. train and validate additional real model artifacts such as XGBoost
+3. harden monitoring and metrics export
+4. expand performance and regression testing
+5. add deployment-ready CI/CD and container runtime checks
