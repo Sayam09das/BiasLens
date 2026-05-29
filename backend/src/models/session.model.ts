@@ -8,6 +8,7 @@ export const sessionSelect = {
   id: true,
   userAgent: true,
   ipAddress: true,
+  refreshTokenHash: true,
   expiresAt: true,
   createdAt: true,
   updatedAt: true,

@@ -16,9 +16,24 @@ export const ERROR_CONSTANTS = {
     message: "Validation failed",
     status: StatusCodes.BAD_REQUEST,
   },
+  NOT_FOUND: {
+    code: "NOT_FOUND",
+    message: "Resource not found",
+    status: StatusCodes.NOT_FOUND,
+  },
+  CONFLICT: {
+    code: "CONFLICT",
+    message: "Resource conflict",
+    status: StatusCodes.CONFLICT,
+  },
   UNAUTHORIZED: {
     code: "UNAUTHORIZED",
     message: "Authentication required",
     status: StatusCodes.UNAUTHORIZED,
+  },
+  FORBIDDEN: {
+    code: "FORBIDDEN",
+    message: "Access denied",
+    status: StatusCodes.FORBIDDEN,
   },
 } as const;

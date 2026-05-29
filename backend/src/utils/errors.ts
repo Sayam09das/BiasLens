@@ -40,3 +40,36 @@ export class UnauthorizedError extends AppError {
     );
   }
 }
+
+export class ForbiddenError extends AppError {
+  constructor(message: string = ERROR_CONSTANTS.FORBIDDEN.message, details?: unknown) {
+    super(
+      message,
+      ERROR_CONSTANTS.FORBIDDEN.status,
+      ERROR_CONSTANTS.FORBIDDEN.code,
+      details
+    );
+  }
+}
+
+export class NotFoundError extends AppError {
+  constructor(message: string = ERROR_CONSTANTS.NOT_FOUND.message, details?: unknown) {
+    super(
+      message,
+      ERROR_CONSTANTS.NOT_FOUND.status,
+      ERROR_CONSTANTS.NOT_FOUND.code,
+      details
+    );
+  }
+}
+
+export class ConflictError extends AppError {
+  constructor(message: string = ERROR_CONSTANTS.CONFLICT.message, details?: unknown) {
+    super(
+      message,
+      ERROR_CONSTANTS.CONFLICT.status,
+      ERROR_CONSTANTS.CONFLICT.code,
+      details
+    );
+  }
+}

@@ -4,7 +4,7 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = env("DATABASE_URL")
+  url      = env("MONGODB_URI")
 }
 
 enum AuditStatus {
@@ -15,14 +15,20 @@ enum AuditStatus {
 }
 
 model User {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  email        String   @unique
-  fullName     String
-  passwordHash String?
-  role         String   @default("user")
-  isActive     Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id                              String    @id @default(auto()) @map("_id") @db.ObjectId
+  email                           String    @unique
+  fullName                        String
+  passwordHash                    String?
+  role                            String    @default("user")
+  isActive                        Boolean   @default(true)
+  emailVerified                   Boolean   @default(false)
+  emailVerifiedAt                 DateTime?
+  emailVerificationTokenHash      String?
+  emailVerificationTokenExpiresAt DateTime?
+  passwordResetTokenHash          String?
+  passwordResetTokenExpiresAt     DateTime?
+  createdAt                       DateTime  @default(now())
+  updatedAt                       DateTime  @updatedAt
 
   audits       Audit[]
   reports      Report[]
@@ -77,13 +83,13 @@ model UploadedFile {
 }
 
 model Session {
-  id           String   @id @default(auto()) @map("_id") @db.ObjectId
-  userAgent    String?
-  ipAddress    String?
-  refreshToken String
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  userAgent        String?
+  ipAddress        String?
+  refreshTokenHash String
+  expiresAt        DateTime
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
   userId       String   @db.ObjectId
   user         User     @relation(fields: [userId], references: [id])

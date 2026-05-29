@@ -16,11 +16,13 @@ export async function sendTransactionalEmail(input: {
   to: { email: string; name?: string };
   subject: string;
   htmlContent: string;
+  textContent?: string;
 }) {
   return transporter.sendMail({
     from: env.MAIL_FROM,
     to: input.to.name ? `"${input.to.name}" <${input.to.email}>` : input.to.email,
     subject: input.subject,
     html: input.htmlContent,
+    text: input.textContent,
   });
 }

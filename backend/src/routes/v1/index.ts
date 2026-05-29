@@ -1,11 +1,11 @@
 import { Router } from "express";
 
-import { auditRoutes } from "./audit.routes.js";
-import { authRoutes } from "./auth.routes.js";
+import { auditRoutes } from "../../modules/audit/audit.routes.js";
 import { healthRoutes } from "./health.routes.js";
-import { reportRoutes } from "./report.routes.js";
-import { uploadRoutes } from "./upload.routes.js";
-import { userRoutes } from "./user.routes.js";
+import { authRoutes } from "../../modules/auth/auth.routes.js";
+import { reportRoutes } from "../../modules/report/report.routes.js";
+import { uploadRoutes } from "../../modules/upload/upload.routes.js";
+import { userRoutes } from "../../modules/user/user.routes.js";
 
 const router = Router();
 
