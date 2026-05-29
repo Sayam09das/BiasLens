@@ -225,10 +225,39 @@ textarea {
   line-height: 1.5;
 }
 
+.mode-banner {
+  margin: 12px 0 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(28, 106, 99, 0.08);
+  border: 1px solid rgba(28, 106, 99, 0.16);
+  color: var(--accent-2);
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
 .role-chip-group {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+}
+
+.compare-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
+.compare-toggle input {
+  width: auto;
+  margin: 0;
+}
+
+.compare-toggle span {
+  font-weight: 500;
 }
 
 .role-chip {
@@ -359,6 +388,12 @@ button:disabled {
   font-size: 1.3rem;
 }
 
+.info-copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -370,6 +405,19 @@ button:disabled {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
   margin-top: 12px;
+}
+
+.explanation-panels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.explanation-card,
+.proxy-card {
+  display: grid;
+  gap: 12px;
 }
 
 .comparison-summary {
@@ -467,6 +515,10 @@ button:disabled {
   margin-top: 12px;
 }
 
+.compact-list {
+  margin-top: 0;
+}
+
 .stack-item {
   display: flex;
   justify-content: space-between;
@@ -481,6 +533,14 @@ button:disabled {
 .stack-item span {
   color: var(--muted);
   text-align: right;
+}
+
+.muted-item {
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: rgba(255, 250, 242, 0.72);
+  color: var(--muted);
+  border: 1px dashed rgba(46, 34, 22, 0.12);
 }
 
 .json-viewer {
@@ -513,7 +573,8 @@ button:disabled {
   .hero,
   .layout,
   .hero-result,
-  .feature-grid {
+  .feature-grid,
+  .explanation-panels {
     grid-template-columns: 1fr;
   }
 

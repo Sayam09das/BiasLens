@@ -30,6 +30,15 @@ DEFAULT_MODEL_ARTIFACT = ModelArtifactInfo(
 )
 
 
+def load_model_versions_metadata() -> dict:
+    """Return raw versions metadata when available."""
+    if not VERSIONS_PATH.exists():
+        return {}
+
+    with VERSIONS_PATH.open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
 def load_model_artifact(info: ModelArtifactInfo):
     """Load a saved model artifact from disk."""
     if not info.artifact_path.exists():
@@ -49,11 +58,9 @@ def load_default_model_artifact():
 
 def load_active_model_info() -> ModelArtifactInfo:
     """Load the active model definition from versions.json when available."""
-    if not VERSIONS_PATH.exists():
+    payload = load_model_versions_metadata()
+    if not payload:
         return DEFAULT_MODEL_ARTIFACT
-
-    with VERSIONS_PATH.open("r", encoding="utf-8") as handle:
-        payload = json.load(handle)
 
     active_model = payload.get("active", {}).get("prediction_model")
     if not isinstance(active_model, dict):

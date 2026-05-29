@@ -4,9 +4,11 @@ const formStatus = document.getElementById("form-status");
 const endpointPreview = document.getElementById("endpoint-preview");
 const inputModeInputs = document.querySelectorAll('input[name="inputMode"]');
 const compareRoleInputs = document.querySelectorAll('input[name="compareRoleOption"]');
+const compareModeToggle = document.getElementById("compare-mode-toggle");
 const fileField = document.getElementById("file-field");
 const textField = document.getElementById("text-field");
 const modeHelp = document.getElementById("mode-help");
+const advancedModeBanner = document.getElementById("advanced-mode-banner");
 const sourceFileBanner = document.getElementById("source-file-banner");
 const emptyState = document.getElementById("empty-state");
 const results = document.getElementById("results");
@@ -24,6 +26,18 @@ const resumePreview = document.getElementById("resume-preview");
 const comparisonBlock = document.getElementById("comparison-block");
 const comparisonGrid = document.getElementById("comparison-grid");
 const bestMatchSummary = document.getElementById("best-match-summary");
+const explainabilityBlock = document.getElementById("explainability-block");
+const shapMethod = document.getElementById("shap-method");
+const limeMethod = document.getElementById("lime-method");
+const shapMessage = document.getElementById("shap-message");
+const limeMessage = document.getElementById("lime-message");
+const shapList = document.getElementById("shap-list");
+const limeList = document.getElementById("lime-list");
+const proxySummary = document.getElementById("proxy-summary");
+const proxyList = document.getElementById("proxy-list");
+const counterfactualBlock = document.getElementById("counterfactual-block");
+const counterfactualSummary = document.getElementById("counterfactual-summary");
+const counterfactualGrid = document.getElementById("counterfactual-grid");
 
 const probabilityList = document.getElementById("probability-list");
 const genderList = document.getElementById("gender-list");
@@ -76,6 +90,13 @@ function createStackItem(title, details) {
   return item;
 }
 
+function createPlaceholderItem(message) {
+  const item = document.createElement("div");
+  item.className = "stack-item muted-item";
+  item.textContent = message;
+  return item;
+}
+
 function renderProbabilityList(probabilities = {}) {
   probabilityList.innerHTML = "";
   Object.entries(probabilities).forEach(([label, probability]) => {
@@ -100,6 +121,151 @@ function renderFairnessList(container, metrics = {}) {
 
     container.appendChild(createStackItem(label, details));
   });
+}
+
+function resetAdvancedSections() {
+  explainabilityBlock.classList.add("hidden");
+  counterfactualBlock.classList.add("hidden");
+
+  shapMethod.textContent = "-";
+  limeMethod.textContent = "-";
+  shapMessage.textContent = "-";
+  limeMessage.textContent = "-";
+  proxySummary.textContent = "-";
+
+  shapList.innerHTML = "";
+  limeList.innerHTML = "";
+  proxyList.innerHTML = "";
+  counterfactualSummary.textContent = "";
+  counterfactualGrid.innerHTML = "";
+}
+
+function renderExplanationContributionList(container, items = [], fallbackMessage) {
+  container.innerHTML = "";
+  if (!items.length) {
+    container.appendChild(createPlaceholderItem(fallbackMessage));
+    return;
+  }
+
+  items.forEach((item) => {
+    const label = item.feature || "feature";
+    const details = [
+      item.importance != null ? `importance ${formatNumber(item.importance)}` : null,
+      item.reason || null,
+    ]
+      .filter(Boolean)
+      .join(" • ");
+
+    container.appendChild(createStackItem(label, details));
+  });
+}
+
+function renderProxySignals(proxyAttribution = {}) {
+  proxyList.innerHTML = "";
+  proxySummary.textContent = proxyAttribution.risk_summary || "No proxy attribution summary available.";
+
+  const signals = Array.isArray(proxyAttribution.signals) ? proxyAttribution.signals : [];
+  if (!signals.length) {
+    proxyList.appendChild(createPlaceholderItem("No obvious proxy-sensitive signals were detected."));
+    return;
+  }
+
+  signals.forEach((signal) => {
+    const label = signal.signal || signal.feature || "signal";
+    const details = [
+      signal.category || null,
+      signal.reason || signal.description || null,
+    ]
+      .filter(Boolean)
+      .join(" • ");
+
+    proxyList.appendChild(createStackItem(label, details || "Flagged by proxy detector"));
+  });
+}
+
+function renderExplainability(explainData) {
+  if (!explainData) {
+    resetAdvancedSections();
+    return;
+  }
+
+  const shap = explainData.shap || {};
+  const lime = explainData.lime || {};
+
+  shapMethod.textContent = `${shap.method || "unknown"}${shap.available ? " · live" : " · fallback"}`;
+  limeMethod.textContent = `${lime.method || "unknown"}${lime.available ? " · live" : " · fallback"}`;
+  shapMessage.textContent = shap.message || "No SHAP summary available.";
+  limeMessage.textContent = lime.message || "No LIME summary available.";
+
+  renderExplanationContributionList(
+    shapList,
+    shap.feature_contributions || [],
+    "No SHAP contributions were returned."
+  );
+  renderExplanationContributionList(
+    limeList,
+    lime.top_local_features || [],
+    "No LIME local features were returned."
+  );
+  renderProxySignals(explainData.proxy_attribution || {});
+
+  explainabilityBlock.classList.remove("hidden");
+}
+
+function renderCounterfactuals(counterfactualData) {
+  counterfactualGrid.innerHTML = "";
+  if (!counterfactualData) {
+    counterfactualBlock.classList.add("hidden");
+    counterfactualSummary.textContent = "";
+    return;
+  }
+
+  const candidates = Array.isArray(counterfactualData.candidates)
+    ? counterfactualData.candidates
+    : [];
+
+  if (!candidates.length) {
+    counterfactualSummary.textContent = "No counterfactual candidates were returned for this resume.";
+    counterfactualGrid.appendChild(createPlaceholderItem("Try a different resume snippet or target role."));
+    counterfactualBlock.classList.remove("hidden");
+    return;
+  }
+
+  const bestIndex = Number.isInteger(counterfactualData.best_candidate_index)
+    ? counterfactualData.best_candidate_index
+    : 0;
+  const bestCandidate = candidates[bestIndex];
+  const bestPrediction = bestCandidate?.prediction?.probabilities?.Hire ?? 0;
+  counterfactualSummary.textContent = bestCandidate
+    ? `Best improvement path raises hire confidence to ${formatPercent(bestPrediction)} with targeted feature changes.`
+    : "Counterfactual candidates generated successfully.";
+
+  candidates.forEach((candidate, index) => {
+    const card = document.createElement("article");
+    const isBest = index === bestIndex;
+    const prediction = candidate.prediction || {};
+    const probabilities = prediction.probabilities || {};
+    const evaluation = candidate.evaluation || {};
+    const topEntry = Object.entries(probabilities).sort((a, b) => b[1] - a[1])[0];
+
+    card.className = `comparison-card${isBest ? " best-match" : ""}`;
+    card.innerHTML = `
+      ${isBest ? '<span class="best-match-badge">Best Candidate</span>' : '<span class="rank-badge">Candidate</span>'}
+      <h4>${candidate.candidate_features?.job_role || "Role adjustment"}</h4>
+      <p><strong>Suggested outcome:</strong> ${prediction.prediction || "N/A"}</p>
+      <p><strong>Top confidence:</strong> ${topEntry ? formatPercent(topEntry[1]) : "N/A"}</p>
+      <p><strong>Hire lift:</strong> ${
+        evaluation.hire_probability_delta != null ? formatPercent(evaluation.hire_probability_delta) : "N/A"
+      }</p>
+      <p><strong>AI Score:</strong> ${candidate.candidate_features?.ai_score ?? "N/A"}</p>
+      <p><strong>Experience:</strong> ${candidate.candidate_features?.experience_years ?? "N/A"} years</p>
+      <p><strong>Skills:</strong> ${candidate.candidate_features?.skills || "N/A"}</p>
+      <p><strong>Summary:</strong> ${candidate.summary || "No summary available."}</p>
+    `;
+    counterfactualGrid.appendChild(card);
+  });
+
+  counterfactualBlock.classList.remove("hidden");
 }
 
 function renderRoleComparisons(comparisons = []) {
@@ -129,9 +295,6 @@ function renderRoleComparisons(comparisons = []) {
     : "";
 
   const getRankLabel = (hireProbability) => {
-    if (hireProbability >= 0.85) {
-      return "Best Match";
-    }
     if (hireProbability >= 0.6) {
       return "Strong Match";
     }
@@ -237,6 +400,7 @@ function renderReport(report) {
   results.classList.remove("hidden");
   comparisonBlock.classList.add("hidden");
   comparisonGrid.innerHTML = "";
+  resetAdvancedSections();
 }
 
 function renderComparisonReport(report) {
@@ -253,19 +417,54 @@ function renderComparisonReport(report) {
   });
   renderRoleComparisons(comparisons);
   rawJson.textContent = JSON.stringify(report, null, 2);
+  resetAdvancedSections();
 }
 
 function updateEndpointPreview() {
   const apiBaseUrl = document.getElementById("api-base-url").value.trim().replace(/\/$/, "");
   const selectedMode = document.querySelector('input[name="inputMode"]:checked')?.value || "text";
   const selectedComparisonRoles = getSelectedComparisonRoles();
+  const comparisonEnabled = compareModeToggle.checked && selectedComparisonRoles.length >= 2;
   let endpoint = "/report-from-text";
   if (selectedMode === "file") {
-    endpoint = selectedComparisonRoles.length >= 2 ? "/compare-upload-resume" : "/upload-resume";
-  } else if (selectedComparisonRoles.length >= 2) {
+    endpoint = comparisonEnabled ? "/compare-upload-resume" : "/upload-resume";
+  } else if (comparisonEnabled) {
     endpoint = "/compare-roles";
   }
   endpointPreview.textContent = `${apiBaseUrl}${endpoint}`;
+  advancedModeBanner.classList.toggle("hidden", !comparisonEnabled);
+}
+
+function syncSingleAnalysisSelection() {
+  const jobRoleInput = document.getElementById("job-role");
+  const currentRole = jobRoleInput.value.trim();
+  let matchedInput = null;
+
+  compareRoleInputs.forEach((input) => {
+    const shouldKeep = input.value === currentRole;
+    input.checked = shouldKeep;
+    if (shouldKeep) {
+      matchedInput = input;
+    }
+  });
+
+  if (!matchedInput && compareRoleInputs.length > 0) {
+    compareRoleInputs[0].checked = true;
+    jobRoleInput.value = compareRoleInputs[0].value;
+  }
+}
+
+function syncCompareMode() {
+  const comparisonEnabled = compareModeToggle.checked;
+  compareRoleInputs.forEach((input) => {
+    input.disabled = false;
+  });
+
+  if (!comparisonEnabled) {
+    syncSingleAnalysisSelection();
+  }
+
+  updateEndpointPreview();
 }
 
 function updateInputMode() {
@@ -286,12 +485,26 @@ function getSelectedComparisonRoles() {
 }
 
 document.getElementById("api-base-url").addEventListener("input", updateEndpointPreview);
+document.getElementById("job-role").addEventListener("input", () => {
+  if (!compareModeToggle.checked) {
+    syncSingleAnalysisSelection();
+  }
+});
 inputModeInputs.forEach((input) => {
   input.addEventListener("change", updateInputMode);
 });
 compareRoleInputs.forEach((input) => {
-  input.addEventListener("change", updateEndpointPreview);
+  input.addEventListener("change", () => {
+    if (!compareModeToggle.checked) {
+      syncSingleAnalysisSelection();
+      return;
+    }
+
+    updateEndpointPreview();
+  });
 });
+compareModeToggle.addEventListener("change", syncCompareMode);
+syncCompareMode();
 updateInputMode();
 
 form.addEventListener("submit", async (event) => {
@@ -304,10 +517,13 @@ form.addEventListener("submit", async (event) => {
   const isFileMode = formData.get("inputMode") === "file";
   const jobRole = String(formData.get("jobRole")).trim();
   const selectedComparisonRoles = getSelectedComparisonRoles();
+  const comparisonEnabled = compareModeToggle.checked && selectedComparisonRoles.length >= 2;
 
   try {
     let response;
     let isComparisonMode = false;
+    let advancedExplainData = null;
+    let advancedCounterfactualData = null;
 
     if (isFileMode) {
       const file = document.getElementById("resume-file").files[0];
@@ -317,7 +533,7 @@ form.addEventListener("submit", async (event) => {
 
       const uploadData = new FormData();
       uploadData.append("file", file);
-      if (selectedComparisonRoles.length >= 2) {
+      if (comparisonEnabled) {
         isComparisonMode = true;
         uploadData.append("job_roles", selectedComparisonRoles.join(", "));
         response = await fetch(`${apiBaseUrl}/compare-upload-resume`, {
@@ -332,7 +548,7 @@ form.addEventListener("submit", async (event) => {
         });
       }
     } else {
-      if (selectedComparisonRoles.length >= 2) {
+      if (comparisonEnabled) {
         isComparisonMode = true;
         response = await fetch(`${apiBaseUrl}/compare-roles`, {
           method: "POST",
@@ -350,13 +566,44 @@ form.addEventListener("submit", async (event) => {
           resume_text: String(formData.get("resumeText")).trim(),
         };
 
-        response = await fetch(`${apiBaseUrl}/report-from-text`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
+        const [reportResponse, explainResponse, counterfactualResponse] = await Promise.all([
+          fetch(`${apiBaseUrl}/report-from-text`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          }),
+          fetch(`${apiBaseUrl}/explain`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          }),
+          fetch(`${apiBaseUrl}/counterfactual`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          }),
+        ]);
+
+        response = reportResponse;
+
+        const [explainData, counterfactualData] = await Promise.all([
+          explainResponse.json(),
+          counterfactualResponse.json(),
+        ]);
+
+        if (explainResponse.ok) {
+          advancedExplainData = explainData;
+        }
+
+        if (counterfactualResponse.ok) {
+          advancedCounterfactualData = counterfactualData;
+        }
       }
     }
 
@@ -370,6 +617,10 @@ form.addEventListener("submit", async (event) => {
       renderComparisonReport(data);
     } else {
       renderReport(data);
+      if (!isFileMode && !isComparisonMode) {
+        renderExplainability(advancedExplainData);
+        renderCounterfactuals(advancedCounterfactualData);
+      }
     }
     setStatus("Report generated successfully.");
   } catch (error) {

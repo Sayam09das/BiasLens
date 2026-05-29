@@ -1,0 +1,5 @@
+[MASTER]
+ignore=.pytest_cache,__pycache__
+
+[MESSAGES CONTROL]
+disable=missing-module-docstring,missing-function-docstring
