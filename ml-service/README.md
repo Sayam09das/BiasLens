@@ -66,6 +66,15 @@ cd ml-service
 uvicorn app.main:app --reload
 ```
 
+## Smoke tests
+
+To run the API smoke tests:
+
+```bash
+cd ml-service
+pytest tests
+```
+
 Then send a request to `POST /predict` with JSON like:
 
 ```json
