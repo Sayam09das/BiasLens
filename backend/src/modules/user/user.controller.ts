@@ -40,8 +40,9 @@ export async function getUserController(request: Request, response: Response): P
 export async function updateUserController(request: Request, response: Response): Promise<void> {
   const userId = String(request.params.id);
   const authUser = getAuthenticatedUser(response);
+  const isAdmin = authUser.role === "admin";
 
-  if (authUser.id !== userId && authUser.role !== "admin") {
+  if (authUser.id !== userId && !isAdmin) {
     throw new ForbiddenError("You do not have permission to update this user.");
   }
 
@@ -52,10 +53,18 @@ export async function updateUserController(request: Request, response: Response)
   }
 
   if (typeof request.body?.role === "string" && request.body.role.trim()) {
+    if (!isAdmin) {
+      throw new ForbiddenError("Only admins can change user roles.");
+    }
+
     updates.role = request.body.role.trim();
   }
 
   if (typeof request.body?.isActive === "boolean") {
+    if (!isAdmin) {
+      throw new ForbiddenError("Only admins can change account status.");
+    }
+
     updates.isActive = request.body.isActive;
   }
 

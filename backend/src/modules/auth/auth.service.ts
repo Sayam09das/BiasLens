@@ -2,8 +2,10 @@ import type { Request } from "express";
 
 import { sendTransactionalEmail } from "../../config/brevo.js";
 import { prisma } from "../../config/prisma.js";
+import { AUTH_AUDIT_ACTIONS } from "../../constants/audit.constants.js";
 import { AUTH_CONSTANTS } from "../../constants/auth.constants.js";
 import { userSelect } from "../../models/user.model.js";
+import { auditLogService } from "../audit/audit-log.service.js";
 import {
   generateSecureToken,
   hashPassword,
@@ -171,6 +173,17 @@ export const authService = {
       request,
     });
 
+    await auditLogService.record({
+      action: AUTH_AUDIT_ACTIONS.REGISTERED,
+      entityType: "User",
+      entityId: user.id,
+      userId: user.id,
+      metadata: {
+        email: user.email,
+        role: user.role,
+      },
+    });
+
     return {
       user,
       verification: {
@@ -198,7 +211,7 @@ export const authService = {
       throw new ValidationError("Verification token is invalid or expired.");
     }
 
-    return prisma.user.update({
+    const verifiedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
         emailVerified: true,
@@ -208,6 +221,18 @@ export const authService = {
       },
       select: userSelect,
     });
+
+    await auditLogService.record({
+      action: AUTH_AUDIT_ACTIONS.EMAIL_VERIFIED,
+      entityType: "User",
+      entityId: verifiedUser.id,
+      userId: verifiedUser.id,
+      metadata: {
+        email: verifiedUser.email,
+      },
+    });
+
+    return verifiedUser;
   },
 
   async resendVerificationEmail(email: string, request: Request) {
@@ -249,6 +274,16 @@ export const authService = {
       request,
     });
 
+    await auditLogService.record({
+      action: AUTH_AUDIT_ACTIONS.VERIFICATION_RESENT,
+      entityType: "User",
+      entityId: user.id,
+      userId: user.id,
+      metadata: {
+        email: user.email,
+      },
+    });
+
     return { emailSent: true };
   },
 
@@ -285,6 +320,18 @@ export const authService = {
         userAgent: metadata.userAgent,
         ipAddress: metadata.ipAddress,
         expiresAt: new Date(Date.now() + AUTH_CONSTANTS.sessionTimeoutMs),
+      },
+    });
+
+    await auditLogService.record({
+      action: AUTH_AUDIT_ACTIONS.LOGIN_SUCCEEDED,
+      entityType: "Session",
+      entityId: user.id,
+      userId: user.id,
+      metadata: {
+        email: user.email,
+        ipAddress: metadata.ipAddress,
+        userAgent: metadata.userAgent,
       },
     });
 
@@ -351,6 +398,18 @@ export const authService = {
       }),
     ]);
 
+    await auditLogService.record({
+      action: AUTH_AUDIT_ACTIONS.TOKEN_REFRESHED,
+      entityType: "Session",
+      entityId: session.id,
+      userId: session.user.id,
+      metadata: {
+        email: session.user.email,
+        ipAddress: metadata.ipAddress,
+        userAgent: metadata.userAgent,
+      },
+    });
+
     return {
       user: {
         id: session.user.id,
@@ -372,9 +431,27 @@ export const authService = {
       return;
     }
 
+    let payloadUserId: string | null = null;
+
+    try {
+      payloadUserId = tokenService.verifyToken(refreshToken, "refresh").sub;
+    } catch {
+      payloadUserId = null;
+    }
+
     await prisma.session.deleteMany({
       where: {
         refreshTokenHash: hashToken(refreshToken),
+      },
+    });
+
+    await auditLogService.record({
+      action: AUTH_AUDIT_ACTIONS.LOGOUT_SUCCEEDED,
+      entityType: "Session",
+      entityId: payloadUserId,
+      userId: payloadUserId,
+      metadata: {
+        tokenCleared: true,
       },
     });
   },
@@ -409,6 +486,16 @@ export const authService = {
       fullName: user.fullName,
       token: resetToken,
       request,
+    });
+
+    await auditLogService.record({
+      action: AUTH_AUDIT_ACTIONS.PASSWORD_RESET_REQUESTED,
+      entityType: "User",
+      entityId: user.id,
+      userId: user.id,
+      metadata: {
+        email: user.email,
+      },
     });
 
     return { emailSent: true };
@@ -453,6 +540,16 @@ export const authService = {
         where: { userId: user.id },
       }),
     ]);
+
+    await auditLogService.record({
+      action: AUTH_AUDIT_ACTIONS.PASSWORD_RESET_COMPLETED,
+      entityType: "User",
+      entityId: user.id,
+      userId: user.id,
+      metadata: {
+        sessionsInvalidated: true,
+      },
+    });
 
     return { passwordReset: true };
   },
