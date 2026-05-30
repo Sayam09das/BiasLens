@@ -1,17 +1,14 @@
 import { Router } from "express";
-import multer from "multer";
 
 import { uploadResumeController } from "../../controllers/upload.controller.js";
+import {
+  uploadMiddleware,
+  virusScanMiddleware,
+} from "../../middleware/integration/upload.middleware.js";
 
 const router = Router();
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 10 * 1024 * 1024,
-  },
-});
 
-router.post("/upload/resume", upload.single("file"), (req, res, next) => {
+router.post("/upload/resume", uploadMiddleware.single("file"), virusScanMiddleware, (req, res, next) => {
   uploadResumeController(req, res).catch(next);
 });
 

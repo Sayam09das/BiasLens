@@ -1,7 +1,8 @@
-import compression from "compression";
 import express, { type Express } from "express";
 
 import { securityMiddleware } from "../config/security.js";
+import { compressionMiddleware } from "./integration/compression.middleware.js";
+import { requestIdMiddleware } from "./integration/request-id.middleware.js";
 import { corsMiddleware } from "./security/cors.middleware.js";
 import { csrfMiddleware } from "./security/csrf.middleware.js";
 import { helmetMiddleware } from "./security/helmet.middleware.js";
@@ -13,6 +14,7 @@ import { tracingMiddleware } from "./observability/tracing.middleware.js";
 
 export function registerMiddleware(app: Express): void {
   app.disable("x-powered-by");
+  app.use(requestIdMiddleware);
   app.use(helmetMiddleware);
   app.use(corsMiddleware);
   app.use(rateLimitMiddleware);
@@ -20,7 +22,7 @@ export function registerMiddleware(app: Express): void {
   app.use(tracingMiddleware);
   app.use(metricsMiddleware);
   app.use(requestAuditLogMiddleware);
-  app.use(compression());
+  app.use(compressionMiddleware);
   app.use(securityMiddleware.cookies);
   app.use(express.json({ limit: "2mb" }));
   app.use(express.urlencoded({ extended: true }));

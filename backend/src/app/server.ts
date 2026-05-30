@@ -5,11 +5,15 @@ import { env } from "../config/env.js";
 import { logger } from "../config/logger.js";
 import { connectPrisma } from "../config/prisma.js";
 import { initializeTelemetry } from "../config/telemetry.js";
+import { registerAuditEventListeners } from "../events/audit.events.js";
+import { registerNotificationEventListeners } from "../events/notification.events.js";
 import { createApp } from "./app.js";
 import { registerShutdown } from "./shutdown.js";
 
 async function bootstrap() {
   initializeTelemetry();
+  registerAuditEventListeners();
+  registerNotificationEventListeners();
   await connectDatabase();
   await connectPrisma();
 
