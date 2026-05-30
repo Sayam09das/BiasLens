@@ -79,8 +79,11 @@ export function DialogContent({
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
-    setMounted(true);
+    // Mark as mounted after first client render.
+    // Using startTransition avoids React warnings about cascading renders.
+    React.startTransition(() => setMounted(true));
   }, []);
+
 
   React.useEffect(() => {
     if (!open) {
