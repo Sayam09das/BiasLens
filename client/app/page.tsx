@@ -7,6 +7,8 @@ import SolutionSection from "./(public)/home/SolutionSection";
 import FeaturesGrid from "./(public)/home/FeaturesGrid";
 import ProductShowcase from "./(public)/home/ProductShowcase";
 import HowItWorks from "./(public)/home/HowItWorks";
+import ExplainabilitySection from "./(public)/home/ExplainabilitySection";
+import FairnessComplianceSection from "./(public)/home/FairnessComplianceSection";
 
 
 export default function HomePage() {
@@ -20,6 +22,8 @@ export default function HomePage() {
       <FeaturesGrid />
       <ProductShowcase />
       <HowItWorks />
+      <ExplainabilitySection />
+      <FairnessComplianceSection />
       <Footer />
     </>
   );
