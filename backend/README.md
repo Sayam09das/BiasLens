@@ -75,6 +75,7 @@ docker run --env-file .env -p 4000:4000 biaslens-backend
 ## Operational Notes
 
 - Prisma uses `MONGODB_URI` as the active datasource URL
+- the backend uses `MONGODB_URI` as the single database connection variable for both Mongoose and Prisma
 - request IDs, structured logs, audit events, and queue scaffolding are already present
 - the ML client is retry/circuit-breaker aware and expects the ML service to be reachable at `ML_SERVICE_URL`
 
