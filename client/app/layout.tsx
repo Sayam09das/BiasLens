@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
+import "../styles/globals.css";
 
 const appUrl =
   process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
