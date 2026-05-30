@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 190 48">
+  <rect x="10" y="10" width="28" height="28" rx="8" fill="#2563EB"/>
+  <circle cx="24" cy="24" r="7" fill="#FFFFFF"/>
+  <circle cx="31" cy="31" r="3" fill="#FFFFFF"/>
+  <text x="52" y="31" fill="#000" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">TalentIQ</text>
+</svg>

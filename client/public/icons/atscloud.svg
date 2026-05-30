@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 205 48">
+  <path d="M18 33h25c7 0 11-4 11-10s-5-10-11-10c-3-7-13-8-18-2-8-1-15 5-15 13 0 5 3 9 8 9z" fill="#2563EB"/>
+  <circle cx="29" cy="23" r="3" fill="#FFFFFF"/>
+  <circle cx="40" cy="23" r="3" fill="#FFFFFF"/>
+  <path d="M29 23h11" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="68" y="31" fill="#" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">ATSCloud</text>
+</svg>

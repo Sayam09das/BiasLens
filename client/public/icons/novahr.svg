@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 48">
+  <circle cx="24" cy="24" r="14" fill="#2563EB"/>
+  <path d="M18 30V18h4l8 12V18h4v12h-4l-8-12v12z" fill="#FFFFFF"/>
+  <text x="50" y="31" fill="#000" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">NovaHR</text>
+</svg>

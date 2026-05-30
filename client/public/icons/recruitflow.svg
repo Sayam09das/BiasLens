@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 48">
+  <path d="M12 24c6-12 18-12 24 0s18 12 24 0" stroke="#2563EB" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <circle cx="12" cy="24" r="4" fill="#FFFFFF"/>
+  <circle cx="60" cy="24" r="4" fill="#FFFFFF"/>
+  <text x="78" y="31" fill="#000" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700">RecruitFlow</text>
+</svg>
