@@ -1,14 +1,28 @@
 import { z } from "zod";
 
+import { getPasswordPolicyIssues } from "./auth.password-policy.js";
+
 const objectIdPattern = /^[a-f0-9]{24}$/i;
 
 export const authSchemas = {
-  registerBody: z.object({
-    fullName: z.string().trim().min(2).max(120),
-    email: z.email().transform((value) => value.trim().toLowerCase()),
-    password: z.string().min(8).max(128),
-    role: z.string().trim().min(2).max(40).optional(),
-  }),
+  registerBody: z
+    .object({
+      fullName: z.string().trim().min(2).max(120),
+      email: z.email().transform((value) => value.trim().toLowerCase()),
+      password: z.string().min(8).max(128),
+      role: z.string().trim().min(2).max(40).optional(),
+    })
+    .superRefine((value, context) => {
+      const issues = getPasswordPolicyIssues(value.password, value.email);
+
+      issues.forEach((issue) => {
+        context.addIssue({
+          code: "custom",
+          path: ["password"],
+          message: issue,
+        });
+      });
+    }),
   loginBody: z.object({
     email: z.email().transform((value) => value.trim().toLowerCase()),
     password: z.string().min(8).max(128),
@@ -25,10 +39,22 @@ export const authSchemas = {
   logoutBody: z.object({
     refreshToken: z.string().trim().min(20).optional(),
   }),
-  resetPasswordBody: z.object({
-    token: z.string().trim().min(16),
-    password: z.string().min(8).max(128),
-  }),
+  resetPasswordBody: z
+    .object({
+      token: z.string().trim().min(16),
+      password: z.string().min(8).max(128),
+    })
+    .superRefine((value, context) => {
+      const issues = getPasswordPolicyIssues(value.password);
+
+      issues.forEach((issue) => {
+        context.addIssue({
+          code: "custom",
+          path: ["password"],
+          message: issue,
+        });
+      });
+    }),
   userParams: z.object({
     id: z.string().regex(objectIdPattern, "A valid user id is required."),
   }),

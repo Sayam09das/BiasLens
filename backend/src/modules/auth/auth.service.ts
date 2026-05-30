@@ -23,6 +23,7 @@ import {
   renderPasswordResetEmailTemplate,
   renderVerificationEmailTemplate,
 } from "./auth.mail-templates.js";
+import { getPasswordPolicyIssues } from "./auth.password-policy.js";
 import { tokenService } from "./token.service.js";
 
 type RegisterInput = {
@@ -54,9 +55,15 @@ function assertEmail(email?: string): string {
   return normalizeEmail(email);
 }
 
-function assertPassword(password?: string): string {
-  if (!password || password.trim().length < 8) {
-    throw new ValidationError("Password must be at least 8 characters long.");
+function assertPassword(password?: string, email?: string): string {
+  if (!password) {
+    throw new ValidationError("Password is required.");
+  }
+
+  const issues = getPasswordPolicyIssues(password, email);
+
+  if (issues.length > 0) {
+    throw new ValidationError("Password does not meet security requirements.", issues);
   }
 
   return password;
@@ -136,7 +143,7 @@ async function sendPasswordResetEmail(input: {
 export const authService = {
   async register(input: RegisterInput, request: Request) {
     const email = assertEmail(input.email);
-    const password = assertPassword(input.password);
+    const password = assertPassword(input.password, email);
     const fullName = assertFullName(input.fullName);
     const role = input.role?.trim() || "user";
 
@@ -503,7 +510,6 @@ export const authService = {
 
   async resetPassword(input: ResetPasswordInput) {
     const token = input.token?.trim();
-    const password = assertPassword(input.password);
 
     if (!token) {
       throw new ValidationError("Reset token is required.");
@@ -524,6 +530,15 @@ export const authService = {
     if (!user) {
       throw new ValidationError("Reset token is invalid or expired.");
     }
+
+    const userWithEmail = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: {
+        email: true,
+      },
+    });
+
+    const password = assertPassword(input.password, userWithEmail?.email);
 
     const passwordHash = await hashPassword(password);
 
