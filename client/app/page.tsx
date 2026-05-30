@@ -5,6 +5,8 @@ import SocialProof from "./(public)/home/SocialProof";
 import ProblemSection from "./(public)/home/ProblemSection";
 import SolutionSection from "./(public)/home/SolutionSection";
 import FeaturesGrid from "./(public)/home/FeaturesGrid";
+import ProductShowcase from "./(public)/home/ProductShowcase";
+import HowItWorks from "./(public)/home/HowItWorks";
 
 
 export default function HomePage() {
@@ -16,6 +18,8 @@ export default function HomePage() {
       <ProblemSection />
       <SolutionSection />
       <FeaturesGrid />
+      <ProductShowcase />
+      <HowItWorks />
       <Footer />
     </>
   );
