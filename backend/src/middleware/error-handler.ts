@@ -22,7 +22,7 @@ export function errorHandler(
   res: Response,
   _next: NextFunction
 ): void {
-  logger.error({ error }, "Unhandled backend error");
+  logger.error({ err: error }, "Unhandled backend error");
 
   if (error instanceof AppError) {
     res.status(error.statusCode).json(errorResponse(error.errorCode, error.message, error.details));

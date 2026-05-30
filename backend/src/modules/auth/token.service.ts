@@ -35,7 +35,6 @@ function signToken(
     getSecret(tokenType),
     {
       expiresIn: getExpiresIn(tokenType),
-      subject: payload.sub,
     }
   );
 }
