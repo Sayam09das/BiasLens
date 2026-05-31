@@ -4,7 +4,7 @@ import Hero from "./(public)/home/hero";
 import SocialProof from "./(public)/home/SocialProof";
 import ProblemSection from "./(public)/home/ProblemSection";
 import SolutionSection from "./(public)/home/SolutionSection";
-import FeaturesGrid from "./(public)/home/FeaturesGrid";
+import FeaturesGrid from "./(public)/Feature/FeaturesGrid";
 import ProductShowcase from "./(public)/home/ProductShowcase";
 import HowItWorks from "./(public)/home/HowItWorks";
 import ExplainabilitySection from "./(public)/home/ExplainabilitySection";
