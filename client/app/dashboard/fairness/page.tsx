@@ -26,7 +26,7 @@ function StatSkeleton() {
 function SectionSkeleton({ height = 320 }: { height?: number }) {
   return (
     <div
-      className="animate-pulse rounded-[2rem] bg-[#f3f7fc]"
+      className="animate-pulse rounded-4xl bg-[#f3f7fc]"
       style={{ height }}
     />
   );

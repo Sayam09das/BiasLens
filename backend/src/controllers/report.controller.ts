@@ -18,6 +18,12 @@ export async function getReportController(req: Request, res: Response): Promise<
   res.status(StatusCodes.OK).json(successResponse(report, "Report loaded successfully."));
 }
 
+export async function listReportsController(_req: Request, res: Response): Promise<void> {
+  const user = authUser(res);
+  const reports = await reportService.listReportsByUser(user.id);
+  res.status(StatusCodes.OK).json(successResponse(reports, "Reports loaded successfully."));
+}
+
 export async function downloadReportController(req: Request, res: Response): Promise<void> {
   const file = await reportService.downloadReport(String(req.params.id));
   res.setHeader("Content-Type", file.contentType);

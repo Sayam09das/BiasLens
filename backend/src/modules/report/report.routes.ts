@@ -5,6 +5,7 @@ import {
   downloadReportController,
   exportReportPdfController,
   getReportController,
+  listReportsController,
   createShareController,
   revokeShareController,
   listSharesController,
@@ -31,6 +32,10 @@ const shareRateLimit = rateLimit({
 const router = Router();
 
 // ── Report read ───────────────────────────────────────────────────────────────
+router.get("/reports", requireAuth, (req, res, next) => {
+  listReportsController(req, res).catch(next);
+});
+
 router.get("/reports/:id", requireAuth, (req, res, next) => {
   getReportController(req, res).catch(next);
 });

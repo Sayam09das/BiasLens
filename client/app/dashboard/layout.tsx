@@ -69,7 +69,7 @@ function SidebarContent({
       <Link
         href="/dashboard"
         onClick={onNavigate}
-        className="flex items-center gap-3 rounded-[1.5rem] border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-4 transition hover:bg-white"
+        className="flex items-center gap-3 rounded-[1.25rem] border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-4 transition hover:bg-white"
       >
         <motion.span
           className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#1463ff] text-sm font-bold text-white shadow-[0_16px_36px_rgba(20,99,255,0.28)]"

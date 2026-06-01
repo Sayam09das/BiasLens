@@ -64,6 +64,27 @@ export const reportService = {
     return this.resolveReport(id);
   },
 
+  async listReportsByUser(userId: string) {
+    const [reports, audits] = await Promise.all([
+      reportRepository.listByUser(userId),
+      auditRepository.list({ userId }),
+    ]);
+
+    const reportAuditIds = new Set(reports.map((report) => report.auditId).filter(Boolean));
+    const missingCompletedAudits = audits.filter(
+      (audit) => audit.status === "COMPLETED" && !reportAuditIds.has(audit.id)
+    );
+
+    const generatedReports = await Promise.all(
+      missingCompletedAudits.map((audit) => this.resolveReport(audit.id))
+    );
+
+    return [...reports, ...generatedReports].sort(
+      (left, right) =>
+        new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime()
+    );
+  },
+
   async downloadReport(id: string) {
     const report = await this.resolveReport(id);
 

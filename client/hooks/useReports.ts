@@ -1,34 +1,54 @@
-import { useQuery } from "@tanstack/react-query";
-import { useState, useMemo } from "react";
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { apiFetch } from "@/lib/api";
 
-export interface Report {
+export type BackendReport = {
   id: string;
   title: string;
-  status: string;
+  predictionLabel: string | null;
+  topProbability: number | null;
+  fairnessSnapshot: unknown;
   createdAt: string;
-  auditId: string;
-}
+  updatedAt: string;
+  auditId: string | null;
+  userId: string | null;
+};
+
+const POLL_INTERVAL = 30_000;
 
 export function useReports() {
-  const [filter, setFilter] = useState("");
+  const [data, setData] = useState<BackendReport[] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [lastFetch, setLastFetch] = useState<Date | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const { data: reports = [], ...query } = useQuery({
-    queryKey: ["reports"],
-    queryFn: () => apiFetch<Report[]>("/v1/reports"),
-  });
+  const fetch = useCallback(async (silent = false) => {
+    if (!silent) setIsLoading(true);
+    setError(null);
+    try {
+      const reports = await apiFetch<BackendReport[]>("/v1/reports");
+      setData(reports);
+      setLastFetch(new Date());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load reports");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-  const filtered = useMemo(
-    () =>
-      filter
-        ? reports.filter(
-            (r) =>
-              r.title.toLowerCase().includes(filter.toLowerCase()) ||
-              r.status.toLowerCase().includes(filter.toLowerCase())
-          )
-        : reports,
-    [reports, filter]
-  );
+  useEffect(() => {
+    const kickoff = setTimeout(() => {
+      void fetch();
+    }, 0);
+    timerRef.current = setInterval(() => fetch(true), POLL_INTERVAL);
+    return () => {
+      clearTimeout(kickoff);
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [fetch]);
 
-  return { reports: filtered, filter, setFilter, ...query };
+  return { data, isLoading, error, lastFetch, refetch: () => fetch() };
 }
