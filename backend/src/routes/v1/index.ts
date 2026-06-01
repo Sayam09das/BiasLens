@@ -7,6 +7,7 @@ import { reportRoutes } from "./report.routes.js";
 import { uploadRoutes } from "./upload.routes.js";
 import { userRoutes } from "./user.routes.js";
 import { fairnessRoutes } from "../../modules/fairness/fairness.routes.js";
+import { explainabilityRoutes } from "../../modules/explainability/explainability.routes.js";
 
 const router = Router();
 
@@ -17,5 +18,6 @@ router.use("/", auditRoutes);
 router.use("/", uploadRoutes);
 router.use("/", reportRoutes);
 router.use("/", fairnessRoutes);
+router.use("/", explainabilityRoutes);
 
 export { router as v1Routes };

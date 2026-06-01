@@ -327,7 +327,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
                     {/* User dropdown */}
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger>
                         <motion.button
                           type="button"
                           whileHover={{ scale: 1.02 }}
