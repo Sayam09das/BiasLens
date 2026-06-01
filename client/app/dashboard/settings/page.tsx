@@ -20,10 +20,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-function FieldLabel({ htmlFor, children, className }: { htmlFor: string; children: React.ReactNode; className?: string }) {
+function FieldLabel({ htmlFor, children, className }: { htmlFor?: string; children: React.ReactNode; className?: string }) {
   return (
     <label
-      htmlFor={htmlFor}
+      {...(htmlFor ? { htmlFor } : {})}
       className={
         (className ?? "") +
         (className ? " " : "") +
@@ -513,7 +513,7 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between gap-4">
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-[#0D0C22]">Email Notifications</p>
-                    <p rclassName="mt-1 text-sm text-[#6E6D7A]">Receive important account changes.</p>
+                    <p className="mt-1 text-sm text-[#6E6D7A]">Receive important account changes.</p>
                   </div>
                   <Switch
                     checked={values.emailNotifications}
