@@ -11,16 +11,6 @@ type Capability = {
   description: string;
 };
 
-const BRAND = {
-  primary: "#2563EB",
-  border: "#E7E7E9",
-  muted: "#6E6D7A",
-  text: "#0D0C22",
-  success: "#22C55E",
-  warning: "#F59E0B",
-  danger: "#EF4444",
-};
-
 function SectionBadge({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-2 text-xs font-semibold text-[#0D0C22] shadow-sm">
@@ -262,4 +252,3 @@ export default function FairnessMonitoringSection() {
     </section>
   );
 }
-

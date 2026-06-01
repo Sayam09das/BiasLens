@@ -7,14 +7,6 @@ import { ArrowRight, Calendar, ShieldCheck, Sparkles, Scale, CheckCircle2 } from
 
 type Stat = { value: string; label: string };
 
-const BRAND = {
-  primary: "#2563EB",
-  primaryHover: "#1D4ED8",
-  border: "#E7E7E9",
-  text: "#0D0C22",
-  muted: "#6E6D7A",
-};
-
 function TrustPill({
   icon,
   label,
@@ -247,4 +239,3 @@ export default function FeaturesCTA() {
     </section>
   );
 }
-

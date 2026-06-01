@@ -20,15 +20,6 @@ type Capability = {
   description: string;
 };
 
-const BRAND = {
-  primary: "#2563EB",
-  border: "#E7E7E9",
-  text: "#0D0C22",
-  muted: "#6E6D7A",
-  success: "#22C55E",
-  secondaryBg: "#F6F8FB",
-};
-
 function SectionBadge({ label }: { label: string }) {
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-2 text-xs font-semibold text-[#0D0C22] shadow-sm">
@@ -263,4 +254,3 @@ export default function ResumeIntelligenceSection() {
     </section>
   );
 }
-

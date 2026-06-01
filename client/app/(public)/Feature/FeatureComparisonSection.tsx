@@ -7,19 +7,8 @@ import {
   Check,
   Minus,
   AlertTriangle,
-  Sparkles,
   Lock,
 } from "lucide-react";
-
-const BRAND = {
-  primary: "#2563EB",
-  border: "#E7E7E9",
-  text: "#0D0C22",
-  muted: "#6E6D7A",
-  success: "#22C55E",
-  warning: "#F59E0B",
-  danger: "#EF4444",
-};
 
 type RowKey =
   | "resume_scoring"
@@ -81,18 +70,6 @@ function CellView({ tone, text }: Cell) {
       </span>
       <span>{text}</span>
     </div>
-  );
-}
-
-function RecommendedBadge() {
-  return (
-    <span
-      className="absolute -right-2 -top-3 inline-flex items-center gap-2 rounded-full bg-[#2563EB] px-3 py-1 text-xs font-semibold text-white shadow-[0_18px_60px_rgba(37,99,235,0.35)]"
-      aria-label="Recommended"
-    >
-      <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-      Recommended
-    </span>
   );
 }
 
@@ -311,4 +288,3 @@ export default function FeatureComparisonSection() {
     </section>
   );
 }
-

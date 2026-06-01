@@ -4,13 +4,11 @@ import * as React from "react";
 import { motion } from "framer-motion";
 import {
   Bot,
-  FileCheck2,
   Shield,
   AlertTriangle,
   Check,
   Minus,
   FileText,
-  FileSignature,
   MessageSquare,
   Pencil,
   Database,
@@ -375,4 +373,3 @@ export default function AIAgentComparisonSection() {
     </section>
   );
 }
-

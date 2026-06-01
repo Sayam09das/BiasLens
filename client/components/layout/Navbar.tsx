@@ -2,23 +2,31 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 import { Button } from "@/components/ui/button";
 
 const navItems = [
+  { label: "Home", href: "/" },
   { label: "Features", href: "/features" },
   { label: "AI Agent", href: "/ai-agent" },
-  { label: "Resume AI", href: "/resume-ai" },
-  { label: "About Us", href: "/about-us" },
 ];
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [activeItem, setActiveItem] = useState("Resume AI");
 
   const closeMobile = () => setMobileOpen(false);
+
+  const isNavItemActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
 
   return (
     <>
@@ -65,7 +73,7 @@ export default function Navbar() {
               transition={{ duration: 0.45, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
             >
               {navItems.map((item, i) => {
-                const isActive = activeItem === item.label;
+                const isActive = isNavItemActive(item.href);
                 return (
                   <motion.div
                     key={item.label}
@@ -75,7 +83,6 @@ export default function Navbar() {
                   >
                     <Link
                       href={item.href}
-                      onClick={() => setActiveItem(item.label)}
                       className={`relative rounded-full px-4 py-2 text-sm font-medium transition ${
                         isActive
                           ? "bg-[color:var(--primary-soft)] text-[color:var(--primary)]"
@@ -193,7 +200,7 @@ export default function Navbar() {
             {/* Drawer Nav Links */}
             <div className="mt-8 flex flex-1 flex-col gap-2">
               {navItems.map((item, i) => {
-                const isActive = activeItem === item.label;
+                const isActive = isNavItemActive(item.href);
                 return (
                   <motion.div
                     key={item.label}
@@ -203,10 +210,7 @@ export default function Navbar() {
                   >
                     <Link
                       href={item.href}
-                      onClick={() => {
-                        setActiveItem(item.label);
-                        closeMobile();
-                      }}
+                      onClick={closeMobile}
                       className={`block rounded-2xl px-4 py-3 text-base font-medium transition ${
                         isActive
                           ? "bg-[color:var(--primary-soft)] text-[color:var(--primary)]"
@@ -228,7 +232,7 @@ export default function Navbar() {
               transition={{ duration: 0.32, delay: 0.28, ease: "easeOut" }}
             >
               <Button asChild variant="outline" className="h-11 w-full">
-                <Link href="/register" onClick={closeMobile}>
+                <Link href="/login" onClick={closeMobile}>
                   Sign In
                 </Link>
               </Button>

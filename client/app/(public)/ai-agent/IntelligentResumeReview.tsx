@@ -7,10 +7,8 @@ import {
   Sparkles,
   FileText,
   SearchCheck,
-  Layers,
   Scale,
   Zap,
-  ArrowRight,
 } from "lucide-react";
 
 type Capability = {
@@ -189,4 +187,3 @@ export default function IntelligentResumeReview() {
     </section>
   );
 }
-

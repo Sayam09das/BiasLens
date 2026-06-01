@@ -15,7 +15,6 @@ import {
   Calendar,
   Bot,
   Zap,
-  Timer,
 } from "lucide-react";
 
 function Stat({ value, label }: { value: string; label: string }) {
@@ -341,4 +340,3 @@ export default function AIAgentHero() {
     </section>
   );
 }
-

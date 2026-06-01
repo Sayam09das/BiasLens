@@ -5,12 +5,11 @@ import { FaGithub, FaLinkedinIn, FaXTwitter } from 'react-icons/fa6';
 import { MdVerified } from 'react-icons/md';
 import { HiShieldCheck } from 'react-icons/hi2';
 import { HiOutlineSparkles } from 'react-icons/hi2';
-import { HiOutlineCheck } from 'react-icons/hi2';
 import { MdOutlineWork } from 'react-icons/md';
 
 
 export default function Footer() {
-  const year = 2026;
+  const year = new Date().getFullYear();
 
   return (
     <footer className="bg-[#FFFFFF] text-[#0D0C22] border-t border-[#E7E7E9]">
@@ -86,11 +85,11 @@ export default function Footer() {
                 <div className="text-sm font-semibold tracking-tight">Product</div>
                 <ul className="mt-4 space-y-3">
                   {[
+                    ['Home', '/'],
                     ['Features', '/features'],
-                    ['Resume Audit', '/resume-audit'],
-                    ['Fairness Analysis', '/fairness-analysis'],
-                    ['Explainability', '/explainability'],
-                    ['Pricing', '/pricing'],
+                    ['AI Agent', '/ai-agent'],
+                    ['Sign In', '/login'],
+                    ['Get Started', '/register'],
                   ].map(([label, href]) => (
                     <li key={label}>
                       <Link
@@ -114,10 +113,10 @@ export default function Footer() {
                 <div className="text-sm font-semibold tracking-tight">Resources</div>
                 <ul className="mt-4 space-y-3">
                   {[
-                    ['Documentation', '/docs'],
-                    ['API Reference', '/api'],
-                    ['Blog', '/blog'],
-                    ['Help Center', '/help'],
+                    ['Resume Intelligence', '/features'],
+                    ['Fairness Workflows', '/features'],
+                    ['Audit Automation', '/ai-agent'],
+                    ['Secure Access', '/login'],
                   ].map(([label, href]) => (
                     <li key={label}>
                       <Link
@@ -141,10 +140,10 @@ export default function Footer() {
                 <div className="text-sm font-semibold tracking-tight">Company</div>
                 <ul className="mt-4 space-y-3">
                   {[
-                    ['About', '/about'],
-                    ['Careers', '/careers'],
-                    ['Contact', '/contact'],
-                    ['Security', '/security'],
+                    ['About BiasLens', '/'],
+                    ['Responsible AI', '/features'],
+                    ['Automation', '/ai-agent'],
+                    ['Create Account', '/register'],
                   ].map(([label, href]) => (
                     <li key={label}>
                       <Link
@@ -168,9 +167,9 @@ export default function Footer() {
                 <div className="text-sm font-semibold tracking-tight">Legal</div>
                 <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-3">
                   {[
-                    ['Privacy Policy', '/privacy'],
-                    ['Terms of Service', '/terms'],
-                    ['Cookie Policy', '/cookies'],
+                    ['Register', '/register'],
+                    ['Login', '/login'],
+                    ['Features', '/features'],
                   ].map(([label, href]) => (
                     <li key={label}>
                       <Link
@@ -248,4 +247,3 @@ export default function Footer() {
     </footer>
   );
 }
-

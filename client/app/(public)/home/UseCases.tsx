@@ -3,22 +3,14 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 import {
-  Users,
   UserRoundSearch,
   Building2,
   GraduationCap,
   ShieldCheck,
   Rocket,
-  GraduationCapIcon,
-} from "lucide-react";
-
-import {
-  FileCheck2,
   Scale,
+  FileCheck2,
   SearchCheck,
-  ClipboardCheck,
-  LineChart,
-  FileText,
 } from "lucide-react";
 
 type UseCase = {
@@ -151,4 +143,3 @@ export default function UseCases() {
     </section>
   );
 }
-

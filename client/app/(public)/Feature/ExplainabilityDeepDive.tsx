@@ -10,24 +10,12 @@ import {
     BadgeAlert,
     ShieldCheck,
     TrendingUp,
-    ArrowRight,
 } from "lucide-react";
 
 type Capability = {
     title: string;
     description: string;
     icon: React.ReactNode;
-};
-
-const BRAND = {
-    primary: "#2563EB",
-    border: "#E7E7E9",
-    text: "#0D0C22",
-    muted: "#6E6D7A",
-    bgSecondary: "#F6F8FB",
-    success: "#22C55E",
-    warning: "#F59E0B",
-    danger: "#EF4444",
 };
 
 function BadgePill({
@@ -264,4 +252,3 @@ export default function ExplainabilityDeepDive() {
         </section>
     );
 }
-
