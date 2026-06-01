@@ -1,8 +1,10 @@
 import { Router } from "express";
 
+import { requireAuth } from "../../middleware/auth.middleware.js";
 import { validateRequest } from "../../middleware/validation.middleware.js";
 import { authSchemas } from "./auth.schemas.js";
 import {
+  currentSessionController,
   forgotPasswordController,
   loginController,
   logoutController,
@@ -15,6 +17,7 @@ import {
 
 const router = Router();
 
+router.get("/me", requireAuth, currentSessionController);
 router.post("/login", validateRequest({ body: authSchemas.loginBody }), loginController);
 router.post("/register", validateRequest({ body: authSchemas.registerBody }), registerController);
 router.get("/verify-email", validateRequest({ query: authSchemas.verifyEmailQuery }), verifyEmailController);

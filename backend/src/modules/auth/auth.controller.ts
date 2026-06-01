@@ -1,8 +1,12 @@
 import type { Request, Response } from "express";
 import { StatusCodes } from "http-status-codes";
 
+import { prisma } from "../../config/prisma.js";
 import { authConfig } from "../../config/security.js";
 import { AUTH_CONSTANTS } from "../../constants/auth.constants.js";
+import type { AuthenticatedRequestUser } from "../../middleware/auth.middleware.js";
+import { userSelect } from "../../models/user.model.js";
+import { ForbiddenError } from "../../utils/errors.js";
 import { successResponse } from "../../utils/api-response.js";
 import { authService } from "./auth.service.js";
 
@@ -28,6 +32,16 @@ function setAuthCookies(response: Response, accessToken: string, refreshToken: s
 function clearAuthCookies(response: Response): void {
   response.clearCookie(authConfig.accessTokenCookieName, { path: "/" });
   response.clearCookie(authConfig.refreshTokenCookieName, { path: "/" });
+}
+
+function getAuthenticatedUser(response: Response): AuthenticatedRequestUser {
+  const authUser = response.locals.authUser as AuthenticatedRequestUser | undefined;
+
+  if (!authUser) {
+    throw new ForbiddenError("Authenticated user context is missing.");
+  }
+
+  return authUser;
 }
 
 export async function registerController(request: Request, response: Response): Promise<void> {
@@ -70,6 +84,26 @@ export async function loginController(request: Request, response: Response): Pro
   response
     .status(StatusCodes.OK)
     .json(successResponse(result, "Login completed successfully."));
+}
+
+export async function currentSessionController(
+  _request: Request,
+  response: Response
+): Promise<void> {
+  const authUser = getAuthenticatedUser(response);
+
+  const user = await prisma.user.findUnique({
+    where: { id: authUser.id },
+    select: userSelect,
+  });
+
+  if (!user) {
+    throw new ForbiddenError("Authenticated user no longer exists.");
+  }
+
+  response
+    .status(StatusCodes.OK)
+    .json(successResponse({ user }, "Current session loaded successfully."));
 }
 
 export async function refreshTokenController(

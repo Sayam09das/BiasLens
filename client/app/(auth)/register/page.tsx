@@ -22,6 +22,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import OAuth2Button from "@/components/auth/OAuth2Button";
+import { ApiError } from "@/lib/api";
+import { registerWithEmail } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -142,6 +144,7 @@ export default function RegisterPage() {
   const [oauthLoading, setOauthLoading] = useState<"google" | "github" | null>(
     null,
   );
+  const [oauthError, setOauthError] = useState<string | null>(null);
 
   const {
     register,
@@ -183,41 +186,10 @@ export default function RegisterPage() {
       fullName: values.fullName.trim(),
       email: values.email.trim(),
       password: values.password,
-      confirmPassword: values.confirmPassword,
-      acceptTerms: values.acceptTerms,
     };
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        },
-      );
-
-      const responseBody = (await response.json().catch(() => null)) as
-        | { message?: string }
-        | null;
-
-      if (!response.ok) {
-        const message =
-          responseBody?.message?.trim() ||
-          "Registration failed. Please review your details and try again.";
-
-        setError("root", {
-          type: "server",
-          message,
-        });
-        setSubmitState({
-          type: "error",
-          message,
-        });
-        return;
-      }
+      await registerWithEmail(payload);
 
       setSubmitState({
         type: "success",
@@ -228,9 +200,11 @@ export default function RegisterPage() {
       window.setTimeout(() => {
         router.push("/verify-email-sent");
       }, 900);
-    } catch {
+    } catch (error) {
       const message =
-        "We could not complete registration right now. Please try again in a moment.";
+        error instanceof ApiError
+          ? error.message
+          : "We could not complete registration right now. Please try again in a moment.";
 
       setError("root", {
         type: "server",
@@ -244,10 +218,13 @@ export default function RegisterPage() {
   });
 
   async function handleOAuth(provider: "google" | "github") {
+    setOauthError(null);
     setOauthLoading(provider);
 
     try {
-      window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/${provider}`;
+      setOauthError(
+        `${provider === "google" ? "Google" : "GitHub"} OAuth is not connected on the backend yet.`,
+      );
     } finally {
       window.setTimeout(() => setOauthLoading(null), 1200);
     }
@@ -300,6 +277,12 @@ export default function RegisterPage() {
                   onClick={handleOAuth}
                 />
               </div>
+
+              {oauthError ? (
+                <p className="mt-3 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
+                  {oauthError}
+                </p>
+              ) : null}
 
               <div className="my-6 flex items-center gap-4">
                 <div className="h-px flex-1 bg-[#E7E7E9]" />

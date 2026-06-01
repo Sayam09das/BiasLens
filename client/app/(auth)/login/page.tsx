@@ -8,6 +8,8 @@ import { useState } from "react";
 
 import LoginForm, { type LoginFormValues } from "@/components/auth/LoginForm";
 import OAuth2Button from "@/components/auth/OAuth2Button";
+import { ApiError } from "@/lib/api";
+import { loginWithEmail } from "@/lib/auth";
 import { Card, CardContent } from "@/components/ui/card";
 
 const trustBadges = [
@@ -20,51 +22,34 @@ const trustBadges = [
 export default function LoginPage() {
   const router = useRouter();
   const [oauthLoading, setOauthLoading] = useState<"google" | "github" | null>(null);
+  const [oauthError, setOauthError] = useState<string | null>(null);
 
   async function handleLogin(values: LoginFormValues) {
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: values.email.trim(),
-            password: values.password,
-            rememberMe: values.rememberMe ?? false,
-          }),
-        },
-      );
-
-      const responseBody = (await response.json().catch(() => null)) as
-        | { message?: string }
-        | null;
-
-      if (!response.ok) {
-        return {
-          error:
-            responseBody?.message?.trim() ||
-            "Unable to sign in right now. Please check your credentials and try again.",
-        };
-      }
-
+      await loginWithEmail({
+        email: values.email.trim(),
+        password: values.password,
+      });
       router.push("/dashboard");
       return;
-    } catch {
+    } catch (error) {
       return {
         error:
-          "We could not complete sign-in right now. Please try again in a moment.",
+          error instanceof ApiError
+            ? error.message
+            : "We could not complete sign-in right now. Please try again in a moment.",
       };
     }
   }
 
   async function handleOAuth(provider: "google" | "github") {
+    setOauthError(null);
     setOauthLoading(provider);
 
     try {
-      window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/${provider}`;
+      setOauthError(
+        `${provider === "google" ? "Google" : "GitHub"} OAuth is not connected on the backend yet.`,
+      );
     } finally {
       window.setTimeout(() => setOauthLoading(null), 1200);
     }
@@ -116,6 +101,12 @@ export default function LoginPage() {
                   onClick={handleOAuth}
                 />
               </div>
+
+              {oauthError ? (
+                <p className="mt-3 rounded-2xl border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-sm text-[#B91C1C]">
+                  {oauthError}
+                </p>
+              ) : null}
 
               <div className="my-6 flex items-center gap-4">
                 <div className="h-px flex-1 bg-[#E7E7E9]" />
