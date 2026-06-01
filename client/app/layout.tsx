@@ -97,7 +97,7 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/images/hero-image.svg",
+        url: "/images/Heroimg.png",
         width: 1200,
         height: 630,
         alt: "BiasLens hiring intelligence dashboard illustration",
@@ -109,7 +109,7 @@ export const metadata: Metadata = {
     title: "BiasLens | Responsible Hiring Intelligence",
     description:
       "Production-ready resume audit, explainability, and fairness workflows for modern hiring teams.",
-    images: ["/images/hero-image.svg"],
+    images: ["/images/Heroimg.png"],
   },
 };
 
@@ -119,7 +119,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${monaSans.variable} h-full antialiased`}>
+    <html
+      lang="en"
+      data-scroll-behavior="smooth"
+      className={`${monaSans.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col"><Providers>{children}</Providers></body>
     </html>
   );

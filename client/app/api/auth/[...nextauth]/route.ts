@@ -1,82 +1,79 @@
 /**
- * NextAuth.js catch-all handler.
+ * /api/auth/[...nextauth] — catch-all proxy to the BiasLens backend auth API.
  *
- * BiasLens uses its own backend JWT auth (`/v1/auth/*`), so NextAuth is wired
- * here as a thin CredentialsProvider that delegates to the backend and stores
- * the returned user in the NextAuth session cookie.
- *
- * Extend `authOptions` with additional providers (Google, GitHub, etc.) as
- * needed — the rest of the app consumes the session via `useAuthStore`.
+ * Maps incoming Next.js auth route segments to backend endpoints:
+ *   GET  /api/auth/me               → GET  /v1/auth/me
+ *   POST /api/auth/login            → POST /v1/auth/login
+ *   POST /api/auth/register         → POST /v1/auth/register
+ *   POST /api/auth/logout           → POST /v1/auth/logout
+ *   POST /api/auth/refresh          → POST /v1/auth/refresh
+ *   GET  /api/auth/verify-email     → GET  /v1/auth/verify-email
+ *   POST /api/auth/forgot-password  → POST /v1/auth/forgot-password
+ *   POST /api/auth/reset-password   → POST /v1/auth/reset-password
  */
 
-import NextAuth, { type NextAuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import { type NextRequest, NextResponse } from "next/server";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 
-export const authOptions: NextAuthOptions = {
-  providers: [
-    CredentialsProvider({
-      name: "BiasLens",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
+async function proxy(
+  req: NextRequest,
+  context: { params: Promise<{ nextauth: string[] }> }
+): Promise<NextResponse> {
+  const { nextauth } = await context.params;
+  const slug = nextauth.join("/");
 
-        const res = await fetch(`${BACKEND}/v1/auth/login`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: credentials.email,
-            password: credentials.password,
-          }),
-        });
+  const backendUrl = new URL(`/v1/auth/${slug}`, BACKEND);
 
-        if (!res.ok) return null;
+  // Forward query params (e.g. ?token= for verify-email)
+  req.nextUrl.searchParams.forEach((v, k) => backendUrl.searchParams.set(k, v));
 
-        const { data } = await res.json();
-        const user = data?.user;
-        if (!user) return null;
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+  };
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.fullName,
-          role: user.role,
-        };
-      },
-    }),
-  ],
+  const cookie = req.headers.get("cookie");
+  if (cookie) headers["cookie"] = cookie;
 
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.role = (user as typeof user & { role: string }).role;
-      }
-      return token;
-    },
-    session({ session, token }) {
-      if (session.user) {
-        (session.user as typeof session.user & { id: string; role: string }).id =
-          token.id as string;
-        (session.user as typeof session.user & { id: string; role: string }).role =
-          token.role as string;
-      }
-      return session;
-    },
-  },
+  const csrf = req.headers.get("x-csrf-token");
+  if (csrf) headers["x-csrf-token"] = csrf;
 
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
+  const isGet = req.method === "GET";
 
-  session: { strategy: "jwt" },
-  secret: process.env.NEXTAUTH_SECRET,
-};
+  const upstream = await fetch(backendUrl.toString(), {
+    method: req.method,
+    headers,
+    body: isGet ? undefined : await req.text(),
+    credentials: "include",
+  }).catch((err) => {
+    console.error("[auth-proxy] upstream error", err);
+    return null;
+  });
 
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+  if (!upstream) {
+    return NextResponse.json({ error: "Backend unreachable" }, { status: 502 });
+  }
+
+  const payload = await upstream.json().catch(() => null);
+  const response = NextResponse.json(payload, { status: upstream.status });
+  const setCookies =
+    typeof upstream.headers.getSetCookie === "function"
+      ? upstream.headers.getSetCookie()
+      : [];
+
+  if (setCookies.length) {
+    for (const value of setCookies) {
+      response.headers.append("set-cookie", value);
+    }
+  } else {
+    const singleCookie = upstream.headers.get("set-cookie");
+    if (singleCookie) {
+      response.headers.append("set-cookie", singleCookie);
+    }
+  }
+
+  return response;
+}
+
+export const GET  = proxy;
+export const POST = proxy;

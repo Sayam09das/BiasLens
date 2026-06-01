@@ -119,7 +119,7 @@ export default function LoginPage() {
               <LoginForm
                 onSubmit={handleLogin}
                 registerHref="/register"
-                forgotPasswordHref="/register"
+                forgotPasswordHref="/forgot-password"
                 className="border-0 bg-transparent shadow-none"
               />
 

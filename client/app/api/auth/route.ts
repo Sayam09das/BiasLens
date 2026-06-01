@@ -47,7 +47,24 @@ async function proxy(req: NextRequest): Promise<NextResponse> {
   });
 
   const payload = await upstream.json().catch(() => null);
-  return NextResponse.json(payload, { status: upstream.status });
+  const response = NextResponse.json(payload, { status: upstream.status });
+  const setCookies =
+    typeof upstream.headers.getSetCookie === "function"
+      ? upstream.headers.getSetCookie()
+      : [];
+
+  if (setCookies.length) {
+    for (const value of setCookies) {
+      response.headers.append("set-cookie", value);
+    }
+  } else {
+    const singleCookie = upstream.headers.get("set-cookie");
+    if (singleCookie) {
+      response.headers.append("set-cookie", singleCookie);
+    }
+  }
+
+  return response;
 }
 
 export const GET  = proxy;

@@ -1,6 +1,8 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, ReactNode, useMemo } from "react";
+
+import { useAuthStore } from "@/store/auth.store";
 
 interface User {
   id: string;
@@ -22,23 +24,39 @@ const AuthContext = createContext<AuthContextValue>({
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const user = useAuthStore((state) => state.user);
+  const status = useAuthStore((state) => state.status);
+  const bootstrap = useAuthStore((state) => state.bootstrap);
+  const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
-    fetch("/api/auth/session")
-      .then((r) => r.json())
-      .then((data) => setUser(data?.user ?? null))
-      .catch(() => setUser(null))
-      .finally(() => setIsLoading(false));
-  }, []);
+    if (status === "idle") {
+      void bootstrap();
+    }
+  }, [bootstrap, status]);
 
-  const signOut = () => {
-    fetch("/api/auth/signout", { method: "POST" }).finally(() => setUser(null));
-  };
+  const signOut = useCallback(() => {
+    void logout();
+  }, [logout]);
+
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user: user
+        ? {
+            id: user.id,
+            email: user.email,
+            name: user.fullName,
+            role: user.role,
+          }
+        : null,
+      isLoading: status === "idle" || status === "loading",
+      signOut,
+    }),
+    [signOut, status, user],
+  );
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signOut }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
