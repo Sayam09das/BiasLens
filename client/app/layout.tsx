@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "../styles/globals.css";
+import { Providers } from "../providers/Providers";
 
 const appUrl =
   process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -119,7 +120,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${monaSans.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col"><Providers>{children}</Providers></body>
     </html>
   );
 }
