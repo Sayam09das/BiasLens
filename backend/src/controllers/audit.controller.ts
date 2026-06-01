@@ -21,7 +21,37 @@ export async function createAuditController(
 
   response
     .status(StatusCodes.ACCEPTED)
-    .json(successResponse(audit, "Audit queued successfully."));
+    .json(successResponse(audit, "Audit created successfully."));
+}
+
+export async function listAuditsController(
+  request: Request,
+  response: Response
+): Promise<void> {
+  const audits = await auditService.listAudits({
+    status: typeof request.query.status === "string" ? request.query.status : undefined,
+    userId: typeof request.query.userId === "string" ? request.query.userId : undefined,
+  });
+
+  response
+    .status(StatusCodes.OK)
+    .json(successResponse(audits, "Audits loaded successfully."));
+}
+
+export async function getAuditByIdController(
+  request: Request,
+  response: Response
+): Promise<void> {
+  const audit = await auditService.getAuditById(String(request.params.id));
+
+  if (!audit) {
+    response.status(StatusCodes.NOT_FOUND).json({ success: false, message: "Audit not found." });
+    return;
+  }
+
+  response
+    .status(StatusCodes.OK)
+    .json(successResponse(audit, "Audit loaded successfully."));
 }
 
 export async function listAuditLogsController(

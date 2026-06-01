@@ -7,6 +7,34 @@ import {
 import { auditReadService } from "../modules/audit/audit.read.service.js";
 import { auditRepository } from "../repositories/audit.repository.js";
 
+const NON_TERMINAL_STATUSES = new Set(["QUEUED", "PROCESSING"]);
+
+async function completeAuditLifecycle(auditId: string, userId?: string | null) {
+  await auditRepository.updateStatus(auditId, "PROCESSING");
+  emitAuditStarted({
+    auditId,
+    status: AUDIT_STATUS.PROCESSING,
+    userId,
+  });
+
+  const completedAudit = await auditRepository.updateStatus(auditId, "COMPLETED");
+  emitAuditCompleted({
+    auditId,
+    status: AUDIT_STATUS.COMPLETED,
+    userId,
+  });
+
+  return completedAudit;
+}
+
+async function normalizeAudit(audit: Awaited<ReturnType<typeof auditRepository.findById>>) {
+  if (!audit || !NON_TERMINAL_STATUSES.has(audit.status)) {
+    return audit;
+  }
+
+  return completeAuditLifecycle(audit.id, audit.userId);
+}
+
 export const auditService = {
   getStatuses() {
     return {
@@ -26,18 +54,7 @@ export const auditService = {
         report: undefined,
       });
 
-      emitAuditStarted({
-        auditId: audit.id,
-        status: audit.status,
-        userId: audit.userId,
-      });
-      emitAuditCompleted({
-        auditId: audit.id,
-        status: audit.status,
-        userId: audit.userId,
-      });
-
-      return audit;
+      return completeAuditLifecycle(audit.id, audit.userId);
     } catch (error) {
       emitAuditFailed({
         auditId: "unknown",
@@ -49,4 +66,14 @@ export const auditService = {
 
   listAuditLogs: auditReadService.listAuditLogs,
   getAuditLogById: auditReadService.getAuditLogById,
+
+  async listAudits(filters: { status?: string; userId?: string } = {}) {
+    const audits = await auditRepository.list(filters);
+    return Promise.all(audits.map((audit) => normalizeAudit(audit)));
+  },
+
+  async getAuditById(id: string) {
+    const audit = await auditRepository.findById(id);
+    return normalizeAudit(audit);
+  },
 };

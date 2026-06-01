@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 
-export type AuditStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type AuditStatus = "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 export interface Audit {
   id: string;

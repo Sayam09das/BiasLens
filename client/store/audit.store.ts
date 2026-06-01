@@ -2,15 +2,17 @@ import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 import { apiFetch } from "@/lib/api";
 
-export type AuditStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type AuditStatus = "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 export interface Audit {
   id: string;
+  title: string;
   status: AuditStatus;
-  fileName: string;
+  jobRole: string | null;
+  resumeText: string | null;
   createdAt: string;
   updatedAt: string;
-  result?: Record<string, unknown>;
+  userId: string | null;
 }
 
 interface AuditState {
@@ -23,6 +25,7 @@ interface AuditState {
   fetchHistory: () => Promise<void>;
   fetchAudit: (id: string) => Promise<void>;
   setActive: (audit: Audit | null) => void;
+  createAudit: (payload: { title: string; resumeText?: string; jobRole?: string }) => Promise<Audit>;
   removeAudit: (id: string) => Promise<void>;
   clearError: () => void;
 }
@@ -57,8 +60,16 @@ export const useAuditStore = create<AuditState>()(
 
       setActive: (audit) => set({ active: audit }),
 
+      createAudit: async (payload) => {
+        const audit = await apiFetch<Audit>("/v1/audits", {
+          method: "POST",
+          body: payload,
+        });
+        set((s) => ({ history: [audit, ...s.history] }));
+        return audit;
+      },
+
       removeAudit: async (id) => {
-        await apiFetch<void>(`/v1/audits/${id}`, { method: "DELETE" });
         set({
           history: get().history.filter((a) => a.id !== id),
           active: get().active?.id === id ? null : get().active,

@@ -25,6 +25,16 @@ export class AuditRepository extends BaseRepository {
     );
   }
 
+  updateStatus(id: string, status: Parameters<typeof this.prisma.audit.update>[0]["data"]["status"]) {
+    return this.run(() =>
+      this.prisma.audit.update({
+        where: { id },
+        data: { status },
+        select: auditSelect,
+      })
+    );
+  }
+
   list(filters: AuditFilters = {}) {
     return this.run(() =>
       this.prisma.audit.findMany({

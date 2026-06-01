@@ -11,6 +11,24 @@ export class ReportRepository extends BaseRepository {
     );
   }
 
+  findByAuditId(auditId: string) {
+    return this.run(() =>
+      this.prisma.report.findUnique({
+        where: { auditId },
+        select: reportSelect,
+      })
+    );
+  }
+
+  create(data: Parameters<typeof this.prisma.report.create>[0]["data"]) {
+    return this.run(() =>
+      this.prisma.report.create({
+        data,
+        select: reportSelect,
+      })
+    );
+  }
+
   listByUser(userId: string) {
     return this.run(() =>
       this.prisma.report.findMany({

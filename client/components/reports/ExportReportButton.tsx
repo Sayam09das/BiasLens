@@ -1,6 +1,6 @@
 "use client";
 
-import * as React from "react";
+import { useRef, useState, useEffect, useCallback, useMemo } from "react";
 import {
   Check,
   Download,
@@ -9,9 +9,12 @@ import {
   FileText,
   Loader2,
   MoreHorizontal,
+  RefreshCcw,
   ShieldCheck,
   XCircle,
 } from "lucide-react";
+import { apiFetch } from "@/lib/api";
+import { useToast } from "@/hooks/useToast";
 
 export type ExportFormat = "pdf" | "csv" | "json";
 
@@ -21,51 +24,38 @@ export type ExportReportButtonProps = {
   variant?: "primary" | "secondary" | "ghost";
   size?: "sm" | "md" | "lg";
   disabled?: boolean;
-  onExport?: (format: ExportFormat) => Promise<void> | void;
 };
 
-type MenuItem = {
-  format: ExportFormat;
-  label: string;
-  icon: React.ReactNode;
-};
+type Feedback =
+  | { type: "idle" }
+  | { type: "success"; message: string }
+  | { type: "error"; message: string };
 
-function cx(...parts: Array<string | false | null | undefined>) {
+function cx(...parts: (string | false | null | undefined)[]) {
   return parts.filter(Boolean).join(" ");
 }
 
-function sizeStyles(size: NonNullable<ExportReportButtonProps["size"]>) {
-  if (size === "sm") {
-    return { padX: "px-3", padY: "py-2", font: "text-sm", h: "h-10", icon: "h-4 w-4" };
-  }
-  if (size === "lg") {
-    return { padX: "px-5", padY: "py-3", font: "text-base", h: "h-12", icon: "h-5 w-5" };
-  }
-  return { padX: "px-4", padY: "py-2.5", font: "text-sm", h: "h-11", icon: "h-4.5 w-4.5" };
-}
+const SIZE = {
+  sm: { h: "h-10", px: "px-3", text: "text-sm" },
+  md: { h: "h-11", px: "px-4", text: "text-sm" },
+  lg: { h: "h-12", px: "px-5", text: "text-base" },
+} as const;
 
-function variantStyles(variant: NonNullable<ExportReportButtonProps["variant"]>) {
-  if (variant === "secondary") {
-    return {
-      base: "border border-[#E7E7E9] bg-[#FFFFFF] text-[#6E6D7A] hover:bg-[#F6F8FB]",
-      ring: "focus-visible:ring-[#2563EB]",
-    };
-  }
-  if (variant === "ghost") {
-    return {
-      base: "border border-transparent bg-transparent text-[#6E6D7A] hover:bg-[#F6F8FB] hover:border-[#E7E7E9]",
-      ring: "focus-visible:ring-[#2563EB]",
-    };
-  }
+const VARIANT = {
+  primary:   "border border-[#1463ff]/40 bg-[#1463ff] text-white hover:bg-[#0f4fcb]",
+  secondary: "border border-[#d9e2ec] bg-white text-[#667085] hover:bg-[#f3f7fc]",
+  ghost:     "border border-transparent bg-transparent text-[#667085] hover:bg-[#f3f7fc] hover:border-[#d9e2ec]",
+} as const;
 
-  return {
-    base: "border border-[rgba(37,99,235,0.45)] bg-[#2563EB] text-white hover:bg-[#1D4ED8]",
-    ring: "focus-visible:ring-[#2563EB]",
-  };
-}
-
-function Spinner() {
-  return <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />;
+async function triggerDownload(url: string, fileName: string) {
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = fileName;
+  a.target = "_blank";
+  a.rel = "noreferrer";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
 }
 
 export default function ExportReportButton({
@@ -74,220 +64,210 @@ export default function ExportReportButton({
   variant = "primary",
   size = "md",
   disabled,
-  onExport,
 }: ExportReportButtonProps) {
-  const menuBtnRef = React.useRef<HTMLButtonElement | null>(null);
-  const menuRef = React.useRef<HTMLDivElement | null>(null);
-  const [open, setOpen] = React.useState(false);
-  const [busyFormat, setBusyFormat] = React.useState<ExportFormat | null>(null);
-  const [feedback, setFeedback] = React.useState<
-    | { type: "idle" }
-    | { type: "success"; message: string }
-    | { type: "error"; message: string }
-  >({ type: "idle" });
+  const { toast } = useToast();
+  const menuBtnRef = useRef<HTMLButtonElement>(null);
+  const menuRef    = useRef<HTMLDivElement>(null);
 
-  const ids = React.useMemo(() => {
+  const [open,       setOpen]       = useState(false);
+  const [busyFormat, setBusyFormat] = useState<ExportFormat | null>(null);
+  const [feedback,   setFeedback]   = useState<Feedback>({ type: "idle" });
+
+  const ids = useMemo(() => {
     const list = [reportId, ...(selectedReportIds ?? [])].filter(Boolean) as string[];
-    return Array.from(new Set(list));
+    return [...new Set(list)];
   }, [reportId, selectedReportIds]);
 
-  const effectiveDisabled = disabled || busyFormat !== null || ids.length === 0;
+  const isDisabled = disabled || busyFormat !== null || ids.length === 0;
 
-  const items: MenuItem[] = React.useMemo(
-    () => [
-      { format: "pdf", label: "Export as PDF", icon: <FileText className="h-4 w-4" aria-hidden="true" /> },
-      { format: "csv", label: "Export as CSV", icon: <FileSpreadsheet className="h-4 w-4" aria-hidden="true" /> },
-      { format: "json", label: "Export as JSON", icon: <FileJson className="h-4 w-4" aria-hidden="true" /> },
-    ],
-    [],
-  );
+  const close = useCallback(() => setOpen(false), []);
 
-  const v = variantStyles(variant);
-  const s = sizeStyles(size);
-
-  const close = React.useCallback(() => setOpen(false), []);
-
-  React.useEffect(() => {
+  // Close on outside click / Escape
+  useEffect(() => {
     if (!open) return;
-
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        close();
-        menuBtnRef.current?.focus();
-      }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") { close(); menuBtnRef.current?.focus(); }
     };
-
-    const onDocPointerDown = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as Node | null;
-      if (!target) return;
-      if (menuRef.current?.contains(target)) return;
-      if (menuBtnRef.current?.contains(target)) return;
-      close();
+    const onPointer = (e: MouseEvent | TouchEvent) => {
+      const t = e.target as Node;
+      if (!menuRef.current?.contains(t) && !menuBtnRef.current?.contains(t)) close();
     };
-
-    document.addEventListener("keydown", onKeyDown);
-    document.addEventListener("mousedown", onDocPointerDown);
-    document.addEventListener("touchstart", onDocPointerDown);
+    document.addEventListener("keydown", onKey);
+    document.addEventListener("mousedown", onPointer);
+    document.addEventListener("touchstart", onPointer);
     return () => {
-      document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("mousedown", onDocPointerDown);
-      document.removeEventListener("touchstart", onDocPointerDown);
+      document.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onPointer);
+      document.removeEventListener("touchstart", onPointer);
     };
   }, [open, close]);
 
   const runExport = async (format: ExportFormat) => {
-    if (effectiveDisabled) return;
-
+    if (isDisabled) return;
     setFeedback({ type: "idle" });
     setBusyFormat(format);
+    close();
 
     try {
-      if (onExport) {
-        // Consumer handles real export.
-        await onExport(format);
+      if (format === "pdf") {
+        // Real backend PDF export
+        const targetId = ids[0];
+        const result = await apiFetch<{ downloadUrl: string; fileName: string }>(
+          `/v1/reports/${targetId}/export/pdf`,
+          { method: "POST" }
+        );
+        await triggerDownload(result.downloadUrl, result.fileName);
+        setFeedback({ type: "success", message: `PDF ready — ${result.fileName}` });
+        toast("PDF exported successfully", "success");
+
+      } else if (format === "json") {
+        // JSON download via existing download endpoint
+        const targetId = ids[0];
+        await triggerDownload(
+          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/v1/reports/${targetId}/download`,
+          `biaslens-report-${targetId}.json`
+        );
+        setFeedback({ type: "success", message: "JSON downloaded." });
+        toast("JSON exported", "success");
+
       } else {
-        // Best-effort fallback: triggers browser download if backend wiring isn't present.
-        // (No-op otherwise.)
-        console.warn(`[BiasLens] ExportReportButton: onExport missing for format: ${format}`);
+        // CSV — not yet implemented on backend, show informative message
+        setFeedback({ type: "error", message: "CSV export coming soon." });
+        toast("CSV export is not yet available", "warning");
       }
 
-      const count = ids.length;
-      const message = count > 1 ? `Exported ${count} reports as ${format.toUpperCase()}.` : `Exported as ${format.toUpperCase()}.`;
-      setFeedback({ type: "success", message });
-
-      window.setTimeout(() => setFeedback({ type: "idle" }), 2400);
+      setTimeout(() => setFeedback({ type: "idle" }), 3000);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Export failed";
       setFeedback({ type: "error", message: msg });
-      window.setTimeout(() => setFeedback({ type: "idle" }), 3000);
+      toast(msg, "error");
+      setTimeout(() => setFeedback({ type: "idle" }), 4000);
     } finally {
       setBusyFormat(null);
-      close();
       menuBtnRef.current?.focus();
     }
   };
 
-  const baseBtnClass = cx(
-    "inline-flex items-center justify-center rounded-xl font-semibold transition focus:outline-none focus-visible:ring-2",
-    s.h,
-    s.padX,
-    s.padY,
-    s.font,
-    v.base,
-    v.ring,
-    effectiveDisabled && "opacity-60 cursor-not-allowed",
-  );
+  const s = SIZE[size];
+  const v = VARIANT[variant];
 
-  const labelText = busyFormat ? "Exporting…" : feedback.type === "success" ? "Exported" : feedback.type === "error" ? "Retry" : "Export";
+  const btnLabel =
+    busyFormat       ? "Exporting…"
+    : feedback.type === "success" ? "Exported"
+    : feedback.type === "error"   ? "Retry"
+    : "Export";
+
+  const items: { format: ExportFormat; label: string; Icon: typeof FileText }[] = [
+    { format: "pdf",  label: "Export as PDF",  Icon: FileText        },
+    { format: "csv",  label: "Export as CSV",  Icon: FileSpreadsheet },
+    { format: "json", label: "Export as JSON", Icon: FileJson        },
+  ];
 
   return (
     <div className="relative">
       <button
         ref={menuBtnRef}
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        className={baseBtnClass}
+        onClick={() => setOpen((o) => !o)}
+        disabled={isDisabled}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label="Open export options"
-        disabled={effectiveDisabled}
-      >
-        {busyFormat ? <Spinner /> : null}
-        {!busyFormat ? (
-          <>
-            <Download className={cx("mr-2", variant === "primary" ? "text-white" : "text-[#2563EB]")} aria-hidden="true" />
-            {labelText}
-          </>
-        ) : (
-          <span className="sr-only">Exporting</span>
+        className={cx(
+          "inline-flex items-center justify-center gap-2 rounded-[1.25rem] font-semibold transition",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1463ff]",
+          s.h, s.px, s.text, v,
+          isDisabled && "cursor-not-allowed opacity-60"
         )}
+      >
+        {busyFormat
+          ? <Loader2 size={16} className="animate-spin" aria-hidden />
+          : feedback.type === "success"
+            ? <Check size={16} aria-hidden />
+            : feedback.type === "error"
+              ? <RefreshCcw size={16} aria-hidden />
+              : <Download size={16} aria-hidden />
+        }
+        {btnLabel}
       </button>
 
-      <AnimatePresenceMenu open={open}>
+      {open && (
         <div
           ref={menuRef}
           role="menu"
-          aria-label="Export report menu"
-          className="absolute right-0 mt-2 w-[260px] rounded-[1.25rem] border border-[#E7E7E9] bg-[#FFFFFF] p-2 shadow-[0_24px_64px_rgba(13,12,34,0.12)]"
+          aria-label="Export options"
+          className="absolute right-0 z-50 mt-2 w-64 rounded-[1.5rem] border border-[#d9e2ec] bg-white p-2 shadow-[0_24px_64px_rgba(13,12,34,0.12)]"
         >
-          <div className="px-3 pb-2 pt-1">
-            <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB]" aria-hidden="true">
-                <MoreHorizontal className="h-4 w-4 text-[#2563EB]" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">Export reports</p>
-                <p className="mt-1 truncate text-sm font-semibold text-[#0D0C22]">{ids.length} target{ids.length === 1 ? "" : "s"}</p>
-              </div>
+          {/* Header */}
+          <div className="flex items-center gap-3 px-3 py-2">
+            <span className="flex h-9 w-9 items-center justify-center rounded-2xl border border-[#d9e2ec] bg-[#f3f7fc]">
+              <MoreHorizontal size={16} className="text-[#1463ff]" aria-hidden />
+            </span>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#667085]">
+                Export report
+              </p>
+              <p className="text-sm font-semibold text-[#101828]">
+                {ids.length} target{ids.length !== 1 ? "s" : ""}
+              </p>
             </div>
           </div>
 
-          <div className="mt-1">
-            {items.map((it) => {
-              const isBusy = busyFormat === it.format;
+          {/* Items */}
+          <div className="mt-1 space-y-0.5">
+            {items.map(({ format, label, Icon }) => {
+              const isBusy = busyFormat === format;
               return (
                 <button
-                  key={it.format}
+                  key={format}
                   type="button"
                   role="menuitem"
-                  onClick={() => runExport(it.format)}
-                  disabled={effectiveDisabled || isBusy}
+                  onClick={() => runExport(format)}
+                  disabled={isDisabled || isBusy}
+                  aria-label={label}
                   className={cx(
-                    "flex w-full items-center justify-between gap-3 rounded-[1rem] px-3 py-2 text-left text-sm font-semibold",
-                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]",
-                    it.format === "pdf" ? "text-[#6E6D7A]" : "text-[#6E6D7A]",
-                    !effectiveDisabled && !isBusy ? "hover:bg-[#F6F8FB]" : "opacity-60 cursor-not-allowed",
+                    "flex w-full items-center justify-between gap-3 rounded-[1rem] px-3 py-2.5 text-sm font-medium text-[#344054]",
+                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1463ff]",
+                    !isDisabled && !isBusy ? "hover:bg-[#f3f7fc]" : "cursor-not-allowed opacity-60"
                   )}
-                  aria-label={it.label}
                 >
                   <span className="flex items-center gap-3">
-                    <span className="grid h-8 w-8 place-items-center rounded-xl border border-[#E7E7E9] bg-[#FFFFFF]" aria-hidden="true">
-                      {it.icon}
+                    <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-[#d9e2ec] bg-white">
+                      <Icon size={15} aria-hidden />
                     </span>
-                    {it.label}
+                    {label}
                   </span>
-                  {isBusy ? <Loader2 className="h-4 w-4 animate-spin text-[#2563EB]" aria-hidden="true" /> : null}
+                  {isBusy && <Loader2 size={14} className="animate-spin text-[#1463ff]" aria-hidden />}
                 </button>
               );
             })}
           </div>
 
-          <div className="mt-2 rounded-[1rem] border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-2">
-            {feedback.type === "idle" ? (
+          {/* Status footer */}
+          <div className="mt-2 rounded-[1rem] border border-[#d9e2ec] bg-[#f3f7fc] px-3 py-2.5">
+            {feedback.type === "idle" && (
               <div className="flex items-start gap-2">
-                <span className="mt-0.5 grid h-6 w-6 place-items-center rounded-full bg-[#FFFFFF] border border-[#E7E7E9]" aria-hidden="true">
-                  <ShieldCheck className="h-4 w-4 text-[#2563EB]" />
-                </span>
-                <p className="text-xs leading-5 text-[#6E6D7A]">
-                  Exports are production-safe when your backend wires the actual download. If not configured, this component shows best-effort feedback.
+                <ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#1463ff]" aria-hidden />
+                <p className="text-xs leading-5 text-[#667085]">
+                  PDF exports are signed and expire after 1 hour.
                 </p>
               </div>
-            ) : feedback.type === "success" ? (
+            )}
+            {feedback.type === "success" && (
               <div className="flex items-start gap-2">
-                <span className="mt-0.5 grid h-6 w-6 place-items-center rounded-full bg-[rgba(34,197,94,0.10)] border border-[rgba(34,197,94,0.25)]" aria-hidden="true">
-                  <Check className="h-4 w-4 text-[#22C55E]" />
-                </span>
-                <p className="text-xs leading-5 font-semibold text-[#0D0C22]">{feedback.message}</p>
+                <Check size={15} className="mt-0.5 shrink-0 text-[#22c55e]" aria-hidden />
+                <p className="text-xs font-semibold leading-5 text-[#101828]">{feedback.message}</p>
               </div>
-            ) : (
+            )}
+            {feedback.type === "error" && (
               <div className="flex items-start gap-2">
-                <span className="mt-0.5 grid h-6 w-6 place-items-center rounded-full bg-[rgba(239,68,68,0.08)] border border-[rgba(239,68,68,0.22)]" aria-hidden="true">
-                  <XCircle className="h-4 w-4 text-[#EF4444]" />
-                </span>
-                <p className="text-xs leading-5 font-semibold text-[#0D0C22]">{feedback.message}</p>
+                <XCircle size={15} className="mt-0.5 shrink-0 text-[#ef4444]" aria-hidden />
+                <p className="text-xs font-semibold leading-5 text-[#101828]">{feedback.message}</p>
               </div>
             )}
           </div>
         </div>
-      </AnimatePresenceMenu>
+      )}
     </div>
   );
-}
-
-function AnimatePresenceMenu({ open, children }: { open: boolean; children: React.ReactNode }) {
-  // Lightweight fallback to avoid hard dependency on framer-motion for this component.
-  // If framer-motion is available in the project, framer-motion can be used later.
-  if (!open) return null;
-  return <>{children}</>;
 }

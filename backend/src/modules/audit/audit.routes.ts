@@ -2,8 +2,10 @@ import { Router } from "express";
 
 import {
   createAuditController,
+  getAuditByIdController,
   getAuditLogByIdController,
   getAuditStatusesController,
+  listAuditsController,
   listAuditLogsController,
 } from "../../controllers/audit.controller.js";
 import { requireRole } from "../../middleware/authorization.middleware.js";
@@ -14,7 +16,9 @@ import { auditSchemas } from "./audit.schemas.js";
 const router = Router();
 
 router.get("/audits/statuses", getAuditStatusesController);
-router.post("/audits", createAuditController);
+router.get("/audits",     requireAuth, listAuditsController);
+router.get("/audits/:id", requireAuth, getAuditByIdController);
+router.post("/audits",    createAuditController);
 
 router.get(
   "/audit-logs",

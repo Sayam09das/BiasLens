@@ -15,6 +15,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormTextarea } from "@/components/ui/form";
+import { useUpload } from "@/hooks/useUpload";
+import { useAuditStore } from "@/store/audit.store";
+import type { Audit } from "@/store/audit.store";
 
 type AcceptedDoc =
   | "application/pdf"
@@ -73,6 +76,8 @@ export default function ResumeUploader() {
   const [jobDescription, setJobDescription] = useState("");
   const [errors, setErrors] = useState<UploadErrors>({});
   const [isDragActive, setIsDragActive] = useState(false);
+  const { upload, isUploading, progress, error: uploadError } = useUpload<{ id: string; url: string }>();
+  const { createAudit } = useAuditStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const jobDescriptionMaxChars = 12_000;
@@ -135,11 +140,29 @@ export default function ResumeUploader() {
   };
 
   const handleStartAudit = async () => {
-    if (isSubmitting || !validate()) return;
-
+    if (isSubmitting || isUploading || !validate()) return;
     setIsSubmitting(true);
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    router.push("/dashboard/AUD-2841");
+
+    try {
+      // 1. Upload the file to get a stored reference
+      let resumeText = "";
+      if (resumeFile) {
+        await upload("/v1/upload/resume", resumeFile);
+      }
+
+      // 2. Create the audit record on the backend
+      const audit: Audit = await createAudit({
+        title: resumeFile?.name ?? `Audit ${Date.now()}`,
+        resumeText: resumeText || jobDescription,
+        jobRole: jobDescription.trim().slice(0, 120) || undefined,
+      });
+
+      router.push(`/dashboard/audits/${audit.id}`);
+    } catch {
+      setErrors((prev) => ({ ...prev, resume: "Upload failed. Please try again." }));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -398,10 +421,17 @@ export default function ResumeUploader() {
             <Button
               className="mt-5 h-12 w-full rounded-[1.5rem]"
               onClick={handleStartAudit}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isUploading}
             >
-              {isSubmitting ? "Starting audit..." : "Start Audit"}
+              {isUploading
+                ? `Uploading… ${progress}%`
+                : isSubmitting
+                  ? "Starting audit..."
+                  : "Start Audit"}
             </Button>
+            {uploadError && (
+              <p className="mt-2 text-center text-xs text-[#b91c1c]">{uploadError}</p>
+            )}
           </Card>
         </div>
       </div>

@@ -289,12 +289,51 @@ export type ReportViewerProps = {
   className?: string;
 };
 
-export default function ReportViewer() {
-  // NOTE: Requirements ask for export default function ReportViewer() with mock fallback.
-  // To keep production flexibility, we accept no props here; mock data will always render.
-  // If later you want to pass real data, convert to ReportViewerProps.
+function mergeReportData(report?: Partial<ReportData> | null): ReportData {
+  if (!report) {
+    return DEFAULT_REPORT;
+  }
 
-  const report = React.useMemo(() => DEFAULT_REPORT, []);
+  return {
+    ...DEFAULT_REPORT,
+    ...report,
+    executiveSummary: {
+      ...DEFAULT_REPORT.executiveSummary,
+      ...report.executiveSummary,
+    },
+    resumeIntelligence: {
+      ...DEFAULT_REPORT.resumeIntelligence,
+      ...report.resumeIntelligence,
+    },
+    jobFitAnalysis: {
+      ...DEFAULT_REPORT.jobFitAnalysis,
+      ...report.jobFitAnalysis,
+    },
+    explainabilityInsights: {
+      ...DEFAULT_REPORT.explainabilityInsights,
+      ...report.explainabilityInsights,
+    },
+    fairnessAnalysis: {
+      ...DEFAULT_REPORT.fairnessAnalysis,
+      ...report.fairnessAnalysis,
+    },
+    counterfactualResults: {
+      ...DEFAULT_REPORT.counterfactualResults,
+      ...report.counterfactualResults,
+    },
+    improvementSuggestions: {
+      ...DEFAULT_REPORT.improvementSuggestions,
+      ...report.improvementSuggestions,
+    },
+    complianceNotes: {
+      ...DEFAULT_REPORT.complianceNotes,
+      ...report.complianceNotes,
+    },
+  };
+}
+
+export default function ReportViewer({ report: reportProp, className }: ReportViewerProps) {
+  const report = React.useMemo(() => mergeReportData(reportProp), [reportProp]);
 
   const copy = useCopyToClipboard();
 
@@ -363,7 +402,7 @@ export default function ReportViewer() {
   const fitCardTone = report.jobFit >= 75 ? BRAND.success : report.jobFit >= 50 ? BRAND.warning : BRAND.danger;
 
   return (
-    <div className={"w-full bg-[#FFFFFF]"}>
+    <div className={["w-full bg-[#FFFFFF]", className].filter(Boolean).join(" ")}>
       <div
         className="mx-auto max-w-[1200px] px-4 pb-14 pt-8 sm:px-6"
         aria-label="BiasLens audit report viewer"

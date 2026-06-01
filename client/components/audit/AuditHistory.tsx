@@ -57,7 +57,7 @@ export default function AuditHistory({
             </span>
           </div>
           <Button asChild className="rounded-[1.25rem]">
-            <Link href="/dashboard/upload">
+            <Link href="/dashboard/audits/new">
               <Plus size={18} />
               <span className="ml-2">New Audit</span>
             </Link>

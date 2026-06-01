@@ -20,7 +20,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useAuditStore } from "@/store/audit.store";
-import { useAuthStore } from "@/store/auth.store";
 
 const RISK_COLOR: Record<string, string> = {
   Low:      "bg-[#dcfce7] text-[#16a34a]",
@@ -31,17 +30,28 @@ const RISK_COLOR: Record<string, string> = {
 const STATUS_COLOR: Record<string, string> = {
   COMPLETED:  "text-[#16a34a]",
   PROCESSING: "text-[#d97706]",
-  PENDING:    "text-[#667085]",
+  QUEUED:     "text-[#667085]",
   FAILED:     "text-[#dc2626]",
 };
 
+function isCompleted(status: string) {
+  return status === "COMPLETED" || status === "completed";
+}
+
+function isProcessing(status: string) {
+  return status === "PROCESSING" || status === "processing" || status === "QUEUED" || status === "queued";
+}
+
+function isFailed(status: string) {
+  return status === "FAILED" || status === "failed";
+}
+
 export default function DashboardPage() {
   const { history, isLoading } = useAuditStore();
-  const { user } = useAuthStore();
 
-  const completed  = history.filter((a) => a.status === "COMPLETED").length;
-  const processing = history.filter((a) => a.status === "PROCESSING").length;
-  const failed     = history.filter((a) => a.status === "FAILED").length;
+  const completed  = history.filter((a) => isCompleted(a.status)).length;
+  const processing = history.filter((a) => isProcessing(a.status)).length;
+  const failed     = history.filter((a) => isFailed(a.status)).length;
   const total      = history.length;
 
   const stats = [
@@ -160,7 +170,7 @@ export default function DashboardPage() {
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold text-[#101828]">
-                      {audit.fileName}
+                      {audit.title}
                     </p>
                     <p className={`mt-1 text-xs font-medium ${STATUS_COLOR[audit.status] ?? "text-[#667085]"}`}>
                       {audit.status.charAt(0) + audit.status.slice(1).toLowerCase()}
@@ -168,13 +178,9 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex flex-wrap items-center gap-3 text-sm">
                     <span
-                      className={`rounded-full px-3 py-1.5 text-xs font-medium ${
-                        RISK_COLOR[
-                          audit.result?.riskLevel as string ?? "Low"
-                        ] ?? "bg-[#F6F8FB] text-[#667085]"
-                      }`}
+                      className={`rounded-full px-3 py-1.5 text-xs font-medium ${RISK_COLOR.Low}`}
                     >
-                      {(audit.result?.riskLevel as string) ?? "Pending"}
+                      {audit.jobRole ?? "Pending review"}
                     </span>
                     <Link
                       href={`/dashboard/audits/${audit.id}`}
