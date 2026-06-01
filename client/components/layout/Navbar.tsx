@@ -42,13 +42,13 @@ export default function Navbar() {
                 className="flex items-center gap-3 rounded-full pr-4 transition hover:opacity-90"
               >
                 <span className="flex h-11 w-11 items-center justify-center rounded-full">
-                  <img
+                  <Image
                     src="/logo.png"
                     alt="BiasLens logo"
                     width={44}
                     height={44}
                     className="h-5 w-5"
-                    loading="eager"
+                    priority
                   />
                 </span>
                 <span className="text-[1.05rem] font-semibold tracking-[-0.03em] text-[color:var(--foreground)]">
@@ -97,10 +97,10 @@ export default function Navbar() {
               transition={{ duration: 0.45, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
             >
               <Button asChild variant="ghost" className="h-10 px-4">
-                <Link href="/signin">Sign In</Link>
+                <Link href="/login">Sign In</Link>
               </Button>
               <Button asChild className="h-10 px-5 hover:-translate-y-0.5 text-white">
-                <Link href="/signup">Sign Up</Link>
+                <Link href="/register">Sign Up</Link>
               </Button>
             </motion.div>
 
@@ -167,13 +167,13 @@ export default function Navbar() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#0f1117]">
-                  <img
+                  <Image
                     src="/logo.png"
                     alt="BiasLens logo"
                     width={44}
                     height={44}
                     className="h-5 w-5"
-                    loading="eager"
+                    priority
                   />
                 </span>
                 <span className="text-lg font-semibold tracking-[-0.03em] text-[color:var(--foreground)]">
@@ -228,12 +228,12 @@ export default function Navbar() {
               transition={{ duration: 0.32, delay: 0.28, ease: "easeOut" }}
             >
               <Button asChild variant="outline" className="h-11 w-full">
-                <Link href="/signin" onClick={closeMobile}>
+                <Link href="/register" onClick={closeMobile}>
                   Sign In
                 </Link>
               </Button>
               <Button asChild className="h-11 w-full">
-                <Link href="/signup" onClick={closeMobile}>
+                <Link href="/register" onClick={closeMobile}>
                   Sign Up
                 </Link>
               </Button>
