@@ -50,6 +50,7 @@ const BRAND = {
   warning: "#F59E0B",
   border: "#E7E7E9",
   mutedText: "#6E6D7A",
+  text: "#0D0C22",
 };
 
 function formatSigned(n: number) {

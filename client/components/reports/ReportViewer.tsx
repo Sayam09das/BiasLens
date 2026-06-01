@@ -509,7 +509,7 @@ export default function ReportViewer() {
                       aria-label={`Jump to ${item.label}`}
                       aria-describedby={idx === 0 ? "bl-nav-instructions" : undefined}
                     >
-                      <Icon size={16} className="mr-2 text-[#2563EB]" aria-hidden="true" />
+                      <Icon size={16} className="mr-2 text-[#2563EB]" aria-hidden={true} />
                       {item.label}
                     </button>
                   );

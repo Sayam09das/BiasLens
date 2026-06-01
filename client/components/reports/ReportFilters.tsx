@@ -5,7 +5,9 @@ import { RotateCcw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
-import type { FairnessRisk, ReportStatus, ReportType } from "./ReportCard";
+type ReportStatus = "Ready" | "Processing" | "Failed";
+type FairnessRisk = "Low" | "Medium" | "High";
+type ReportType = "Resume Audit" | "Fairness" | "Explainability";
 
 type FilterValue<T extends string> = "All" | T;
 
