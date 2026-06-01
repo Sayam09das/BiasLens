@@ -68,7 +68,7 @@ function AccordionItem({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
+            transition={{ duration: 0.25 }}
             className="mt-4 overflow-hidden"
           >
             <p className="text-sm leading-7 text-[#6E6D7A]">{item.answer}</p>
@@ -165,4 +165,3 @@ export default function FeaturesMiniFAQ() {
     </section>
   );
 }
-

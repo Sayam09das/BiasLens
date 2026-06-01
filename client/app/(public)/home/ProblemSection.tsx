@@ -26,7 +26,7 @@ const fadeIn = (delay = 0) => ({
   initial: { opacity: 0 },
   whileInView: { opacity: 1 },
   viewport: { once: true },
-  transition: { duration: 0.45, delay, ease: "easeOut" },
+  transition: { duration: 0.45, delay },
 });
 
 /* ── data ── */
@@ -226,7 +226,7 @@ export default function ProblemSection() {
                       initial={{ opacity: 0, x: -16 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       viewport={{ once: true }}
-                      transition={{ duration: 0.4, delay: 0.22 + i * 0.1, ease: "easeOut" }}
+                      transition={{ duration: 0.4, delay: 0.22 + i * 0.1 }}
                       className="relative flex items-center gap-3 rounded-2xl border border-[#E7E7E9] bg-white px-4 py-3 shadow-sm"
                     >
                       <span

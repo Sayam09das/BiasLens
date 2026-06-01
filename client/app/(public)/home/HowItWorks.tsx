@@ -89,7 +89,7 @@ export default function HowItWorks() {
                   initial={{ opacity: 0, y: 10 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-80px" }}
-                  transition={{ duration: 0.5, ease: "easeOut", delay: index * 0.04 }}
+                  transition={{ duration: 0.5, delay: index * 0.04 }}
                   className="group rounded-[1.6rem] border border-[#E7E7E9] bg-[#F6F8FB] p-5 transition-shadow duration-300 hover:shadow-[0_18px_60px_rgba(13,12,34,0.06)]"
                 >
                   <div className="flex items-start gap-4">
@@ -127,7 +127,7 @@ export default function HowItWorks() {
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.55, ease: "easeOut" }}
+              transition={{ duration: 0.55 }}
               className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_30px_90px_rgba(13,12,34,0.06)]"
             >
               <div className="rounded-[1.6rem] border border-[#E7E7E9] bg-[#F6F8FB] p-4">
@@ -164,4 +164,3 @@ export default function HowItWorks() {
     </section>
   );
 }
-

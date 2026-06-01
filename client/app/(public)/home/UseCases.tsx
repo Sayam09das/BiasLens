@@ -94,7 +94,7 @@ export default function UseCases() {
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.5, ease: "easeOut", delay: idx * 0.03 }}
+              transition={{ duration: 0.5, delay: idx * 0.03 }}
               className="group relative overflow-hidden rounded-[1.8rem] border border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_16px_40px_rgba(13,12,34,0.04)] transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(13,12,34,0.08)]"
               aria-label={uc.title}
             >

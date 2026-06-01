@@ -77,7 +77,7 @@ function AccordionItem({
           <motion.span
             aria-hidden="true"
             animate={{ rotate: isOpen ? 180 : 0 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
+            transition={{ duration: 0.2 }}
             className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#E7E7E9] bg-[#FFFFFF]"
           >
             <ChevronDown className="h-4 w-4 text-[#0D0C22]" />
@@ -91,7 +91,7 @@ function AccordionItem({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
+            transition={{ duration: 0.25 }}
           >
             <div className="px-5 pb-5">
               <p className="text-sm leading-6 text-[#6E6D7A]">{item.a}</p>
@@ -154,4 +154,3 @@ export default function FAQ() {
     </section>
   );
 }
-

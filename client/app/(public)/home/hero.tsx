@@ -178,7 +178,7 @@ export default function Hero() {
           className="mt-10 mb-14 sm:mb-16 grid grid-cols-1 gap-3 sm:grid-cols-3"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.55, ease: "easeOut" }}
+          transition={{ delay: 0.5, duration: 0.55 }}
         >
           {[
             { label: "No Credit Card Required", icon: ShieldCheck },
@@ -190,7 +190,7 @@ export default function Hero() {
               className="flex items-center gap-3 rounded-2xl border border-[#E7E7E9] bg-white/70 px-4 py-3 shadow-[0_2px_16px_rgba(13,12,34,0.05)] backdrop-blur-xl"
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.52 + i * 0.07, duration: 0.4, ease: "easeOut" }}
+              transition={{ delay: 0.52 + i * 0.07, duration: 0.4 }}
             >
               <span className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#2563EB]/10">
                 <item.icon className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />

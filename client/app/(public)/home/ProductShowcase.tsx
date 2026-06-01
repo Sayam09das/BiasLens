@@ -37,7 +37,7 @@ const fadeIn = (delay = 0) => ({
   initial: { opacity: 0 },
   whileInView: { opacity: 1 },
   viewport: { once: true },
-  transition: { duration: 0.4, delay, ease: "easeOut" },
+  transition: { duration: 0.4, delay },
 });
 
 /* ── tabs ── */
@@ -99,7 +99,7 @@ function GaugeBar({ label, value, color = "#2563EB" }) {
           initial={{ width: 0 }}
           whileInView={{ width: `${value}%` }}
           viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          transition={{ duration: 0.7 }}
         />
       </div>
     </div>
@@ -248,7 +248,7 @@ export default function ProductShowcase() {
                   initial={{ opacity: 0, scale: 0.96 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  transition={{ duration: 0.35 }}
                   className="mt-4 rounded-[1.6rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4"
                 >
                   <p className="mb-1 text-xs font-semibold text-[#0D0C22]">Score Overview</p>
@@ -345,7 +345,7 @@ export default function ProductShowcase() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  transition={{ duration: 0.35, ease: "easeOut" }}
+                  transition={{ duration: 0.35 }}
                   className="mt-4 rounded-[1.6rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4"
                 >
                   <div className="flex items-center justify-between mb-3">

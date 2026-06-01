@@ -22,7 +22,7 @@ const fadeIn = (delay = 0) => ({
   initial: { opacity: 0 },
   whileInView: { opacity: 1 },
   viewport: { once: true },
-  transition: { duration: 0.45, delay, ease: "easeOut" },
+  transition: { duration: 0.45, delay },
 });
 
 /* ── data ── */

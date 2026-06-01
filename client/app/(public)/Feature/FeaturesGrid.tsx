@@ -15,18 +15,20 @@ import {
 } from "lucide-react";
 
 /* ── animation helpers ── */
+const smoothEase = [0.22, 1, 0.36, 1] as const;
+
 const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-50px" },
-  transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.55, delay, ease: smoothEase },
 });
 
 const fadeIn = (delay = 0) => ({
   initial: { opacity: 0 },
   whileInView: { opacity: 1 },
   viewport: { once: true },
-  transition: { duration: 0.4, delay, ease: "easeOut" },
+  transition: { duration: 0.4, delay, ease: smoothEase },
 });
 
 /* ── data ── */
@@ -108,7 +110,7 @@ export default function FeaturesGrid() {
               transition={{
                 duration: 0.5,
                 delay: idx * 0.06,
-                ease: [0.22, 1, 0.36, 1],
+                ease: smoothEase,
               }}
               whileHover={{
                 y: -5,

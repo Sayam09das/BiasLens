@@ -162,7 +162,7 @@ export default function Pricing() {
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-80px" }}
-              transition={{ duration: 0.55, ease: "easeOut", delay: idx * 0.04 }}
+              transition={{ duration: 0.55, delay: idx * 0.04 }}
               className={
                 "relative rounded-[1.8rem] border p-6 shadow-[0_16px_40px_rgba(13,12,34,0.04)] transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_70px_rgba(13,12,34,0.08)] " +
                 (plan.highlight
@@ -247,4 +247,3 @@ export default function Pricing() {
     </section>
   );
 }
-
