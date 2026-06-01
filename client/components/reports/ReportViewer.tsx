@@ -280,7 +280,7 @@ const DEFAULT_REPORT: ReportData = {
   },
 };
 
-type ReportViewerProps = {
+export type ReportViewerProps = {
   report?: Partial<ReportData> | null;
   onExportPdf?: (reportId: string) => void;
   onExportHtml?: (reportId: string) => void;
@@ -1214,4 +1214,3 @@ function InfoGlyph() {
     </span>
   );
 }
-

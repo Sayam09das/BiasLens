@@ -9,10 +9,10 @@ import {
   Download,
   Eye,
   MoreHorizontal,
-  Pencil,
-  Plus,
   RefreshCcw,
   Share2,
+  ShieldCheck,
+  Sparkles,
   Trash2,
 } from "lucide-react";
 
@@ -91,34 +91,6 @@ function Badge({ label, tone, icon }: { label: string; tone: { bg: string; bd: s
       {icon ? <span className="mr-2" aria-hidden="true">{icon}</span> : null}
       {label}
     </span>
-  );
-}
-
-function ActionButton({
-  label,
-  onClick,
-  variant,
-  disabled,
-}: {
-  label: string;
-  onClick: () => void;
-  variant: "primary" | "outline" | "danger";
-  disabled?: boolean;
-}) {
-  const base =
-    "rounded-[1.25rem] px-4 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] disabled:opacity-60";
-
-  const styles =
-    variant === "primary"
-      ? `${base} bg-[#2563EB] text-white hover:bg-[#1D4ED8]`
-      : variant === "danger"
-        ? `${base} border border-[rgba(239,68,68,0.35)] text-[#EF4444] bg-[rgba(239,68,68,0.08)] hover:bg-[rgba(239,68,68,0.12)]`
-        : `${base} border border-[#E7E7E9] text-[#6E6D7A] bg-[#FFFFFF] hover:bg-[#F6F8FB]`;
-
-  return (
-    <button type="button" className={styles} onClick={onClick} disabled={disabled} aria-label={label}>
-      {label}
-    </button>
   );
 }
 
@@ -362,4 +334,3 @@ function ShieldCheckIcon() {
 function SparklesIcon() {
   return <Sparkles size={14} aria-hidden="true" />;
 }
-

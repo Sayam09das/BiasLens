@@ -30,16 +30,6 @@ type MenuItem = {
   icon: React.ReactNode;
 };
 
-const BRAND = {
-  primary: "#2563EB",
-  primaryHover: "#1D4ED8",
-  border: "#E7E7E9",
-  text: "#0D0C22",
-  muted: "#6E6D7A",
-  success: "#22C55E",
-  danger: "#EF4444",
-};
-
 function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
 }
@@ -159,7 +149,6 @@ export default function ExportReportButton({
       } else {
         // Best-effort fallback: triggers browser download if backend wiring isn't present.
         // (No-op otherwise.)
-        // eslint-disable-next-line no-console
         console.warn(`[BiasLens] ExportReportButton: onExport missing for format: ${format}`);
       }
 
@@ -302,4 +291,3 @@ function AnimatePresenceMenu({ open, children }: { open: boolean; children: Reac
   if (!open) return null;
   return <>{children}</>;
 }
-
