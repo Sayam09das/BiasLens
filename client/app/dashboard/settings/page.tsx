@@ -358,7 +358,7 @@ export default function SettingsPage() {
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" aria-label="User settings form">
         {/* 1) Profile Information */}
-        <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -480,7 +480,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* 2) Account Preferences */}
-        <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -563,7 +563,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* 3) Workspace Profile */}
-        <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -621,7 +621,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* 4) Connected Account Status */}
-        <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -661,7 +661,7 @@ export default function SettingsPage() {
         </Card>
 
         {/* 5) Save changes */}
-        <div className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        <div className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
               <p className="text-sm font-semibold text-[#0D0C22]">Save Changes</p>
@@ -773,7 +773,7 @@ function StatusCard({
             </span>
           ) : null}
           <span
-            className="inline-flex items-center rounded-[1rem] border px-3 py-1 text-xs font-semibold"
+            className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold"
             style={{ background: vis.bg, color: vis.fg, borderColor: vis.border }}
           >
             {tone === "success" ? "OK" : tone === "warning" ? "Review" : tone === "danger" ? "Risk" : "Active"}

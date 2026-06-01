@@ -84,7 +84,7 @@ export default function TwoFactorSetup({
   });
 
   return (
-    <Card className="rounded-[2rem] border-[#E7E7E9] bg-white shadow-[0_24px_64px_rgba(13,12,34,0.08)]">
+    <Card className="rounded-4xl border-[#E7E7E9] bg-white shadow-[0_24px_64px_rgba(13,12,34,0.08)]">
       <CardHeader className="p-6 sm:p-8">
         <CardTitle className="text-3xl tracking-[-0.04em] text-[#0D0C22]">
           Two-factor authentication

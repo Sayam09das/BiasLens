@@ -22,7 +22,7 @@ export default function Loading() {
       <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
         {/* Upload Zone skeleton + Resume preview skeleton */}
         <div className="space-y-5">
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <Skeleton className="h-5 w-44 rounded-xl bg-[#EFF6FF]" />
@@ -63,7 +63,7 @@ export default function Loading() {
             </div>
           </Card>
 
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <Skeleton className="h-5 w-48 rounded-xl bg-[#EFF6FF]" />
@@ -90,7 +90,7 @@ export default function Loading() {
 
         {/* Form skeleton (Job description + config + CTA) */}
         <div className="space-y-5">
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <Skeleton className="h-5 w-48 rounded-xl bg-[#EFF6FF]" />
@@ -111,7 +111,7 @@ export default function Loading() {
             </div>
           </Card>
 
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <Skeleton className="h-5 w-60 rounded-xl bg-[#EFF6FF]" />
@@ -162,7 +162,7 @@ export default function Loading() {
 
       {/* Sidebar skeleton */}
       <div className="mt-8 hidden lg:block">
-        <Card className="sticky top-4 rounded-[2rem] border-[#E7E7E9] bg-white/88 p-4 shadow-[0_24px_64px_rgba(13,12,34,0.08)] backdrop-blur">
+        <Card className="sticky top-4 rounded-4xl border-[#E7E7E9] bg-white/88 p-4 shadow-[0_24px_64px_rgba(13,12,34,0.08)] backdrop-blur">
           <div className="flex items-center gap-3">
             <Skeleton className="h-11 w-11 rounded-2xl bg-[#2563EB]/20" />
             <div className="space-y-2">

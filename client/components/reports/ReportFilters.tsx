@@ -63,7 +63,7 @@ export default function ReportFilters({
   onReset,
 }: ReportFiltersProps) {
   return (
-    <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/88 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.04)]">
+    <Card className="rounded-4xl border-[#E7E7E9] bg-white/88 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.04)]">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_repeat(3,minmax(0,0.6fr))_auto]">
         <label className="block">
           <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">

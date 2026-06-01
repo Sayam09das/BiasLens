@@ -6,7 +6,7 @@ function Skeleton({ className }: { className: string }) {
   return (
     <div
       className={
-        "relative overflow-hidden rounded-[1rem] bg-[#F6F8FB] " +
+        "relative overflow-hidden rounded-2xl bg-[#F6F8FB] " +
         "before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_1.3s_infinite_ease-in-out] " +
         "before:bg-gradient-to-r before:from-transparent before:via-[rgba(37,99,235,0.10)] before:to-transparent " +
         className
@@ -47,7 +47,7 @@ function CardShell({
   return (
     <section
       className={
-        "rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6 " +
+        "rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6 " +
         (sticky ? "sticky top-6 " : "") +
         (className ?? "")
       }
@@ -256,7 +256,7 @@ export default function ReportDetailLoading() {
                 <Skeleton className="h-5 w-[220px]" />
                 <div className="grid grid-cols-1 gap-3">
                   {Array.from({ length: 3 }).map((_, i) => (
-                    <Skeleton key={i} className="h-28 w-full rounded-[1rem]" />
+                    <Skeleton key={i} className="h-28 w-full rounded-2xl" />
                   ))}
                 </div>
               </div>

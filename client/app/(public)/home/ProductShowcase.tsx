@@ -222,7 +222,7 @@ export default function ProductShowcase() {
 
           {/* ── Center dashboard ── */}
           <motion.div className="lg:col-span-5" {...fadeUp(0.16)}>
-            <div className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_30px_90px_rgba(13,12,34,0.06)]">
+            <div className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_30px_90px_rgba(13,12,34,0.06)]">
 
               {/* header */}
               <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.4rem] bg-[#F6F8FB] px-4 py-3">

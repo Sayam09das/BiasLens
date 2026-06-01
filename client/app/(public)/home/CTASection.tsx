@@ -54,7 +54,7 @@ export default function CTASection() {
   return (
     <section className="bg-[#FFFFFF]" aria-label="Final CTA">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
-        <div className="relative overflow-hidden rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_30px_90px_rgba(13,12,34,0.06)] sm:p-8">
+        <div className="relative overflow-hidden rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_30px_90px_rgba(13,12,34,0.06)] sm:p-8">
           {/* Blue gradient accent */}
           <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-[#2563EB]/15 via-[#2563EB]/5 to-transparent" />
           <div className="pointer-events-none absolute -right-24 top-12 h-72 w-72 rounded-full bg-[#2563EB]/10 blur-3xl" />
@@ -122,7 +122,7 @@ export default function CTASection() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-80px" }}
                 transition={{ duration: 0.55 }}
-                className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_30px_90px_rgba(13,12,34,0.06)]"
+                className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_30px_90px_rgba(13,12,34,0.06)]"
               >
                 <div className="rounded-[1.6rem] border border-[#E7E7E9] bg-[#F6F8FB] p-4">
                   <div className="flex flex-wrap items-center gap-2">

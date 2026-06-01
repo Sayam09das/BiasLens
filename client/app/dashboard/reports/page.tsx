@@ -224,7 +224,7 @@ export default function ReportsPage() {
 
       <section className="grid gap-5 xl:grid-cols-2">
         {!isLoading && filtered.length === 0 ? (
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/90 p-8 text-center shadow-[0_20px_50px_rgba(13,12,34,0.06)] xl:col-span-2">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/90 p-8 text-center shadow-[0_20px_50px_rgba(13,12,34,0.06)] xl:col-span-2">
             <p className="text-lg font-semibold text-[#0D0C22]">No reports found</p>
             <p className="mt-2 text-sm text-[#6E6D7A]">
               {reports.length === 0 ? "Completed audits will appear here as reports." : "Try adjusting your filters."}

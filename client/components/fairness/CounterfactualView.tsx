@@ -107,7 +107,7 @@ function DeltaBadge({ deltaPct }: { deltaPct: number }) {
 
   return (
     <span
-      className="inline-flex items-center gap-2 rounded-[1rem] border px-3 py-1 text-xs font-semibold"
+      className="inline-flex items-center gap-2 rounded-2xl border px-3 py-1 text-xs font-semibold"
       style={{ background: styles.bg, color: styles.fg, borderColor: styles.bd }}
       aria-label={`Score change ${formatDeltaPct(deltaPct)}`}
     >
@@ -140,7 +140,7 @@ function ExampleCard({ example, index }: { example: CounterfactualExample; index
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -8 }}
       transition={{ duration: 0.18, delay: index * 0.03 }}
-      className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 sm:p-6"
+      className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 sm:p-6"
       role="article"
       aria-label="Counterfactual example"
     >
@@ -162,7 +162,7 @@ function ExampleCard({ example, index }: { example: CounterfactualExample; index
               <p className="mt-2 text-sm font-semibold text-[#0D0C22] leading-5">{example.originalSignal}</p>
               <div className="mt-3 flex items-center gap-2">
                 <span className="text-xs font-semibold text-[#6E6D7A]">Score</span>
-                <span className="rounded-[1rem] border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1 text-xs font-semibold text-[#0D0C22]">
+                <span className="rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1 text-xs font-semibold text-[#0D0C22]">
                   {clamp(example.originalScorePct, 0, 100).toFixed(1)}%
                 </span>
               </div>
@@ -173,7 +173,7 @@ function ExampleCard({ example, index }: { example: CounterfactualExample; index
               <p className="mt-2 text-sm font-semibold text-[#0D0C22] leading-5">{example.counterfactualSignal}</p>
               <div className="mt-3 flex items-center gap-2">
                 <span className="text-xs font-semibold text-[#6E6D7A]">Score</span>
-                <span className="rounded-[1rem] border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1 text-xs font-semibold text-[#0D0C22]">
+                <span className="rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1 text-xs font-semibold text-[#0D0C22]">
                   {clamp(example.counterfactualScorePct, 0, 100).toFixed(1)}%
                 </span>
               </div>
@@ -248,7 +248,7 @@ export default function CounterfactualView({ examples, className }: Counterfactu
   const data = React.useMemo(() => examples && examples.length ? examples : defaultExamples, [examples]);
   return (
     <div className={className}>
-      <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Counterfactual view</p>

@@ -226,7 +226,7 @@ export default function ExportReportButton({
                   disabled={isDisabled || isBusy}
                   aria-label={label}
                   className={cx(
-                    "flex w-full items-center justify-between gap-3 rounded-[1rem] px-3 py-2.5 text-sm font-medium text-[#344054]",
+                    "flex w-full items-center justify-between gap-3 rounded-2xl px-3 py-2.5 text-sm font-medium text-[#344054]",
                     "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1463ff]",
                     !isDisabled && !isBusy ? "hover:bg-[#f3f7fc]" : "cursor-not-allowed opacity-60"
                   )}
@@ -244,7 +244,7 @@ export default function ExportReportButton({
           </div>
 
           {/* Status footer */}
-          <div className="mt-2 rounded-[1rem] border border-[#d9e2ec] bg-[#f3f7fc] px-3 py-2.5">
+          <div className="mt-2 rounded-2xl border border-[#d9e2ec] bg-[#f3f7fc] px-3 py-2.5">
             {feedback.type === "idle" && (
               <div className="flex items-start gap-2">
                 <ShieldCheck size={15} className="mt-0.5 shrink-0 text-[#1463ff]" aria-hidden />

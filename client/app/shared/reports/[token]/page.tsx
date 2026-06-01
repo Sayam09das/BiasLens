@@ -165,7 +165,7 @@ export default function SharedReportPage() {
     return (
       <div className="min-h-screen bg-[#F6F8FB] px-4 py-10">
         <div className="mx-auto flex max-w-3xl items-center justify-center">
-          <Card className="w-full rounded-[2rem] border-[#E7E7E9] bg-white p-8 text-center shadow-[0_24px_64px_rgba(13,12,34,0.06)]">
+          <Card className="w-full rounded-4xl border-[#E7E7E9] bg-white p-8 text-center shadow-[0_24px_64px_rgba(13,12,34,0.06)]">
             <Loader2 className="mx-auto h-8 w-8 animate-spin text-[#2563EB]" />
             <p className="mt-4 text-lg font-semibold text-[#101828]">Loading shared report</p>
             <p className="mt-2 text-sm text-[#667085]">Verifying the secure link and preparing the report.</p>
@@ -179,7 +179,7 @@ export default function SharedReportPage() {
     return (
       <div className="min-h-screen bg-[#F6F8FB] px-4 py-10">
         <div className="mx-auto max-w-3xl">
-          <Card className="rounded-[2rem] border-[#FECACA] bg-white p-8 shadow-[0_24px_64px_rgba(13,12,34,0.06)]">
+          <Card className="rounded-4xl border-[#FECACA] bg-white p-8 shadow-[0_24px_64px_rgba(13,12,34,0.06)]">
             <div className="flex items-start gap-4">
               <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FEF2F2]">
                 <AlertCircle className="h-6 w-6 text-[#DC2626]" />

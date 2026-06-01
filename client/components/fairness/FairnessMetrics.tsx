@@ -121,7 +121,7 @@ function TrendBadge({ dir, label, tone }: { dir: Trend; label: string; tone: Ris
 
   return (
     <span
-      className="inline-flex items-center gap-2 rounded-[1rem] border px-3 py-1 text-xs font-semibold"
+      className="inline-flex items-center gap-2 rounded-2xl border px-3 py-1 text-xs font-semibold"
       style={{ background: s.bg, color: s.fg, borderColor: s.bd }}
     >
       <Icon size={14} aria-hidden="true" />
@@ -135,7 +135,7 @@ function MetricTooltip({ tooltip }: { tooltip: string }) {
     <span className="group relative inline-flex items-center" aria-label={tooltip}>
       <BadgeInfo size={14} className="text-[#2563EB]" aria-hidden="true" />
       <span
-        className="pointer-events-none absolute left-1/2 top-full z-10 w-[260px] -translate-x-1/2 rounded-[1rem] border border-[#E7E7E9] bg-[#FFFFFF] p-3 opacity-0 shadow-[0_16px_48px_rgba(13,12,34,0.08)] transition-opacity group-hover:opacity-100 focus-within:opacity-100"
+        className="pointer-events-none absolute left-1/2 top-full z-10 w-[260px] -translate-x-1/2 rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] p-3 opacity-0 shadow-[0_16px_48px_rgba(13,12,34,0.08)] transition-opacity group-hover:opacity-100 focus-within:opacity-100"
         role="tooltip"
       >
         <span className="block text-xs font-semibold text-[#0D0C22]">What this means</span>
@@ -159,7 +159,7 @@ function MetricCardView({ metric }: { metric: MetricCard }) {
     <motion.div
       whileHover={{ y: -2 }}
       transition={{ duration: 0.18 }}
-      className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 sm:p-5"
+      className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 sm:p-5"
       role="group"
       aria-label={metric.label}
     >
@@ -183,7 +183,7 @@ function MetricCardView({ metric }: { metric: MetricCard }) {
             <TrendBadge dir={metric.trend.dir} label={metric.trend.label} tone={metric.tone} />
           ) : null}
           <span
-            className="inline-flex items-center rounded-[1rem] border px-3 py-1 text-xs font-semibold"
+            className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold"
             style={{ background: t.bg, color: t.fg, borderColor: t.bd }}
           >
             {metric.tone === "success"
@@ -316,7 +316,7 @@ export default function FairnessMetrics({ values, trend, className }: FairnessMe
 
   return (
     <div className={className}>
-      <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Fairness metrics</p>

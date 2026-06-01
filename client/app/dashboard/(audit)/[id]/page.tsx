@@ -35,7 +35,7 @@ function ScoreCard({
           : "text-[#2563EB]";
 
   return (
-    <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/78 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+    <Card className="rounded-4xl border-[#E7E7E9] bg-white/78 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">
         {title}
       </p>

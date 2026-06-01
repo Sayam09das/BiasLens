@@ -18,7 +18,7 @@ function StatSkeleton() {
 }
 
 function SectionSkeleton({ height = 320 }: { height?: number }) {
-  return <div className="animate-pulse rounded-[2rem] bg-[#f3f7fc]" style={{ height }} />;
+  return <div className="animate-pulse rounded-4xl bg-[#f3f7fc]" style={{ height }} />;
 }
 
 export default function ExplainabilityPage() {

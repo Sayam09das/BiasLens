@@ -164,7 +164,7 @@ export default function FairnessChart({ values, className, title, description }:
 
   return (
     <div className={className}>
-      <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Fairness analytics</p>
@@ -191,7 +191,7 @@ export default function FairnessChart({ values, className, title, description }:
                   <p className="mt-2 text-sm font-semibold text-[#0D0C22]">{formatPct01(merged.parityGap)}</p>
                   <p className="mt-1 text-xs font-semibold text-[#6E6D7A]">Lower indicates more parity</p>
                 </div>
-                <span aria-hidden="true" className="text-xs font-semibold rounded-[1rem] border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1" style={{ color: BRAND.primary }}>Parity</span>
+                <span aria-hidden="true" className="text-xs font-semibold rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1" style={{ color: BRAND.primary }}>Parity</span>
               </div>
               <div className="mt-4 flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -199,7 +199,7 @@ export default function FairnessChart({ values, className, title, description }:
                   <p className="mt-2 text-sm font-semibold text-[#0D0C22]">{formatPct01(merged.equalizedOdds)}</p>
                   <p className="mt-1 text-xs font-semibold text-[#6E6D7A]">Lower indicates less separation</p>
                 </div>
-                <span aria-hidden="true" className="text-xs font-semibold rounded-[1rem] border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1" style={{ color: BRAND.primary }}>Odds</span>
+                <span aria-hidden="true" className="text-xs font-semibold rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1" style={{ color: BRAND.primary }}>Odds</span>
               </div>
               <div className="mt-4 flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -207,21 +207,21 @@ export default function FairnessChart({ values, className, title, description }:
                   <p className="mt-2 text-sm font-semibold text-[#0D0C22]">{formatPct01(merged.counterfactualConsistency)}</p>
                   <p className="mt-1 text-xs font-semibold text-[#6E6D7A]">Higher indicates robustness</p>
                 </div>
-                <span aria-hidden="true" className="text-xs font-semibold rounded-[1rem] border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1" style={{ color: BRAND.primary }}>CF</span>
+                <span aria-hidden="true" className="text-xs font-semibold rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1" style={{ color: BRAND.primary }}>CF</span>
               </div>
             </div>
           </div>
 
           <div className="lg:col-span-8 space-y-4">
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-              <div className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4">
+              <div className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#2563EB]">Group score comparison</p>
                     <p className="mt-1 text-sm font-semibold text-[#0D0C22]">Bar chart</p>
                     <p className="mt-1 text-xs text-[#6E6D7A]">Compare fairness score by candidate group.</p>
                   </div>
-                  <span className="inline-flex items-center rounded-[1rem] border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-1 text-xs font-semibold text-[#6E6D7A]" aria-label="Legend">
+                  <span className="inline-flex items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-1 text-xs font-semibold text-[#6E6D7A]" aria-label="Legend">
                     <Circle size={10} className="mr-2 text-[#2563EB]" aria-hidden="true" /> Score
                   </span>
                 </div>
@@ -236,7 +236,7 @@ export default function FairnessChart({ values, className, title, description }:
                         content={({ active, payload, label }) => (
                           <div>
                             {active && payload && payload.length ? (
-                              <div className="rounded-[1rem] border border-[#E7E7E9] bg-[#FFFFFF] p-3 shadow-[0_16px_48px_rgba(13,12,34,0.08)]">
+                              <div className="rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] p-3 shadow-[0_16px_48px_rgba(13,12,34,0.08)]">
                                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#2563EB]">{label}</p>
                                 <p className="mt-2 text-sm font-semibold text-[#0D0C22]">Score: {payload[0].value?.toFixed(0)}%</p>
                               </div>
@@ -253,7 +253,7 @@ export default function FairnessChart({ values, className, title, description }:
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.05 }}>
-              <div className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4">
+              <div className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#2563EB]">Fairness trend</p>
@@ -296,14 +296,14 @@ export default function FairnessChart({ values, className, title, description }:
             </motion.div>
 
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25, delay: 0.1 }}>
-              <div className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4">
+              <div className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#2563EB]">Fairness score progress</p>
                     <p className="mt-1 text-sm font-semibold text-[#0D0C22]">Progress chart</p>
                     <p className="mt-1 text-xs text-[#6E6D7A]">A quick visual representation of overall fairness.</p>
                   </div>
-                  <span className="inline-flex items-center rounded-[1rem] border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-1 text-xs font-semibold text-[#6E6D7A]" aria-label="Progress percent">
+                  <span className="inline-flex items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-1 text-xs font-semibold text-[#6E6D7A]" aria-label="Progress percent">
                     {progressPct.toFixed(0)}%
                   </span>
                 </div>

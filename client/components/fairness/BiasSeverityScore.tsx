@@ -66,7 +66,7 @@ function SeverityBadge({ severity }: { severity: Severity }) {
 
   return (
     <span
-      className="inline-flex items-center rounded-[1rem] border px-3 py-1 text-xs font-semibold"
+      className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold"
       style={{ background: styles.bg, borderColor: styles.bd, color: styles.fg }}
     >
       {severity}
@@ -171,7 +171,7 @@ export default function BiasSeverityScore({ score, label, description, className
 
   return (
     <div className={className}>
-      <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Bias severity</p>

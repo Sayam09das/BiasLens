@@ -14,7 +14,7 @@ export default function DashboardError({
 }) {
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
-      <Card className="w-full max-w-xl rounded-[2rem] border-[#FECACA] bg-white shadow-[0_24px_64px_rgba(13,12,34,0.08)]">
+      <Card className="w-full max-w-xl rounded-4xl border-[#FECACA] bg-white shadow-[0_24px_64px_rgba(13,12,34,0.08)]">
         <CardContent className="p-8 text-center">
           <span className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FEF2F2] text-[#EF4444]">
             <AlertTriangle size={24} />

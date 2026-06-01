@@ -133,7 +133,7 @@ export default function ReportCard(props: ReportCardProps) {
       transition={{ duration: 0.18 }}
       className={className}
     >
-      <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
         <div className="flex flex-col gap-5">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0">
@@ -317,7 +317,7 @@ function ScoreRow({ label, value }: { label: string; value: number }) {
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">{label}</p>
           <p className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-[#0D0C22]">{clamp(value, 0, 100).toFixed(0)}%</p>
         </div>
-        <span className="inline-flex items-center rounded-[1rem] border px-3 py-1 text-xs font-semibold" style={{ background: t.bg, borderColor: t.bd, color: t.fg }}>
+        <span className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold" style={{ background: t.bg, borderColor: t.bd, color: t.fg }}>
           {tone === "success" ? "Strong" : tone === "warning" ? "Good" : "Needs review"}
         </span>
       </div>

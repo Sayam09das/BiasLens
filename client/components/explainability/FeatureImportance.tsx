@@ -87,7 +87,7 @@ function DeltaPill({ delta }: { delta: FeatureDelta }) {
   const text = delta === "positive" ? "Positive" : delta === "negative" ? "Negative" : "Neutral";
   return (
     <span
-      className="inline-flex items-center rounded-[1rem] border px-3 py-1 text-xs font-semibold"
+      className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold"
       style={{ background: t.bg, borderColor: t.bd, color: t.fg }}
       aria-label={`Impact indicator: ${text}`}
     >
@@ -111,7 +111,7 @@ function CategoryBadge({ category }: { category: FeatureCategory }) {
   const s = map[category];
   return (
     <span
-      className="inline-flex items-center rounded-[1rem] border px-3 py-1 text-xs font-semibold"
+      className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold"
       style={{ background: s.bg, borderColor: s.bd, color: s.fg }}
       aria-label={`Category ${category}`}
     >
@@ -220,7 +220,7 @@ export default function FeatureImportance({
 
   return (
     <div className={className}>
-      <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Feature importance</p>
@@ -275,7 +275,7 @@ export default function FeatureImportance({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.02 }}
-                className="rounded-[2rem] border border-[#E7E7E9] bg-[#F6F8FB] p-4"
+                className="rounded-4xl border border-[#E7E7E9] bg-[#F6F8FB] p-4"
                 role="article"
                 aria-label={`${f.label} importance ${pct.toFixed(0)} percent`}
               >

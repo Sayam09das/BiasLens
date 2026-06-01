@@ -199,7 +199,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* ── Desktop sidebar ── */}
           <aside className="hidden w-64 shrink-0 xl:w-72 lg:block">
-            <Card className="sticky top-4 rounded-[2rem] border-[#E7E7E9] bg-white/88 p-4 shadow-[0_24px_64px_rgba(13,12,34,0.08)] backdrop-blur">
+            <Card className="sticky top-4 rounded-4xl border-[#E7E7E9] bg-white/88 p-4 shadow-[0_24px_64px_rgba(13,12,34,0.08)] backdrop-blur">
               <SidebarContent pathname={pathname} onNavigate={() => {}} />
             </Card>
           </aside>
@@ -255,7 +255,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
             >
-              <Card className="sticky top-4 z-30 rounded-[2rem] border-[#E7E7E9] bg-white/88 px-3 py-3 shadow-[0_24px_64px_rgba(13,12,34,0.08)] backdrop-blur sm:px-5 sm:py-4">
+              <Card className="sticky top-4 z-30 rounded-4xl border-[#E7E7E9] bg-white/88 px-3 py-3 shadow-[0_24px_64px_rgba(13,12,34,0.08)] backdrop-blur sm:px-5 sm:py-4">
                 <div className="flex items-center justify-between gap-3">
 
                   {/* Left — hamburger + title */}

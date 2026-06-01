@@ -64,7 +64,7 @@ export default function LoginPage() {
           transition={{ duration: 0.45, ease: "easeOut" }}
           className="flex items-center"
         >
-          <Card className="w-full rounded-[2rem] border-[#E7E7E9] bg-white shadow-[0_30px_80px_rgba(13,12,34,0.08)]">
+          <Card className="w-full rounded-4xl border-[#E7E7E9] bg-white shadow-[0_30px_80px_rgba(13,12,34,0.08)]">
             <CardContent className="p-6 sm:p-8 lg:p-10">
               <div className="mb-8 flex items-start justify-between gap-4">
                 <div>
@@ -137,7 +137,7 @@ export default function LoginPage() {
           transition={{ duration: 0.55, ease: "easeOut", delay: 0.08 }}
           className="hidden lg:flex"
         >
-          <div className="relative flex w-full overflow-hidden rounded-[2rem] border border-[#E7E7E9] bg-[radial-gradient(circle_at_top,#E8F0FF_0%,#F6F8FB_42%,#FFFFFF_100%)] p-8 shadow-[0_30px_80px_rgba(13,12,34,0.08)]">
+          <div className="relative flex w-full overflow-hidden rounded-4xl border border-[#E7E7E9] bg-[radial-gradient(circle_at_top,#E8F0FF_0%,#F6F8FB_42%,#FFFFFF_100%)] p-8 shadow-[0_30px_80px_rgba(13,12,34,0.08)]">
             <div className="absolute inset-x-8 top-8 h-32 rounded-full bg-[#2563EB]/10 blur-3xl" />
             <div className="relative z-10 flex w-full flex-col">
               <div className="rounded-[1.75rem] border border-white/70 bg-white/80 px-5 py-4 backdrop-blur">

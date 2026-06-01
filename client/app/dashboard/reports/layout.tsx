@@ -16,7 +16,7 @@ export default function ReportsLayout({
   return (
     <div className="min-w-0">
       {/* Reports-specific header */}
-      <section className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] px-4 py-6 shadow-[0_24px_64px_rgba(13,12,34,0.04)] sm:px-6">
+      <section className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] px-4 py-6 shadow-[0_24px_64px_rgba(13,12,34,0.04)] sm:px-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">
@@ -44,7 +44,7 @@ export default function ReportsLayout({
                 href={tab.href}
                 role="tab"
                 aria-selected={false}
-                className="rounded-[1rem] px-3 py-2 text-sm font-medium text-[#6E6D7A] transition hover:bg-[#FFFFFF] hover:text-[#0D0C22]"
+                className="rounded-2xl px-3 py-2 text-sm font-medium text-[#6E6D7A] transition hover:bg-[#FFFFFF] hover:text-[#0D0C22]"
               >
                 {tab.label}
               </a>

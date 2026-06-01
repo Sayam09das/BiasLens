@@ -78,7 +78,7 @@ export default function AuthGuard({
     return (
       fallback ?? (
         <div className="flex min-h-[40vh] items-center justify-center px-4">
-          <Card className="w-full max-w-md rounded-[2rem] border-[#E7E7E9] bg-white shadow-[0_24px_64px_rgba(13,12,34,0.08)]">
+          <Card className="w-full max-w-md rounded-4xl border-[#E7E7E9] bg-white shadow-[0_24px_64px_rgba(13,12,34,0.08)]">
             <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
               <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#EFF6FF] text-[#2563EB]">
                 <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
@@ -99,7 +99,7 @@ export default function AuthGuard({
   return (
     unauthorized ?? (
       <div className="flex min-h-[40vh] items-center justify-center px-4">
-        <Card className="w-full max-w-md rounded-[2rem] border-[#FECACA] bg-white shadow-[0_24px_64px_rgba(13,12,34,0.08)]">
+        <Card className="w-full max-w-md rounded-4xl border-[#FECACA] bg-white shadow-[0_24px_64px_rgba(13,12,34,0.08)]">
           <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
             <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[#FEF2F2] text-[#EF4444]">
               <ShieldAlert className="h-6 w-6" aria-hidden="true" />

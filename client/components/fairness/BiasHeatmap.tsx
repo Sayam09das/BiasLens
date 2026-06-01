@@ -257,7 +257,7 @@ export default function BiasHeatmap({ values, className }: BiasHeatmapProps) {
 
   return (
     <div className={className}>
-      <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Fairness heatmap</p>
@@ -343,7 +343,7 @@ export default function BiasHeatmap({ values, className }: BiasHeatmapProps) {
                     </div>
 
                     <span
-                      className="inline-flex items-center rounded-[1rem] border px-3 py-1 text-xs font-semibold"
+                      className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold"
                       style={(() => {
                         if (!tip.severity) return { background: "rgba(37,99,235,0.10)", color: BRAND.primary, borderColor: "rgba(37,99,235,0.25)" };
                         const t = severityToTone(tip.severity);
@@ -354,7 +354,7 @@ export default function BiasHeatmap({ values, className }: BiasHeatmapProps) {
                     </span>
                   </div>
 
-                  <div className="mt-3 rounded-[1rem] border border-[#E7E7E9] bg-[#F6F8FB] p-3">
+                  <div className="mt-3 rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB] p-3">
                     <p className="text-xs font-semibold text-[#0D0C22]">Severity guidance</p>
                     <p className="mt-1 text-xs leading-5 text-[#6E6D7A]">
                       Lower severity indicates more stable fairness behavior. Higher severity suggests stronger bias risk and a good target for mitigation.
@@ -390,7 +390,7 @@ export default function BiasHeatmap({ values, className }: BiasHeatmapProps) {
                   If interactive heatmap is not available, you can still read all severity labels below.
                 </p>
 
-                <div className="mt-4 overflow-x-auto rounded-[1rem] border border-[#E7E7E9] bg-[#FFFFFF]">
+                <div className="mt-4 overflow-x-auto rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF]">
                   <table className="min-w-full border-collapse">
                     <thead>
                       <tr className="bg-[#F6F8FB]">
@@ -412,7 +412,7 @@ export default function BiasHeatmap({ values, className }: BiasHeatmapProps) {
                             return (
                               <td key={`${g}-${s}-fallback`} className="px-3 py-3">
                                 <span
-                                  className="inline-flex items-center rounded-[1rem] border px-3 py-1 text-xs font-semibold"
+                                  className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold"
                                   style={{ background: t.bg, color: t.fg, borderColor: t.bd }}
                                 >
                                   {cell.severity === "low" ? "Low" : cell.severity === "medium" ? "Med" : "High"}

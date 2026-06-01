@@ -35,7 +35,7 @@ export default function AuditHistory({
   records: AuditRecord[];
 }) {
   return (
-    <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/78 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+    <Card className="rounded-4xl border-[#E7E7E9] bg-white/78 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">

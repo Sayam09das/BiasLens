@@ -175,7 +175,7 @@ export default function FeatureComparisonSection() {
         </div>
 
         {/* Desktop comparison table */}
-        <div className="mt-12 hidden overflow-hidden rounded-[2rem] border border-[#E7E7E9] bg-white/70 shadow-[0_20px_70px_rgba(13,12,34,0.05)] backdrop-blur-xl lg:block">
+        <div className="mt-12 hidden overflow-hidden rounded-4xl border border-[#E7E7E9] bg-white/70 shadow-[0_20px_70px_rgba(13,12,34,0.05)] backdrop-blur-xl lg:block">
           <div className="grid grid-cols-4">
             {/* Header */}
             <div className="col-span-1 border-r border-[#E7E7E9] p-6">

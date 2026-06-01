@@ -194,7 +194,7 @@ export default function ShareReportButton({
           aria-modal="true"
           aria-label="Share report"
         >
-          <Card className="w-full max-w-lg rounded-[2rem] border-[#d9e2ec] bg-white p-6 shadow-[0_32px_80px_rgba(13,12,34,0.18)]">
+          <Card className="w-full max-w-lg rounded-4xl border-[#d9e2ec] bg-white p-6 shadow-[0_32px_80px_rgba(13,12,34,0.18)]">
             {/* Header */}
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -264,14 +264,14 @@ export default function ShareReportButton({
                     <input
                       readOnly
                       value={shareUrl}
-                      className="min-w-0 flex-1 rounded-[1rem] border border-[#d9e2ec] bg-white px-3 py-2 text-xs text-[#344054] outline-none"
+                      className="min-w-0 flex-1 rounded-2xl border border-[#d9e2ec] bg-white px-3 py-2 text-xs text-[#344054] outline-none"
                       aria-label="Share URL"
                     />
                     <button
                       type="button"
                       onClick={copyLink}
                       aria-label="Copy link"
-                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[1rem] border border-[#d9e2ec] bg-white text-[#1463ff] hover:bg-[#f0f5ff] transition"
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl border border-[#d9e2ec] bg-white text-[#1463ff] hover:bg-[#f0f5ff] transition"
                     >
                       {copied ? <Check size={15} aria-hidden /> : <Copy size={15} aria-hidden />}
                     </button>
@@ -292,12 +292,12 @@ export default function ShareReportButton({
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="colleague@company.com"
                     disabled={!shareUrl}
-                    className="min-w-0 flex-1 rounded-[1rem] border border-[#d9e2ec] bg-[#f3f7fc] px-3 py-2 text-sm text-[#101828] outline-none placeholder:text-[#8A8994] focus:border-[#1463ff]/40 focus:bg-white disabled:opacity-50 transition"
+                    className="min-w-0 flex-1 rounded-2xl border border-[#d9e2ec] bg-[#f3f7fc] px-3 py-2 text-sm text-[#101828] outline-none placeholder:text-[#8A8994] focus:border-[#1463ff]/40 focus:bg-white disabled:opacity-50 transition"
                     aria-label="Recipient email"
                   />
                   <Button
                     variant="outline"
-                    className="shrink-0 rounded-[1rem]"
+                    className="shrink-0 rounded-2xl"
                     onClick={sendEmail}
                     disabled={!shareUrl || !email.trim() || isSendingEmail}
                   >
@@ -325,7 +325,7 @@ export default function ShareReportButton({
                       {activeShares.map((s) => (
                         <div
                           key={s.id}
-                          className="flex items-center justify-between gap-3 rounded-[1rem] border border-[#d9e2ec] bg-[#f3f7fc] px-3 py-2.5"
+                          className="flex items-center justify-between gap-3 rounded-2xl border border-[#d9e2ec] bg-[#f3f7fc] px-3 py-2.5"
                         >
                           <div className="flex items-center gap-2 min-w-0">
                             <Clock size={13} className="shrink-0 text-[#667085]" aria-hidden />

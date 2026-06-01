@@ -424,7 +424,7 @@ export default function ReportViewer({ report: reportProp, className }: ReportVi
           transition={{ duration: 0.25 }}
           className="bl-no-print"
         >
-          <Card className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+          <Card className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">BiasLens Audit Report</p>
@@ -535,7 +535,7 @@ export default function ReportViewer({ report: reportProp, className }: ReportVi
             aria-label="Report section navigation"
             className="sticky top-[72px] z-30"
           >
-            <Card className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-3 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+            <Card className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-3 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
               <div className="flex flex-wrap items-center gap-2">
                 {navItems.map((item, idx) => {
                   const Icon = item.icon;
@@ -570,7 +570,7 @@ export default function ReportViewer({ report: reportProp, className }: ReportVi
           ref={docRef}
           className="bl-print-page mt-8"
         >
-          <Card className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+          <Card className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
             <div id="header" className="bl-print-break" aria-hidden="true" />
 
             {/* Export safe content heading */}
@@ -1111,7 +1111,7 @@ function ReportSection({
     <section
       id={id}
       aria-label={title}
-      className="mt-7 rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 sm:p-6"
+      className="mt-7 rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 sm:p-6"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>

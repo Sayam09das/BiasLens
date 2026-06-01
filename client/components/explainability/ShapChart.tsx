@@ -152,7 +152,7 @@ export default function ShapChart({ values, className, title, description }: Sha
 
   return (
     <div className={className}>
-      <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Explainability</p>
@@ -189,7 +189,7 @@ export default function ShapChart({ values, className, title, description }: Sha
                   <p className="mt-1 text-xs text-[#6E6D7A]">Hover a bar for details.</p>
                 </div>
 
-                <span className="inline-flex items-center rounded-[1rem] border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1 text-xs font-semibold text-[#6E6D7A]" aria-label="Legend">
+                <span className="inline-flex items-center rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-1 text-xs font-semibold text-[#6E6D7A]" aria-label="Legend">
                   <Sparkles size={14} className="mr-2 text-[#2563EB]" aria-hidden="true" /> SHAP
                 </span>
               </div>

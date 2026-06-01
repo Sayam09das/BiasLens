@@ -88,7 +88,7 @@ export default function AuditsPage() {
       </section>
 
       {/* Audit history table */}
-      <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/78 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-white/78 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
         {/* Header */}
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -243,7 +243,7 @@ export default function AuditsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-[1rem]"
+                className="rounded-2xl"
                 disabled={page === 1}
                 onClick={prev}
               >
@@ -264,7 +264,7 @@ export default function AuditsPage() {
                       key={p}
                       variant={page === p ? "default" : "outline"}
                       size="sm"
-                      className="rounded-[1rem]"
+                      className="rounded-2xl"
                       onClick={() => goTo(p as number)}
                     >
                       {p}
@@ -274,7 +274,7 @@ export default function AuditsPage() {
               <Button
                 variant="outline"
                 size="sm"
-                className="rounded-[1rem]"
+                className="rounded-2xl"
                 disabled={page === totalPages}
                 onClick={next}
               >

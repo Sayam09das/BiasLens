@@ -564,7 +564,7 @@ function PreviewBlock({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4">
+    <div className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 grid h-10 w-10 place-items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB]" aria-hidden="true">
           {icon}

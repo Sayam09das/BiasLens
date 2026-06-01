@@ -36,7 +36,7 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
   return (
     <div className="min-w-0 space-y-6">
       {/* Settings header */}
-      <header className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] px-4 py-6 shadow-[0_24px_64px_rgba(13,12,34,0.04)] sm:px-6">
+      <header className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] px-4 py-6 shadow-[0_24px_64px_rgba(13,12,34,0.04)] sm:px-6">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Settings</p>
         <h1 className="mt-2 text-2xl font-semibold tracking-[-0.04em] text-[#0D0C22] sm:text-3xl">Settings</h1>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6E6D7A]">
@@ -49,12 +49,12 @@ export default function SettingsLayout({ children }: SettingsLayoutProps) {
         <aside className="lg:col-span-4">
           <nav
             aria-label="Settings navigation"
-            className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)]"
+            className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)]"
           >
             <div className="flex items-center justify-between">
               <p className="text-sm font-semibold text-[#0D0C22]">Navigation</p>
               <span
-                className="inline-flex items-center rounded-[1rem] border px-3 py-1 text-xs font-semibold"
+                className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold"
                 style={{ background: BRAND.secondaryBackground, color: BRAND.mutedText, borderColor: BRAND.border }}
               >
                 Dashboard

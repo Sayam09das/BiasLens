@@ -385,7 +385,7 @@ export default function ReportAuditAgentSection() {
                         </div>
                       </div>
 
-                      <div className="mt-4 inline-flex w-full items-center justify-between gap-3 rounded-[1rem] border border-[#E7E7E9] bg-white/70 px-4 py-3">
+                      <div className="mt-4 inline-flex w-full items-center justify-between gap-3 rounded-2xl border border-[#E7E7E9] bg-white/70 px-4 py-3">
                         <div>
                           <div className="text-[11px] font-semibold text-[#6E6D7A]">Next step</div>
                           <div className="text-sm font-semibold text-[#0D0C22]">Run a report workflow</div>

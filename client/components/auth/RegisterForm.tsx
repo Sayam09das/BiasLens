@@ -138,7 +138,7 @@ export default function RegisterForm({
   });
 
   return (
-    <Card className={cn("rounded-[2rem] border-[#E7E7E9] bg-white shadow-[0_24px_64px_rgba(13,12,34,0.08)]", className)}>
+    <Card className={cn("rounded-4xl border-[#E7E7E9] bg-white shadow-[0_24px_64px_rgba(13,12,34,0.08)]", className)}>
       <CardHeader className="p-6 sm:p-8">
         <CardTitle className="text-3xl tracking-[-0.04em] text-[#0D0C22]">
           {title}

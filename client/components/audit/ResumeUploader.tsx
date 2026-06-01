@@ -181,7 +181,7 @@ export default function ResumeUploader() {
 
       <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
         <div className="space-y-5">
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-base font-semibold text-[#0D0C22]">
@@ -262,7 +262,7 @@ export default function ResumeUploader() {
             </div>
           </Card>
 
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-base font-semibold text-[#0D0C22]">
@@ -330,7 +330,7 @@ export default function ResumeUploader() {
         </div>
 
         <div className="space-y-5">
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-base font-semibold text-[#0D0C22]">
@@ -366,7 +366,7 @@ export default function ResumeUploader() {
                 </p>
                 <Button
                   variant="ghost"
-                  className="h-8 rounded-[1rem] px-3 text-[#2563EB]"
+                  className="h-8 rounded-2xl px-3 text-[#2563EB]"
                   onClick={() =>
                     setJobDescription(
                       "We are hiring a senior frontend engineer with experience in React, accessibility, design systems, analytics, and cross-functional product delivery. Candidates should show measurable impact, clear communication, and structured collaboration with design and backend teams.",
@@ -385,7 +385,7 @@ export default function ResumeUploader() {
             </div>
           </Card>
 
-          <Card className="overflow-hidden rounded-[2rem] border-[#DBEAFE] bg-[linear-gradient(180deg,#EFF6FF_0%,#FFFFFF_100%)] p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)]">
+          <Card className="overflow-hidden rounded-4xl border-[#DBEAFE] bg-[linear-gradient(180deg,#EFF6FF_0%,#FFFFFF_100%)] p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)]">
             <div className="flex items-center gap-2 text-sm font-semibold text-[#2563EB]">
               <Sparkles size={16} />
               Premium audit flow

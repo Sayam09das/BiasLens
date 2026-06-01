@@ -121,7 +121,7 @@ export function DialogContent({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative z-[101] w-full max-w-xl rounded-[2rem] border border-[color:var(--border)] bg-white p-6 shadow-[0_30px_80px_rgba(13,12,34,0.18)]",
+          "relative z-[101] w-full max-w-xl rounded-4xl border border-[color:var(--border)] bg-white p-6 shadow-[0_30px_80px_rgba(13,12,34,0.18)]",
           className,
         )}
       >

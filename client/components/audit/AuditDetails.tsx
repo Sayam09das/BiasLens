@@ -14,7 +14,7 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+    <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
       <h3 className="text-xl font-semibold text-[#0D0C22]">{title}</h3>
       <p className="mt-2 text-sm text-[#6E6D7A]">{subtitle}</p>
       <div className="mt-5">{children}</div>

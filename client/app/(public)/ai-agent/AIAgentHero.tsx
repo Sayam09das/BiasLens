@@ -205,7 +205,7 @@ export default function AIAgentHero() {
               <div className="relative rounded-[2.2rem] border border-[#E7E7E9] bg-white/70 p-4 shadow-[0_40px_140px_rgba(13,12,34,0.12)] backdrop-blur-xl">
                 <div aria-hidden="true" className="pointer-events-none absolute inset-0 rounded-[2.2rem] bg-gradient-to-b from-white/50 via-transparent to-white/60" />
 
-                <div className="relative overflow-hidden rounded-[2rem] border border-[#E7E7E9] bg-[#F6F8FB]">
+                <div className="relative overflow-hidden rounded-4xl border border-[#E7E7E9] bg-[#F6F8FB]">
                   <div
                     aria-hidden="true"
                     className="absolute inset-0 bg-[radial-gradient(circle_at_15%_10%,rgba(37,99,235,0.22)_0%,transparent_45%),radial-gradient(circle_at_85%_35%,rgba(37,99,235,0.12)_0%,transparent_55%)]"

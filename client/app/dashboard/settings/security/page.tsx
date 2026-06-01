@@ -322,7 +322,7 @@ function Badge({
   const s = styles[tone];
   return (
     <span
-      className="inline-flex items-center rounded-[1rem] border px-3 py-1 text-xs font-semibold"
+      className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold"
       style={{ background: s.bg, color: s.fg, borderColor: s.bd }}
     >
       {children}
@@ -641,7 +641,7 @@ export default function SecuritySettingsPage() {
 
       {/* 1) Security Overview Cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-        <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-5 shadow-[0_24px_64px_rgba(13,12,34,0.03)] md:p-6">
+        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-5 shadow-[0_24px_64px_rgba(13,12,34,0.03)] md:p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -671,7 +671,7 @@ export default function SecuritySettingsPage() {
           </div>
         </Card>
 
-        <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-5 shadow-[0_24px_64px_rgba(13,12,34,0.03)] md:p-6">
+        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-5 shadow-[0_24px_64px_rgba(13,12,34,0.03)] md:p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -697,7 +697,7 @@ export default function SecuritySettingsPage() {
           </div>
         </Card>
 
-        <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-5 shadow-[0_24px_64px_rgba(13,12,34,0.03)] md:p-6">
+        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-5 shadow-[0_24px_64px_rgba(13,12,34,0.03)] md:p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -713,7 +713,7 @@ export default function SecuritySettingsPage() {
           </div>
         </Card>
 
-        <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-5 shadow-[0_24px_64px_rgba(13,12,34,0.03)] md:p-6">
+        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-5 shadow-[0_24px_64px_rgba(13,12,34,0.03)] md:p-6">
           <div className="flex items-start justify-between gap-4">
             <div className="flex items-start gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -738,7 +738,7 @@ export default function SecuritySettingsPage() {
         {/* Main column */}
         <div className="lg:col-span-7 space-y-6">
           {/* 2) Change Password Form */}
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -896,7 +896,7 @@ export default function SecuritySettingsPage() {
           </Card>
 
           {/* 3) Two-Factor Authentication */}
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -946,7 +946,7 @@ export default function SecuritySettingsPage() {
                   </div>
 
                   <div
-                    className="mt-3 flex h-44 items-center justify-center rounded-[1rem] border border-[#E7E7E9] bg-[#F6F8FB]"
+                    className="mt-3 flex h-44 items-center justify-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB]"
                     aria-label="QR code placeholder"
                     role="img"
                   >
@@ -970,7 +970,7 @@ export default function SecuritySettingsPage() {
                     {Array.from({ length: 6 }).map((_, i) => (
                       <div
                         key={i}
-                        className="rounded-[1rem] border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-2 text-xs font-semibold text-[#6E6D7A]"
+                        className="rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-2 text-xs font-semibold text-[#6E6D7A]"
                         aria-label={`Recovery code ${i + 1}`}
                       >
                         XXXX-XXXX-{(i + 1).toString().padStart(2, "0")}
@@ -1119,7 +1119,7 @@ export default function SecuritySettingsPage() {
           </Card>
 
           {/* 4) Active Sessions Management */}
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -1312,7 +1312,7 @@ export default function SecuritySettingsPage() {
         {/* Right column */}
         <div className="lg:col-span-5 space-y-6">
           {/* 5) Login History */}
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -1397,7 +1397,7 @@ export default function SecuritySettingsPage() {
           </Card>
 
           {/* 6) Security Preferences */}
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">

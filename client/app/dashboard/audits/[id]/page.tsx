@@ -268,7 +268,7 @@ function ScoreCard({
     : "text-[#1463ff]";
 
   return (
-    <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/78 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+    <Card className="rounded-4xl border-[#E7E7E9] bg-white/78 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#1463ff]">{title}</p>
       <div className="mt-4 flex items-end justify-between gap-4">
         <p className={`text-4xl font-semibold tracking-[-0.05em] ${tone}`}>

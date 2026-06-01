@@ -83,7 +83,7 @@ export default function Loading() {
               <Skeleton className="h-4 w-44 rounded-full bg-[#EFF6FF]" />
               <Skeleton className="h-4 w-28 rounded-full bg-[#F3F7FC]" />
             </div>
-            <Skeleton className="mt-3 h-10 w-[18rem] max-w-full rounded-[1rem] bg-[#EFF6FF]" />
+            <Skeleton className="mt-3 h-10 w-[18rem] max-w-full rounded-2xl bg-[#EFF6FF]" />
             <Skeleton className="mt-3 h-4 w-[26rem] max-w-full rounded-full bg-[#F3F7FC]" />
           </div>
 
@@ -104,7 +104,7 @@ export default function Loading() {
         {/* SUMMARY + SCORE CARDS */}
         <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
           {/* Audit Summary */}
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
             <div className="flex flex-col gap-2">
               <Skeleton className="h-5 w-40 rounded-xl bg-[#EFF6FF]" />
               <Skeleton className="h-4 w-72 rounded-full bg-[#F3F7FC]" />
@@ -139,11 +139,11 @@ export default function Loading() {
                     <Skeleton className="h-3.5 w-[26rem] max-w-full rounded-full bg-[#F3F7FC]" />
                   </div>
                 </div>
-                <div className="mt-3 relative overflow-hidden rounded-[1rem]">
+                <div className="mt-3 relative overflow-hidden rounded-2xl">
                   <div className="absolute inset-0 opacity-[0.5]">
                     <ShimmerSweep className="absolute inset-0" delaySeconds={0.2} />
                   </div>
-                  <Skeleton className="h-10 w-full rounded-[1rem] bg-white/40" />
+                  <Skeleton className="h-10 w-full rounded-2xl bg-white/40" />
                 </div>
               </div>
             </div>
@@ -152,7 +152,7 @@ export default function Loading() {
           {/* Score stack */}
           <div className="space-y-5">
             {/* Resume Score */}
-            <Card className="relative overflow-hidden rounded-[2rem] border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+            <Card className="relative overflow-hidden rounded-4xl border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
               <div
                 aria-hidden="true"
                 className="absolute inset-0 opacity-70"
@@ -187,7 +187,7 @@ export default function Loading() {
 
             <div className="grid gap-5 sm:grid-cols-2">
               {/* Job Fit */}
-              <Card className="relative overflow-hidden rounded-[2rem] border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+              <Card className="relative overflow-hidden rounded-4xl border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
                 <div className="relative">
                   <Skeleton className="h-3.5 w-24 rounded-full bg-[#EFF6FF]" />
                   <div className="mt-4 flex items-center justify-between">
@@ -201,7 +201,7 @@ export default function Loading() {
               </Card>
 
               {/* Skills Match */}
-              <Card className="relative overflow-hidden rounded-[2rem] border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+              <Card className="relative overflow-hidden rounded-4xl border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
                 <div className="relative">
                   <Skeleton className="h-3.5 w-28 rounded-full bg-[#EFF6FF]" />
                   <div className="mt-4 flex items-center justify-between">
@@ -216,7 +216,7 @@ export default function Loading() {
             </div>
 
             {/* Fairness Risk */}
-            <Card className="relative overflow-hidden rounded-[2rem] border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+            <Card className="relative overflow-hidden rounded-4xl border-[#E7E7E9] bg-white/70 p-5 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
               <div className="relative">
                 <Skeleton className="h-3.5 w-32 rounded-full bg-[#EFF6FF]" />
                 <div className="mt-4 flex items-start justify-between gap-4">
@@ -242,7 +242,7 @@ export default function Loading() {
 
         {/* CHARTS */}
         <div className="mt-6 grid gap-5 lg:grid-cols-2">
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
             <div className="flex flex-col gap-2">
               <Skeleton className="h-5 w-44 rounded-xl bg-[#EFF6FF]" />
               <Skeleton className="h-4 w-72 rounded-full bg-[#F3F7FC]" />
@@ -266,7 +266,7 @@ export default function Loading() {
             </div>
           </Card>
 
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
             <div className="flex flex-col gap-2">
               <Skeleton className="h-5 w-52 rounded-xl bg-[#EFF6FF]" />
               <Skeleton className="h-4 w-72 rounded-full bg-[#F3F7FC]" />
@@ -302,7 +302,7 @@ export default function Loading() {
         </div>
 
         {/* TIMELINE */}
-        <Card className="mt-6 rounded-[2rem] border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+        <Card className="mt-6 rounded-4xl border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
           <div className="flex flex-col gap-2">
             <Skeleton className="h-5 w-40 rounded-xl bg-[#EFF6FF]" />
             <Skeleton className="h-4 w-72 rounded-full bg-[#F3F7FC]" />
@@ -326,7 +326,7 @@ export default function Loading() {
 
         {/* REPORT SECTION */}
         <div className="mt-6 space-y-5">
-          <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+          <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-2">
                 <Skeleton className="h-5 w-52 rounded-xl bg-[#EFF6FF]" />

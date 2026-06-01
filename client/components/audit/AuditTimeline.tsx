@@ -8,7 +8,7 @@ export default function AuditTimeline({
   events: AuditTimelineEvent[];
 }) {
   return (
-    <Card className="rounded-[2rem] border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
+    <Card className="rounded-4xl border-[#E7E7E9] bg-white/70 p-6 shadow-[0_24px_64px_rgba(13,12,34,0.06)] backdrop-blur">
       <div>
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">
           Audit Timeline

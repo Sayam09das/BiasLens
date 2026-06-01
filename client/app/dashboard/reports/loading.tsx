@@ -25,7 +25,7 @@ export default function ReportsLoading() {
     <div className="space-y-6" aria-busy="true" aria-live="polite">
       {/* Page header skeleton */}
       <section
-        className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] px-4 py-6 shadow-[0_24px_64px_rgba(13,12,34,0.04)] sm:px-6"
+        className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] px-4 py-6 shadow-[0_24px_64px_rgba(13,12,34,0.04)] sm:px-6"
         aria-label="Reports loading"
       >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -51,7 +51,7 @@ export default function ReportsLoading() {
         {Array.from({ length: 6 }).map((_, idx) => (
           <div
             key={idx}
-            className="rounded-[2rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)]"
+            className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)]"
           >
             <SkeletonBlock className="h-3 w-32" />
             <SkeletonBlock className="mt-3 h-9 w-20" />
@@ -63,7 +63,7 @@ export default function ReportsLoading() {
 
       {/* Search + filter bar skeleton */}
       <div
-        className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.04)] sm:p-6"
+        className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.04)] sm:p-6"
         aria-label="Loading search and filters"
       >
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
@@ -100,7 +100,7 @@ export default function ReportsLoading() {
 
       {/* Table skeleton */}
       <div
-        className="rounded-[2rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.04)] sm:p-6"
+        className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.04)] sm:p-6"
         aria-label="Loading reports table"
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -114,7 +114,7 @@ export default function ReportsLoading() {
         <div className="mt-4 overflow-x-auto">
           <div className="min-w-[900px]">
             {/* Table header */}
-            <div className="grid grid-cols-12 gap-2 rounded-[1rem] bg-[#F6F8FB] p-3">
+            <div className="grid grid-cols-12 gap-2 rounded-2xl bg-[#F6F8FB] p-3">
               {Array.from({ length: 12 }).map((_, idx) => (
                 <SkeletonBlock key={idx} className="h-4 w-full rounded-[0.5rem]" />
               ))}
@@ -125,7 +125,7 @@ export default function ReportsLoading() {
               {Array.from({ length: 8 }).map((_, idx) => (
                 <div
                   key={idx}
-                  className="grid grid-cols-12 gap-2 rounded-[1rem] border border-[#E7E7E9] bg-[#FFFFFF] p-3"
+                  className="grid grid-cols-12 gap-2 rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] p-3"
                 >
                   {Array.from({ length: 12 }).map((__, j) => (
                     <SkeletonBlock
