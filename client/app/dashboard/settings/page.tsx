@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useForm } from "react-hook-form";
@@ -15,6 +16,10 @@ import {
   Sparkles,
   User as UserIcon,
   Zap,
+  Bell,
+  KeyRound,
+  Users,
+  TriangleAlert,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -222,6 +227,8 @@ function Select({
 
 
 export default function SettingsPage() {
+  const searchParams = useSearchParams();
+  const tab = searchParams.get("tab") ?? "profile";
   const mockUser = React.useMemo(
     () => ({
       fullName: "Jordan Taylor",
@@ -341,24 +348,9 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-[-0.04em] text-[#0D0C22]">Profile</h1>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6E6D7A]">
-            Manage your profile, account preferences, and workspace configuration.
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="rounded-[1.25rem] border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-2 text-sm text-[#6E6D7A]">
-            <span className="font-semibold text-[#0D0C22]">Secure</span> settings
-          </div>
-        </div>
-      </div>
-
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" aria-label="User settings form">
         {/* 1) Profile Information */}
-        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        {tab === "profile" && <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -477,10 +469,10 @@ export default function SettingsPage() {
               />
             </div>
           </div>
-        </Card>
+        </Card>}
 
         {/* 2) Account Preferences */}
-        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        {tab === "account" && <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -560,10 +552,10 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
-        </Card>
+        </Card>}
 
         {/* 3) Workspace Profile */}
-        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        {tab === "account" && <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -618,10 +610,10 @@ export default function SettingsPage() {
               error={errors.hiringVolume?.message}
             />
           </div>
-        </Card>
+        </Card>}
 
         {/* 4) Connected Account Status */}
-        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        {tab === "account" && <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
@@ -658,9 +650,10 @@ export default function SettingsPage() {
               icon={<Globe size={18} aria-hidden="true" />}
             />
           </div>
-        </Card>
+        </Card>}
 
         {/* 5) Save changes */}
+        {(tab === "profile" || tab === "account") && (
         <div className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
@@ -729,6 +722,62 @@ export default function SettingsPage() {
             </AnimatePresence>
           </div>
         </div>
+        )}
+
+        {/* 6) Notifications tab placeholder */}
+        {tab === "notifications" && (
+          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+            <div className="flex items-center gap-3">
+              <Bell size={18} className="text-[#2563EB]" />
+              <h2 className="text-lg font-semibold text-[#0D0C22]">Notifications</h2>
+            </div>
+            <p className="mt-3 text-sm text-[#6E6D7A]">Configure email and push notification preferences.</p>
+          </Card>
+        )}
+
+        {/* 7) API Keys tab placeholder */}
+        {tab === "api-keys" && (
+          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+            <div className="flex items-center gap-3">
+              <KeyRound size={18} className="text-[#2563EB]" />
+              <h2 className="text-lg font-semibold text-[#0D0C22]">API Keys</h2>
+            </div>
+            <p className="mt-3 text-sm text-[#6E6D7A]">Manage API keys and access tokens.</p>
+          </Card>
+        )}
+
+        {/* 8) Billing tab placeholder */}
+        {tab === "billing" && (
+          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+            <div className="flex items-center gap-3">
+              <CreditCard size={18} className="text-[#2563EB]" />
+              <h2 className="text-lg font-semibold text-[#0D0C22]">Billing</h2>
+            </div>
+            <p className="mt-3 text-sm text-[#6E6D7A]">View invoices, update payment methods, and manage subscription.</p>
+          </Card>
+        )}
+
+        {/* 9) Team tab placeholder */}
+        {tab === "team" && (
+          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+            <div className="flex items-center gap-3">
+              <Users size={18} className="text-[#2563EB]" />
+              <h2 className="text-lg font-semibold text-[#0D0C22]">Team</h2>
+            </div>
+            <p className="mt-3 text-sm text-[#6E6D7A]">Invite members, manage roles, and control team permissions.</p>
+          </Card>
+        )}
+
+        {/* 10) Danger Zone tab placeholder */}
+        {tab === "danger" && (
+          <Card className="rounded-4xl border-[#EF4444]/30 bg-[#FEF2F2] p-6 shadow-[0_24px_64px_rgba(239,68,68,0.08)]">
+            <div className="flex items-center gap-3">
+              <TriangleAlert size={18} className="text-[#EF4444]" />
+              <h2 className="text-lg font-semibold text-[#EF4444]">Danger Zone</h2>
+            </div>
+            <p className="mt-3 text-sm text-[#6E6D7A]">Delete account, export data, or disable workspace.</p>
+          </Card>
+        )}
       </form>
     </div>
   );
