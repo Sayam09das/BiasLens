@@ -266,7 +266,8 @@ export default function DashboardPage() {
   const processing = history.filter((a) =>
     ["PROCESSING", "QUEUED"].includes(normalizeStatus(a.status))
   ).length;
-  const failed  = history.filter((a) => normalizeStatus(a.status) === "FAILED").length;
+  const fairnessAlerts = history.filter((a) => normalizeStatus(a.status) === "FAILED").length;
+  const failed = fairnessAlerts;
   const total   = history.length;
   const recent  = history.slice(0, 5);
 
@@ -291,8 +292,8 @@ export default function DashboardPage() {
     },
     {
       label:        "Fairness alerts",
-      value:        isLoading ? "—" : String(failed),
-      detail:       failed > 0 ? `${failed} require review` : "All clear",
+      value:        isLoading ? "—" : String(fairnessAlerts),
+      detail:       fairnessAlerts > 0 ? `${fairnessAlerts} require review` : "All clear",
       icon:         ShieldCheck,
       tone:         "text-amber-500",
       bg:           "bg-amber-50",
@@ -325,10 +326,15 @@ export default function DashboardPage() {
             BiasLens · Dashboard
           </p>
           <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
-            Good morning 👋
+            Decision Intelligence Hub
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Here&apos;s what&apos;s happening across your hiring audits today.
+          <p className="mt-1 text-sm font-medium text-slate-700">
+            Every resume. Every signal. Every decision.
+          </p>
+          <p className="mt-2 text-sm text-slate-500">
+            {isLoading
+              ? "Loading your latest audit signals..."
+              : `${completed} completed audits • ${fairnessAlerts} fairness alerts • ${completed} reports ready`}
           </p>
         </div>
         <motion.div
