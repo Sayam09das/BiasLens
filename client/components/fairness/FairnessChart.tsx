@@ -23,8 +23,6 @@ import {
   Sparkles,
 } from "lucide-react";
 
-// NOTE: This file intentionally avoids using any backend wiring.
-
 type TrendPoint = { label: string; fairnessScore: number; parityGap: number; equalizedOdds: number; counterfactualConsistency: number };
 
 type GroupScorePoint = { group: string; score: number };
@@ -159,7 +157,7 @@ export default function FairnessChart({ values, className, title, description }:
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-12">
-          <div className="lg:col-span-4">
+          <div className="min-w-0 lg:col-span-4">
             <GaugeCard score={merged.fairnessScore} />
 
             <div className="mt-4 rounded-[1.5rem] border border-[#E7E7E9] bg-[#F6F8FB] p-4">
@@ -190,7 +188,7 @@ export default function FairnessChart({ values, className, title, description }:
             </div>
           </div>
 
-          <div className="lg:col-span-8 space-y-4">
+          <div className="min-w-0 lg:col-span-8 space-y-4">
             <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
               <div className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4">
                 <div className="flex items-start justify-between gap-4">
@@ -204,7 +202,7 @@ export default function FairnessChart({ values, className, title, description }:
                   </span>
                 </div>
 
-                <div className="mt-4 h-[260px]" role="img" aria-label="Bar chart comparing group fairness scores">
+                <div className="mt-4 h-[260px] min-w-0" role="img" aria-label="Bar chart comparing group fairness scores">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={barData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(231,231,233,1)" />
@@ -240,7 +238,7 @@ export default function FairnessChart({ values, className, title, description }:
                   </div>
                 </div>
 
-                <div className="mt-4 h-[260px]" role="img" aria-label="Line chart showing fairness trend">
+                <div className="mt-4 h-[260px] min-w-0" role="img" aria-label="Line chart showing fairness trend">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={lineData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(231,231,233,1)" />

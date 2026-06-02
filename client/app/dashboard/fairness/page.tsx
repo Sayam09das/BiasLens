@@ -141,7 +141,7 @@ export default function FairnessPage() {
 
       {/* Metrics + severity gauge */}
       {hasFairnessData ? (
-      <section className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
+      <section className="grid gap-6">
         {isLoading && !data ? (
           <>
             <SectionSkeleton height={380} />
@@ -163,34 +163,36 @@ export default function FairnessPage() {
       ) : null}
 
       {/* Charts */}
-      {hasFairnessData && (isLoading && !data ? (
-        <SectionSkeleton height={480} />
-      ) : (
-        <FairnessChart
-          values={{
-            fairnessScore:             data!.metrics.fairnessScore,
-            parityGap:                 data!.metrics.demographicParityGap,
-            equalizedOdds:             data!.metrics.equalizedOddsDifference,
-            counterfactualConsistency: data!.metrics.counterfactualConsistency,
-            groupComparison:           data!.groupComparison,
-            trend:                     data!.trend,
-          }}
-        />
-      ))}
+      {hasFairnessData ? (
+        <div className="space-y-6">
+          {isLoading && !data ? (
+            <SectionSkeleton height={480} />
+          ) : (
+            <FairnessChart
+              values={{
+                fairnessScore:             data!.metrics.fairnessScore,
+                parityGap:                 data!.metrics.demographicParityGap,
+                equalizedOdds:             data!.metrics.equalizedOddsDifference,
+                counterfactualConsistency: data!.metrics.counterfactualConsistency,
+                groupComparison:           data!.groupComparison,
+                trend:                     data!.trend,
+              }}
+            />
+          )}
 
-      {/* Heatmap */}
-      {hasFairnessData && (isLoading && !data ? (
-        <SectionSkeleton height={360} />
-      ) : (
-        <BiasHeatmap values={data!.heatmap as Parameters<typeof BiasHeatmap>[0]["values"]} />
-      ))}
+          {isLoading && !data ? (
+            <SectionSkeleton height={360} />
+          ) : (
+            <BiasHeatmap values={data!.heatmap as Parameters<typeof BiasHeatmap>[0]["values"]} />
+          )}
 
-      {/* Counterfactuals */}
-      {hasFairnessData && (isLoading && !data ? (
-        <SectionSkeleton height={320} />
-      ) : (
-        <CounterfactualView examples={data!.counterfactuals} />
-      ))}
+          {isLoading && !data ? (
+            <SectionSkeleton height={320} />
+          ) : (
+            <CounterfactualView examples={data!.counterfactuals} />
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

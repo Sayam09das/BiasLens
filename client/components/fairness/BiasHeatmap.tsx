@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Card } from "@/components/ui/card";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import {
   AlertCircle,
   CheckCircle2,
@@ -10,8 +9,12 @@ import {
   Circle,
   HelpCircle,
   Scale,
+  X,
 } from "lucide-react";
 
+/* ─────────────────────────────────────────────
+   Types
+───────────────────────────────────────────── */
 type CandidateGroup = "Group A" | "Group B" | "Group C" | "Group D";
 
 type EvaluationSignal =
@@ -35,30 +38,17 @@ type HeatmapValues = {
   };
 };
 
-type TooltipState = {
-  open: boolean;
-  group: CandidateGroup | null;
-  signal: EvaluationSignal | null;
-  severity: HeatSeverity | null;
-  riskLabel: string;
-  anchorRect: DOMRect | null;
-};
+/* ─────────────────────────────────────────────
+   Constants
+───────────────────────────────────────────── */
+const CANDIDATE_GROUPS: CandidateGroup[] = [
+  "Group A",
+  "Group B",
+  "Group C",
+  "Group D",
+];
 
-const BRAND = {
-  primary: "#2563EB",
-  primaryHover: "#1D4ED8",
-  background: "#FFFFFF",
-  secondaryBackground: "#F6F8FB",
-  text: "#0D0C22",
-  mutedText: "#6E6D7A",
-  border: "#E7E7E9",
-  success: "#22C55E",
-  warning: "#F59E0B",
-  danger: "#EF4444",
-};
-
-const candidateGroups: CandidateGroup[] = ["Group A", "Group B", "Group C", "Group D"];
-const evaluationSignals: EvaluationSignal[] = [
+const EVALUATION_SIGNALS: EvaluationSignal[] = [
   "Education",
   "Experience",
   "Skills",
@@ -67,356 +57,669 @@ const evaluationSignals: EvaluationSignal[] = [
   "Career Gap",
 ];
 
-function severityToTone(sev: HeatSeverity) {
-  if (sev === "low") return { bg: "rgba(34,197,94,0.12)", bd: "rgba(34,197,94,0.28)", fg: BRAND.success };
-  if (sev === "medium") return { bg: "rgba(245,158,11,0.12)", bd: "rgba(245,158,11,0.28)", fg: BRAND.warning };
-  return { bg: "rgba(239,68,68,0.12)", bd: "rgba(239,68,68,0.28)", fg: BRAND.danger };
+function emptyHeatmap(): HeatmapValues {
+  const out = {} as HeatmapValues;
+
+  for (const g of CANDIDATE_GROUPS) {
+    out[g] = {} as HeatmapValues[CandidateGroup];
+    for (const s of EVALUATION_SIGNALS) {
+      out[g][s] = {
+        severity: "low",
+        riskLabel: "No stored disparity signal",
+      };
+    }
+  }
+
+  return out;
 }
 
-function severityAriaLabel(sev: HeatSeverity) {
-  if (sev === "low") return "Low severity";
-  if (sev === "medium") return "Medium severity";
-  return "High severity";
+/* ─────────────────────────────────────────────
+   Severity helpers
+───────────────────────────────────────────── */
+function getSeverityStyles(sev: HeatSeverity) {
+  switch (sev) {
+    case "low":
+      return {
+        bg:     "rgba(34,197,94,0.10)",
+        border: "rgba(34,197,94,0.28)",
+        fg:     "#15803D",
+        label:  "Low",
+        badgeCls:
+          "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200",
+      };
+    case "medium":
+      return {
+        bg:     "rgba(245,158,11,0.10)",
+        border: "rgba(245,158,11,0.28)",
+        fg:     "#92400E",
+        label:  "Medium",
+        badgeCls:
+          "bg-amber-50 text-amber-800 ring-1 ring-amber-200",
+      };
+    case "high":
+      return {
+        bg:     "rgba(239,68,68,0.10)",
+        border: "rgba(239,68,68,0.28)",
+        fg:     "#991B1B",
+        label:  "High",
+        badgeCls:
+          "bg-red-50 text-red-800 ring-1 ring-red-200",
+      };
+  }
 }
 
-function severityToA11yIcon(sev: HeatSeverity) {
-  if (sev === "low") return <CheckCircle2 size={14} aria-hidden="true" />;
-  if (sev === "medium") return <AlertCircle size={14} aria-hidden="true" />;
-  return <AlertCircle size={14} aria-hidden="true" />;
+function SeverityIcon({ sev, size = 15 }: { sev: HeatSeverity; size?: number }) {
+  if (sev === "low")    return <CheckCircle2 size={size} aria-hidden="true" />;
+  if (sev === "medium") return <AlertCircle  size={size} aria-hidden="true" />;
+  return                       <AlertCircle  size={size} aria-hidden="true" />;
 }
 
-function AccessibleHeatCell({
+/* ─────────────────────────────────────────────
+   Framer Motion variants
+───────────────────────────────────────────── */
+const fadeUp: Variants = {
+  hidden: { opacity: 0, y: 18 },
+  show: (delay: number = 0) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.42, delay, ease: [0.22, 1, 0.36, 1] },
+  }),
+};
+
+const staggerContainer: Variants = {
+  hidden: {},
+  show: {
+    transition: { staggerChildren: 0.05, delayChildren: 0.08 },
+  },
+};
+
+const cellVariant: Variants = {
+  hidden: { opacity: 0, scale: 0.82 },
+  show: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const rowVariant: Variants = {
+  hidden: { opacity: 0, x: -12 },
+  show: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] },
+  },
+};
+
+const tooltipVariant: Variants = {
+  hidden: { opacity: 0, y: 8, scale: 0.96 },
+  show:   { opacity: 1, y: 0, scale: 1, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } },
+  exit:   { opacity: 0, y: 6, scale: 0.96, transition: { duration: 0.12 } },
+};
+
+const infoPanelVariant: Variants = {
+  hidden: { opacity: 0, y: 10, scale: 0.97 },
+  show:   { opacity: 1, y: 0,  scale: 1, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } },
+  exit:   { opacity: 0, y: 6,  scale: 0.97, transition: { duration: 0.15 } },
+};
+
+/* ─────────────────────────────────────────────
+   HeatCell button
+───────────────────────────────────────────── */
+function HeatCellButton({
   group,
   signal,
   cell,
-  onHover,
-  onFocus,
-  onLeave,
+  isActive,
+  rowIndex,
+  colIndex,
+  onSelect,
+  onHoverEnter,
+  onHoverLeave,
 }: {
   group: CandidateGroup;
   signal: EvaluationSignal;
   cell: HeatCell;
-  onHover: (group: CandidateGroup, signal: EvaluationSignal, rect: DOMRect) => void;
-  onFocus: (group: CandidateGroup, signal: EvaluationSignal, rect: DOMRect) => void;
-  onLeave: () => void;
+  isActive: boolean;
+  rowIndex: number;
+  colIndex: number;
+  onSelect: (group: CandidateGroup, signal: EvaluationSignal) => void;
+  onHoverEnter: (group: CandidateGroup, signal: EvaluationSignal, el: HTMLButtonElement) => void;
+  onHoverLeave: () => void;
 }) {
-  const tone = severityToTone(cell.severity);
+  const sty = getSeverityStyles(cell.severity);
+  const ref  = React.useRef<HTMLButtonElement>(null);
 
   return (
-    <button
-      type="button"
-      onMouseEnter={(e) => onHover(group, signal, e.currentTarget.getBoundingClientRect())}
-      onMouseMove={(e) => onHover(group, signal, e.currentTarget.getBoundingClientRect())}
-      onFocus={(e) => onFocus(group, signal, e.currentTarget.getBoundingClientRect())}
-      onBlur={onLeave}
-      onMouseLeave={onLeave}
-      className="relative h-12 w-12 rounded-2xl border outline-none transition focus-visible:ring-2 focus-visible:ring-[#2563EB]"
-      style={{
-        background: tone.bg,
-        borderColor: tone.bd,
-      }}
-      aria-label={`${group} · ${signal}. ${severityAriaLabel(cell.severity)}. ${cell.riskLabel}`}
-    >
-      <span className="sr-only">{cell.riskLabel}</span>
-
-      <span
-        aria-hidden="true"
-        className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center"
-        style={{ color: tone.fg }}
+    <div className="relative">
+      <motion.button
+        ref={ref}
+        type="button"
+        variants={cellVariant}
+        custom={{ row: rowIndex, col: colIndex }}
+        whileHover={{ scale: 1.10, y: -2, transition: { duration: 0.18 } }}
+        whileTap={{ scale: 0.94 }}
+        animate={isActive ? { scale: 1.12, y: -3 } : { scale: 1, y: 0 }}
+        transition={{ type: "spring", stiffness: 360, damping: 24 }}
+        onClick={() => onSelect(group, signal)}
+        onMouseEnter={() => ref.current && onHoverEnter(group, signal, ref.current)}
+        onMouseLeave={onHoverLeave}
+        onFocus={() => ref.current && onHoverEnter(group, signal, ref.current)}
+        onBlur={onHoverLeave}
+        aria-label={`${group} · ${signal}. ${sty.label} severity. ${cell.riskLabel}`}
+        aria-pressed={isActive}
+        className={[
+          "relative flex h-14 w-14 flex-col items-center justify-center gap-0.5",
+          "rounded-[14px] border outline-none",
+          "transition-shadow focus-visible:ring-2 focus-visible:ring-[#2563EB]/50",
+          isActive ? "shadow-[0_6px_18px_rgba(0,0,0,0.14)]" : "shadow-none",
+        ].join(" ")}
+        style={{ background: sty.bg, borderColor: sty.border, color: sty.fg }}
       >
-        {severityToA11yIcon(cell.severity)}
-      </span>
-
-      {/* subtle label for keyboard users */}
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-1 bottom-1 truncate text-[10px] font-semibold"
-        style={{ color: tone.fg }}
-      >
-        {cell.severity === "low" ? "Low" : cell.severity === "medium" ? "Med" : "High"}
-      </span>
-    </button>
-  );
-}
-
-type BiasHeatmapProps = {
-  values?: Partial<HeatmapValues> | null;
-  className?: string;
-};
-
-export default function BiasHeatmap({ values, className }: BiasHeatmapProps) {
-  const merged: HeatmapValues = React.useMemo(() => {
-    const v = values ?? {};
-    const out = {} as HeatmapValues;
-
-    for (const g of candidateGroups) {
-      const groupOverride = v[g];
-      const nextGroup = {} as HeatmapValues[CandidateGroup];
-
-      for (const s of evaluationSignals) {
-        const cell = groupOverride?.[s];
-        nextGroup[s] =
-          cell?.severity
-            ? {
-                severity: cell.severity,
-                riskLabel:
-                  typeof cell.riskLabel === "string"
-                    ? cell.riskLabel
-                    : "Fairness signal detected",
-              }
-            : { severity: "low", riskLabel: "No stored disparity signal" };
-      }
-
-      out[g] = nextGroup;
-    }
-
-    return out;
-  }, [values]);
-
-  const [tip, setTip] = React.useState<TooltipState>({
-    open: false,
-    group: null,
-    signal: null,
-    severity: null,
-    riskLabel: "",
-    anchorRect: null,
-  });
-
-  const hide = React.useCallback(() => setTip((t) => ({ ...t, open: false })), []);
-
-  const show = React.useCallback((group: CandidateGroup, signal: EvaluationSignal, rect: DOMRect) => {
-    const cell = merged[group][signal];
-    setTip({
-      open: true,
-      group,
-      signal,
-      severity: cell.severity,
-      riskLabel: cell.riskLabel,
-      anchorRect: rect,
-    });
-  }, [merged]);
-
-  const toneLegend = {
-    low: severityToTone("low"),
-    medium: severityToTone("medium"),
-    high: severityToTone("high"),
-  } as const;
-
-  const tooltipStyle: React.CSSProperties | undefined = React.useMemo(() => {
-    if (!tip.open || !tip.anchorRect) return undefined;
-    const left = tip.anchorRect.left + tip.anchorRect.width / 2;
-    const top = tip.anchorRect.top;
-
-    // Position tooltip above the hovered cell when possible.
-    const tentativeTop = top - 12;
-
-    return {
-      left,
-      top: tentativeTop,
-      transform: "translate(-50%, -100%)",
-    };
-  }, [tip.open, tip.anchorRect]);
-
-  return (
-    <div className={className}>
-      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Fairness heatmap</p>
-            <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-[#0D0C22]">Bias & fairness signals</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6E6D7A]">
-              Hover or focus a cell to inspect bias risk severity across candidate groups and evaluation signals.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <span
-              className="inline-flex items-center rounded-[1.25rem] border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-2 text-sm font-semibold text-[#6E6D7A]"
-              aria-label="Heatmap legend"
-            >
-              <Scale size={16} className="mr-2 text-[#2563EB]" aria-hidden="true" />
-              Legend
-            </span>
-
-            <span className="inline-flex items-center gap-2 rounded-[1.25rem] border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-2 text-sm font-semibold text-[#6E6D7A]">
-              <HelpCircle size={16} className="text-[#2563EB]" aria-hidden="true" />
-              <span className="sr-only">Tip</span>
-              Accessible hover
-            </span>
-          </div>
-        </div>
-
-        <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-12">
-          <div className="lg:col-span-8">
-            <div className="overflow-x-auto rounded-[1.5rem] border border-[#E7E7E9] bg-[#F6F8FB] p-3">
-              <div className="min-w-max">
-                <div className="grid" style={{ gridTemplateColumns: `180px repeat(${evaluationSignals.length}, minmax(56px, 1fr))` }}>
-                  <div className="px-3 py-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">Candidate Groups</p>
-                  </div>
-                  {evaluationSignals.map((s) => (
-                    <div key={s} className="px-2 py-2">
-                      <p className="truncate text-xs font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">{s}</p>
-                    </div>
-                  ))}
-
-                  {candidateGroups.map((g) => (
-                    <React.Fragment key={g}>
-                      <div className="px-3 py-2">
-                        <p className="text-sm font-semibold text-[#0D0C22]">{g}</p>
-                      </div>
-                      {evaluationSignals.map((s) => (
-                        <div key={`${g}-${s}`} className="px-2 py-2">
-                          <AccessibleHeatCell
-                            group={g}
-                            signal={s}
-                            cell={merged[g][s]}
-                            onHover={show}
-                            onFocus={show}
-                            onLeave={hide}
-                          />
-                        </div>
-                      ))}
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <AnimatePresence>
-              {tip.open && tip.anchorRect ? (
-                <motion.div
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: 6 }}
-                  transition={{ duration: 0.15 }}
-                  style={tooltipStyle}
-                  className="fixed z-50 w-[280px] rounded-[1.25rem] border border-[#E7E7E9] bg-[#FFFFFF] p-3 shadow-[0_24px_64px_rgba(13,12,34,0.10)]"
-                  role="status"
-                  aria-live="polite"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#2563EB]">Bias signal</p>
-                      <p className="mt-1 text-sm font-semibold text-[#0D0C22] truncate">
-                        {tip.group} · {tip.signal}
-                      </p>
-                      <p className="mt-1 text-sm text-[#6E6D7A]">{tip.riskLabel}</p>
-                    </div>
-
-                    <span
-                      className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold"
-                      style={(() => {
-                        if (!tip.severity) return { background: "rgba(37,99,235,0.10)", color: BRAND.primary, borderColor: "rgba(37,99,235,0.25)" };
-                        const t = severityToTone(tip.severity);
-                        return { background: t.bg, color: t.fg, borderColor: t.bd };
-                      })()}
-                    >
-                      {tip.severity === "low" ? "Low" : tip.severity === "medium" ? "Medium" : "High"}
-                    </span>
-                  </div>
-
-                  <div className="mt-3 rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB] p-3">
-                    <p className="text-xs font-semibold text-[#0D0C22]">Severity guidance</p>
-                    <p className="mt-1 text-xs leading-5 text-[#6E6D7A]">
-                      Lower severity indicates more stable fairness behavior. Higher severity suggests stronger bias risk and a good target for mitigation.
-                    </p>
-                  </div>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
-
-          <div className="lg:col-span-4">
-            <div className="rounded-[1.5rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4">
-              <div className="flex items-start gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
-                  <ChevronRight size={18} className="text-[#2563EB]" aria-hidden="true" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-[#0D0C22]">Risk legend</p>
-                  <p className="mt-1 text-sm text-[#6E6D7A]">Color intensity shows bias severity.</p>
-                </div>
-              </div>
-
-              <div className="mt-5 space-y-3">
-                <LegendRow label="Low" style={toneLegend.low} />
-                <LegendRow label="Medium" style={toneLegend.medium} />
-                <LegendRow label="High" style={toneLegend.high} />
-              </div>
-
-              <div className="mt-6 rounded-[1.25rem] border border-[#E7E7E9] bg-[#F6F8FB] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">Accessible fallback</p>
-                <p className="mt-2 text-sm font-semibold text-[#0D0C22]">Table view</p>
-                <p className="mt-1 text-sm text-[#6E6D7A]">
-                  If interactive heatmap is not available, you can still read all severity labels below.
-                </p>
-
-                <div className="mt-4 overflow-x-auto rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF]">
-                  <table className="min-w-full border-collapse">
-                    <thead>
-                      <tr className="bg-[#F6F8FB]">
-                        <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">Group</th>
-                        {evaluationSignals.map((s) => (
-                          <th key={s} className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">
-                            {s}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {candidateGroups.map((g) => (
-                        <tr key={g} className="border-t border-[#E7E7E9]">
-                          <td className="px-3 py-3 text-sm font-semibold text-[#0D0C22]">{g}</td>
-                          {evaluationSignals.map((s) => {
-                            const cell = merged[g][s];
-                            const t = severityToTone(cell.severity);
-                            return (
-                              <td key={`${g}-${s}-fallback`} className="px-3 py-3">
-                                <span
-                                  className="inline-flex items-center rounded-2xl border px-3 py-1 text-xs font-semibold"
-                                  style={{ background: t.bg, color: t.fg, borderColor: t.bd }}
-                                >
-                                  {cell.severity === "low" ? "Low" : cell.severity === "medium" ? "Med" : "High"}
-                                </span>
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Card>
+        <SeverityIcon sev={cell.severity} size={16} />
+        <span className="text-[10px] font-bold leading-none" aria-hidden="true">
+          {sty.label}
+        </span>
+      </motion.button>
     </div>
   );
 }
 
-function LegendRow({
-  label,
-  style,
-}: {
-  label: "Low" | "Medium" | "High";
-  style: { bg: string; bd: string; fg: string };
-}) {
-  const icon = label === "Low" ? <CheckCircle2 size={16} aria-hidden="true" /> : <Circle size={16} aria-hidden="true" />;
+/* ─────────────────────────────────────────────
+   Legend row
+───────────────────────────────────────────── */
+function LegendRow({ sev }: { sev: HeatSeverity }) {
+  const sty = getSeverityStyles(sev);
   return (
-    <div className="flex items-center justify-between gap-4">
+    <motion.div
+      variants={rowVariant}
+      className="flex items-center justify-between gap-3"
+    >
       <div className="flex items-center gap-3">
         <span
-          className="grid h-10 w-10 place-items-center rounded-2xl border"
-          style={{ background: style.bg, borderColor: style.bd, color: style.fg }}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] border"
+          style={{ background: sty.bg, borderColor: sty.border, color: sty.fg }}
           aria-hidden="true"
         >
-          {icon}
+          {sev === "low"
+            ? <CheckCircle2 size={16} />
+            : <Circle size={16} />}
         </span>
-        <p className="text-sm font-semibold text-[#0D0C22]">{label}</p>
+        <p className="text-sm font-semibold text-[#0D0C22]">{sty.label}</p>
       </div>
-      <span className="text-xs font-semibold text-[#6E6D7A]">Severity</span>
+      <span className="text-xs text-[#6E6D7A]">Severity</span>
+    </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Accessible fallback table
+───────────────────────────────────────────── */
+function AccessibleTable({ heatmap }: { heatmap: HeatmapValues }) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-[#E7E7E9] bg-white">
+      <table
+        className="min-w-full border-collapse text-xs"
+        aria-label="Accessible bias severity table"
+      >
+        <thead>
+          <tr className="bg-[#F6F8FB]">
+            <th className="px-3 py-2 text-left text-[10px] font-bold uppercase tracking-[.12em] text-[#6E6D7A]">
+              Group
+            </th>
+            {EVALUATION_SIGNALS.map((s) => (
+              <th
+                key={s}
+                className="px-2 py-2 text-left text-[10px] font-bold uppercase tracking-[.12em] text-[#6E6D7A]"
+              >
+                {s.length > 6 ? s.slice(0, 3) : s}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {CANDIDATE_GROUPS.map((g) => (
+            <tr key={g} className="border-t border-[#E7E7E9]">
+              <td className="px-3 py-2 text-xs font-semibold text-[#0D0C22]">{g}</td>
+              {EVALUATION_SIGNALS.map((s) => {
+                const cell = heatmap[g][s];
+                const sty  = getSeverityStyles(cell.severity);
+                return (
+                  <td key={s} className="px-2 py-2">
+                    <span
+                      className="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-bold"
+                      style={{
+                        background:  sty.bg,
+                        borderColor: sty.border,
+                        color:       sty.fg,
+                      }}
+                    >
+                      {sty.label.slice(0, 3)}
+                    </span>
+                  </td>
+                );
+              })}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Active info panel (sidebar)
+───────────────────────────────────────────── */
+function ActiveInfoPanel({
+  group,
+  signal,
+  cell,
+  onClose,
+}: {
+  group: CandidateGroup;
+  signal: EvaluationSignal;
+  cell: HeatCell;
+  onClose: () => void;
+}) {
+  const sty = getSeverityStyles(cell.severity);
+  return (
+    <motion.div
+      key={`${group}-${signal}`}
+      variants={infoPanelVariant}
+      initial="hidden"
+      animate="show"
+      exit="exit"
+      className="rounded-2xl border border-[#E7E7E9] bg-white p-4"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[.16em] text-[#2563EB]">
+            Selected signal
+          </p>
+          <p className="mt-1 truncate text-sm font-bold text-[#0D0C22]">
+            {group} · {signal}
+          </p>
+          <p className="mt-1 text-xs leading-relaxed text-[#6E6D7A]">
+            {cell.riskLabel}
+          </p>
+        </div>
+        <div className="flex flex-col items-end gap-2">
+          <motion.button
+            type="button"
+            onClick={onClose}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            aria-label="Close info panel"
+            className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#E7E7E9] text-[#6E6D7A] transition hover:bg-[#F6F8FB]"
+          >
+            <X size={13} />
+          </motion.button>
+          <span
+            className="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-bold"
+            style={{ background: sty.bg, borderColor: sty.border, color: sty.fg }}
+          >
+            <SeverityIcon sev={cell.severity} size={12} />
+            {sty.label}
+          </span>
+        </div>
+      </div>
+
+      <div className="mt-3 rounded-xl border border-[#E7E7E9] bg-[#F6F8FB] p-3">
+        <p className="text-[11px] font-bold text-[#0D0C22]">Severity guidance</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-[#6E6D7A]">
+          Lower severity indicates more stable fairness behaviour. Higher severity
+          suggests stronger bias risk and is a good target for mitigation.
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Hover tooltip (desktop only)
+───────────────────────────────────────────── */
+type TooltipInfo = {
+  group:    CandidateGroup;
+  signal:   EvaluationSignal;
+  cell:     HeatCell;
+  rect:     DOMRect;
+};
+
+function HoverTooltip({
+  info,
+  containerRef,
+}: {
+  info: TooltipInfo;
+  containerRef: React.RefObject<HTMLDivElement>;
+}) {
+  const sty = getSeverityStyles(info.cell.severity);
+  const [style, setStyle] = React.useState<React.CSSProperties>({});
+
+  React.useEffect(() => {
+    const container = containerRef.current;
+    if (!container) {
+      setStyle({});
+      return;
+    }
+
+    const cr = container.getBoundingClientRect();
+    setStyle({
+      position: "absolute",
+      left:  info.rect.left - cr.left + info.rect.width / 2,
+      top:   info.rect.top  - cr.top,
+      transform: "translate(-50%, calc(-100% - 10px))",
+      zIndex: 50,
+      width: 272,
+      pointerEvents: "none",
+    });
+  }, [info.rect, containerRef]);
+
+  return (
+    <motion.div
+      key={`${info.group}-${info.signal}`}
+      variants={tooltipVariant}
+      initial="hidden"
+      animate="show"
+      exit="exit"
+      style={style}
+      role="status"
+      aria-live="polite"
+      className="rounded-[14px] border border-[#E7E7E9] bg-white p-3 shadow-[0_8px_32px_rgba(13,12,34,0.10)]"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[.14em] text-[#2563EB]">
+            Bias signal
+          </p>
+          <p className="mt-1 truncate text-sm font-semibold text-[#0D0C22]">
+            {info.group} · {info.signal}
+          </p>
+          <p className="mt-1 text-xs text-[#6E6D7A]">{info.cell.riskLabel}</p>
+        </div>
+        <span
+          className="mt-0.5 inline-flex shrink-0 items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-bold"
+          style={{ background: sty.bg, borderColor: sty.border, color: sty.fg }}
+        >
+          <SeverityIcon sev={info.cell.severity} size={11} />
+          {sty.label}
+        </span>
+      </div>
+
+      <div className="mt-3 rounded-xl border border-[#E7E7E9] bg-[#F6F8FB] p-2.5">
+        <p className="text-[11px] font-semibold text-[#0D0C22]">Severity guidance</p>
+        <p className="mt-1 text-[11px] leading-relaxed text-[#6E6D7A]">
+          Lower severity → stable fairness. Higher severity → bias risk, target for
+          mitigation.
+        </p>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   Main component
+───────────────────────────────────────────── */
+type BiasHeatmapProps = {
+  values?:    Partial<HeatmapValues> | null;
+  className?: string;
+};
+
+export default function BiasHeatmap({ values, className }: BiasHeatmapProps) {
+  /* ── Normalize prop values into a complete heatmap shape ── */
+  const heatmap: HeatmapValues = React.useMemo(() => {
+    const base = emptyHeatmap();
+    if (!values) return base;
+    const out = {} as HeatmapValues;
+    for (const g of CANDIDATE_GROUPS) {
+      out[g] = {} as HeatmapValues[CandidateGroup];
+      for (const s of EVALUATION_SIGNALS) {
+        const override = values[g]?.[s];
+        out[g][s] = override?.severity
+          ? { severity: override.severity, riskLabel: override.riskLabel ?? base[g][s].riskLabel }
+          : base[g][s];
+      }
+    }
+    return out;
+  }, [values]);
+
+  /* ── Selected cell (sidebar panel) ── */
+  const [selected, setSelected] = React.useState<{
+    group: CandidateGroup;
+    signal: EvaluationSignal;
+  } | null>(null);
+
+  const handleSelect = React.useCallback(
+    (group: CandidateGroup, signal: EvaluationSignal) => {
+      setSelected((prev) =>
+        prev?.group === group && prev?.signal === signal ? null : { group, signal }
+      );
+    },
+    []
+  );
+
+  /* ── Hover tooltip ── */
+  const [hovering, setHovering] = React.useState<TooltipInfo | null>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  const handleHoverEnter = React.useCallback(
+    (group: CandidateGroup, signal: EvaluationSignal, el: HTMLButtonElement) => {
+      setHovering({ group, signal, cell: heatmap[group][signal], rect: el.getBoundingClientRect() });
+    },
+    [heatmap]
+  );
+  const handleHoverLeave = React.useCallback(() => setHovering(null), []);
+
+  /* ── Keyboard: Escape deselects ── */
+  React.useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelected(null);
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  return (
+    <div className={className}>
+      {/* ── SECTION 1: HEADER ── */}
+      <motion.div
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        custom={0}
+        className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
+      >
+        <div className="min-w-0">
+          <p className="text-xs font-bold uppercase tracking-[.18em] text-[#2563EB]">
+            Fairness heatmap
+          </p>
+          <h2 className="mt-1.5 text-xl font-semibold tracking-tight text-[#0D0C22] sm:text-2xl">
+            Bias &amp; fairness signals
+          </h2>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#6E6D7A]">
+            Hover or click a cell to inspect bias risk severity across candidate
+            groups and evaluation signals.
+          </p>
+        </div>
+
+        {/* Legend + accessible hover pills */}
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-1.5 text-xs font-semibold text-[#6E6D7A]">
+            <Scale size={14} className="text-[#2563EB]" aria-hidden="true" />
+            Legend
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[#E7E7E9] bg-white px-3 py-1.5 text-xs font-semibold text-[#6E6D7A]">
+            <HelpCircle size={14} className="text-[#2563EB]" aria-hidden="true" />
+            Accessible hover
+          </span>
+        </div>
+      </motion.div>
+
+      {/* ── SECTION 2: MAIN GRID (heatmap + sidebar) ── */}
+      <div
+        ref={containerRef}
+        className="relative mt-6 grid gap-5 lg:grid-cols-[minmax(0,1.7fr)_minmax(280px,1fr)]"
+      >
+        {/* ── LEFT: Heatmap ── */}
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          custom={0.06}
+        >
+          {/* Mobile scroll hint */}
+          <p className="mb-2 text-[11px] text-[#6E6D7A] sm:hidden">
+            ← Scroll horizontally to see all signals
+          </p>
+
+          <div className="overflow-x-auto rounded-[18px] border border-[#E7E7E9] bg-[#F6F8FB] p-3">
+            <div className="min-w-[460px]">
+              {/* Column headers */}
+              <div
+                className="grid"
+                style={{
+                  gridTemplateColumns: `180px repeat(${EVALUATION_SIGNALS.length}, minmax(64px,1fr))`,
+                }}
+              >
+                <div className="px-2 py-1.5">
+                  <p className="text-[10px] font-bold uppercase tracking-[.13em] text-[#6E6D7A]">
+                    Candidate Groups
+                  </p>
+                </div>
+                {EVALUATION_SIGNALS.map((sig) => (
+                  <div key={sig} className="px-2 py-1.5">
+                    <p className="truncate text-[10px] font-bold uppercase tracking-[.13em] text-[#6E6D7A]">
+                      {sig}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Rows */}
+              <motion.div
+                variants={staggerContainer}
+                initial="hidden"
+                animate="show"
+              >
+                {CANDIDATE_GROUPS.map((group, rowIdx) => (
+                  <motion.div
+                    key={group}
+                    variants={rowVariant}
+                    className="grid items-center"
+                    style={{
+                      gridTemplateColumns: `180px repeat(${EVALUATION_SIGNALS.length}, minmax(64px,1fr))`,
+                    }}
+                  >
+                    {/* Row label */}
+                    <div className="px-2 py-2">
+                      <p className="text-sm font-semibold text-[#0D0C22]">{group}</p>
+                    </div>
+
+                    {/* Cells */}
+                    <motion.div
+                      className="contents"
+                      variants={staggerContainer}
+                    >
+                      {EVALUATION_SIGNALS.map((sig, colIdx) => (
+                        <div key={sig} className="px-2 py-2">
+                          <HeatCellButton
+                            group={group}
+                            signal={sig}
+                            cell={heatmap[group][sig]}
+                            isActive={
+                              selected?.group === group && selected?.signal === sig
+                            }
+                            rowIndex={rowIdx}
+                            colIndex={colIdx}
+                            onSelect={handleSelect}
+                            onHoverEnter={handleHoverEnter}
+                            onHoverLeave={handleHoverLeave}
+                          />
+                        </div>
+                      ))}
+                    </motion.div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Hover tooltip (desktop) */}
+          <AnimatePresence>
+            {hovering && !selected && (
+              <HoverTooltip
+                key={`${hovering.group}-${hovering.signal}`}
+                info={hovering}
+                containerRef={containerRef as React.RefObject<HTMLDivElement>}
+              />
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        {/* ── RIGHT: Sidebar ── */}
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          animate="show"
+          custom={0.14}
+          className="flex flex-col gap-4"
+        >
+          {/* ── SECTION 3: RISK LEGEND ── */}
+          <div className="rounded-2xl border border-[#E7E7E9] bg-white p-4">
+            <div className="flex items-start gap-3">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[#E7E7E9] bg-[#F6F8FB]">
+                <ChevronRight size={16} className="text-[#2563EB]" aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-[#0D0C22]">Risk legend</p>
+                <p className="mt-0.5 text-xs text-[#6E6D7A]">
+                  Color intensity shows bias severity.
+                </p>
+              </div>
+            </div>
+
+            <motion.div
+              className="mt-4 space-y-3"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="show"
+            >
+              {(["low", "medium", "high"] as HeatSeverity[]).map((sev) => (
+                <LegendRow key={sev} sev={sev} />
+              ))}
+            </motion.div>
+
+            {/* Divider */}
+            <div className="my-4 h-px bg-[#E7E7E9]" />
+
+            {/* ── SECTION 4: ACCESSIBLE TABLE ── */}
+            <div className="rounded-xl border border-[#E7E7E9] bg-[#F6F8FB] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-[.14em] text-[#6E6D7A]">
+                Accessible fallback
+              </p>
+              <p className="mt-1 text-sm font-semibold text-[#0D0C22]">Table view</p>
+              <p className="mt-0.5 text-xs text-[#6E6D7A]">
+                All severity labels readable without the interactive grid.
+              </p>
+              <div className="mt-3">
+                <AccessibleTable heatmap={heatmap} />
+              </div>
+            </div>
+          </div>
+
+          {/* ── SECTION 5: ACTIVE SIGNAL INFO PANEL ── */}
+          <AnimatePresence mode="wait">
+            {selected && (
+              <ActiveInfoPanel
+                key={`${selected.group}-${selected.signal}`}
+                group={selected.group}
+                signal={selected.signal}
+                cell={heatmap[selected.group][selected.signal]}
+                onClose={() => setSelected(null)}
+              />
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
     </div>
   );
 }

@@ -221,7 +221,7 @@ export default function ProductShowcase() {
           </motion.div>
 
           {/* ── Center dashboard ── */}
-          <motion.div className="lg:col-span-5" {...fadeUp(0.16)}>
+          <motion.div className="min-w-0 lg:col-span-5" {...fadeUp(0.16)}>
             <div className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_30px_90px_rgba(13,12,34,0.06)]">
 
               {/* header */}
@@ -252,7 +252,7 @@ export default function ProductShowcase() {
                   className="mt-4 rounded-[1.6rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4"
                 >
                   <p className="mb-1 text-xs font-semibold text-[#0D0C22]">Score Overview</p>
-                  <div className="h-44">
+                  <div className="h-44 min-w-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <RadialBarChart
                         cx="50%"
@@ -352,7 +352,7 @@ export default function ProductShowcase() {
                     <p className="text-xs font-semibold text-[#0D0C22]">Score & Fairness Trend</p>
                     <span className="text-xs text-[#6E6D7A]">Last 6 weeks</span>
                   </div>
-                  <div className="h-32">
+                  <div className="h-32 min-w-0">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={areaData} margin={{ top: 0, right: 0, left: -28, bottom: 0 }}>
                         <defs>

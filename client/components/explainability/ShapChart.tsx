@@ -167,7 +167,7 @@ export default function ShapChart({ values, className, title, description }: Sha
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-12">
-          <div className="lg:col-span-8">
+          <div className="min-w-0 lg:col-span-8">
             <div className="rounded-[1.5rem] border border-[#E7E7E9] bg-[#F6F8FB] p-3">
               <div className="flex items-start justify-between gap-4 px-2">
                 <div className="min-w-0">
@@ -181,7 +181,7 @@ export default function ShapChart({ values, className, title, description }: Sha
                 </span>
               </div>
 
-              <div className="mt-3 h-[320px]" role="img" aria-label="Horizontal bar chart of SHAP contributions">
+              <div className="mt-3 h-[320px] min-w-0" role="img" aria-label="Horizontal bar chart of SHAP contributions">
                 {data.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
@@ -251,7 +251,7 @@ export default function ShapChart({ values, className, title, description }: Sha
             </div>
           </div>
 
-          <div className="lg:col-span-4">
+          <div className="min-w-0 lg:col-span-4">
             <div className="rounded-[1.5rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">Score impact summary</p>
 

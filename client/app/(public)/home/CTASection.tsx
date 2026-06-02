@@ -135,7 +135,7 @@ export default function CTASection() {
                     <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#2563EB]/10 via-transparent to-transparent" />
                     <div className="relative aspect-[16/10] w-full">
                       <Image
-                        src="/images/cta-dashboard-preview.png"
+                        src="/images/TransparentHiringWorkflow.png"
                         alt="BiasLens audit dashboard preview"
                         fill
                         sizes="(max-width: 1024px) 100vw, 48vw"

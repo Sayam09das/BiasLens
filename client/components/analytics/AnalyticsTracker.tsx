@@ -128,7 +128,7 @@ export default function AnalyticsTracker() {
       {/* Chart + top events */}
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.4fr)_minmax(320px,1fr)]">
         {/* Activity chart */}
-        <Card className="rounded-[1.9rem] border-[#d9e2ec] bg-white/90 shadow-[0_18px_48px_rgba(15,23,42,0.06)]">
+        <Card className="min-w-0 rounded-[1.9rem] border-[#d9e2ec] bg-white/90 shadow-[0_18px_48px_rgba(15,23,42,0.06)]">
           <CardHeader className="p-6 pb-2">
             <CardTitle className="text-xl text-[#101828]">
               Event activity
@@ -137,7 +137,7 @@ export default function AnalyticsTracker() {
               Tracked interactions across the platform — last 24 hours
             </CardDescription>
           </CardHeader>
-          <CardContent className="p-6 pt-4">
+          <CardContent className="min-w-0 p-6 pt-4">
             <ResponsiveContainer width="100%" height={220}>
               <AreaChart
                 data={activityData}

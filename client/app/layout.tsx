@@ -122,6 +122,7 @@ export default function RootLayout({
     <html
       lang="en"
       data-scroll-behavior="smooth"
+      suppressHydrationWarning
       className={`${monaSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col"><Providers>{children}</Providers></body>
