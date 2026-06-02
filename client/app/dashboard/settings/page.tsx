@@ -20,6 +20,12 @@ import {
   KeyRound,
   Users,
   TriangleAlert,
+  Copy,
+  Trash2,
+  Plus,
+  Eye,
+  EyeOff,
+  RefreshCw,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -727,49 +733,12 @@ export default function SettingsPage() {
         {/* 6) Notifications tab */}
         {tab === "notifications" && <NotificationsTab />}
 
-        {/* 7) API Keys tab placeholder */}
-        {tab === "api-keys" && (
-          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
-            <div className="flex items-center gap-3">
-              <KeyRound size={18} className="text-[#2563EB]" />
-              <h2 className="text-lg font-semibold text-[#0D0C22]">API Keys</h2>
-            </div>
-            <p className="mt-3 text-sm text-[#6E6D7A]">Manage API keys and access tokens.</p>
-          </Card>
-        )}
+        {/* 7) API Keys tab */}
+        {tab === "api-keys" && <ApiKeysTab />}
 
-        {/* 8) Billing tab placeholder */}
-        {tab === "billing" && (
-          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
-            <div className="flex items-center gap-3">
-              <CreditCard size={18} className="text-[#2563EB]" />
-              <h2 className="text-lg font-semibold text-[#0D0C22]">Billing</h2>
-            </div>
-            <p className="mt-3 text-sm text-[#6E6D7A]">View invoices, update payment methods, and manage subscription.</p>
-          </Card>
-        )}
-
-        {/* 9) Team tab placeholder */}
-        {tab === "team" && (
-          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
-            <div className="flex items-center gap-3">
-              <Users size={18} className="text-[#2563EB]" />
-              <h2 className="text-lg font-semibold text-[#0D0C22]">Team</h2>
-            </div>
-            <p className="mt-3 text-sm text-[#6E6D7A]">Invite members, manage roles, and control team permissions.</p>
-          </Card>
-        )}
-
-        {/* 10) Danger Zone tab placeholder */}
-        {tab === "danger" && (
-          <Card className="rounded-4xl border-[#EF4444]/30 bg-[#FEF2F2] p-6 shadow-[0_24px_64px_rgba(239,68,68,0.08)]">
-            <div className="flex items-center gap-3">
-              <TriangleAlert size={18} className="text-[#EF4444]" />
-              <h2 className="text-lg font-semibold text-[#EF4444]">Danger Zone</h2>
-            </div>
-            <p className="mt-3 text-sm text-[#6E6D7A]">Delete account, export data, or disable workspace.</p>
-          </Card>
-        )}
+        {tab === "billing" && <BillingTab />}
+        {tab === "team" && <TeamTab />}
+        {tab === "danger" && <DangerTab />}
       </form>
     </div>
   );
@@ -1045,6 +1014,434 @@ function NotificationsTab() {
           </AnimatePresence>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ApiKeysTab() {
+  const [apiKeys, setApiKeys] = React.useState([
+    { id: "key_1", name: "Production API", created: "2024-01-15", lastUsed: "2024-01-20", active: true },
+    { id: "key_2", name: "Development API", created: "2024-01-10", lastUsed: "2024-01-18", active: true },
+  ]);
+
+  const [showNewKey, setShowNewKey] = React.useState(false);
+  const [newKeyName, setNewKeyName] = React.useState("");
+
+  const handleCreateKey = () => {
+    if (newKeyName.trim()) {
+      const newKey = {
+        id: `key_${Date.now()}`,
+        name: newKeyName,
+        created: new Date().toISOString().split("T")[0],
+        lastUsed: "Never",
+        active: true,
+      };
+      setApiKeys([...apiKeys, newKey]);
+      setNewKeyName("");
+      setShowNewKey(false);
+    }
+  };
+
+  const handleDeleteKey = (id: string) => {
+    setApiKeys(apiKeys.filter((key) => key.id !== id));
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB]">
+              <KeyRound size={18} className="text-[#2563EB]" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-[#0D0C22]">API Keys</p>
+              <p className="mt-1 text-sm text-[#6E6D7A]">Manage your API keys for programmatic access.</p>
+            </div>
+          </div>
+          {!showNewKey && (
+            <Button
+              onClick={() => setShowNewKey(true)}
+              className="rounded-[1.25rem] bg-[#2563EB] px-5 text-white hover:bg-[#1D4ED8] flex items-center gap-2"
+            >
+              <Plus size={16} />
+              New Key
+            </Button>
+          )}
+        </div>
+
+        {showNewKey && (
+          <div className="mb-6 p-4 rounded-[1.25rem] border border-[#E7E7E9] bg-[#F6F8FB]">
+            <p className="text-sm font-semibold text-[#0D0C22] mb-3">Create New API Key</p>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter key name (e.g., Production, Development)"
+                value={newKeyName}
+                onChange={(e) => setNewKeyName(e.target.value)}
+                className="flex-1 rounded-[1.25rem] border border-[#E7E7E9] bg-[#FFFFFF] px-4 py-2.5 text-sm outline-none focus:border-[#2563EB]"
+              />
+              <Button
+                onClick={handleCreateKey}
+                disabled={!newKeyName.trim()}
+                className="rounded-[1.25rem] bg-[#2563EB] px-5 text-white hover:bg-[#1D4ED8] disabled:opacity-50"
+              >
+                Create
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowNewKey(false);
+                  setNewKeyName("");
+                }}
+                className="rounded-[1.25rem] border border-[#E7E7E9] bg-[#FFFFFF] px-5 text-[#0D0C22] hover:bg-[#F6F8FB]"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
+        <div className="divide-y divide-[#E7E7E9] rounded-[1.5rem] border border-[#E7E7E9]">
+          {apiKeys.map((key) => (
+            <div key={key.id} className="flex items-center justify-between gap-4 px-4 py-3.5 first:rounded-t-[1.5rem] last:rounded-b-[1.5rem] hover:bg-[#F6F8FB] transition">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#0D0C22]">{key.name}</p>
+                <p className="mt-0.5 text-xs text-[#6E6D7A]">Created {key.created} • Last used {key.lastUsed}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center rounded-2xl border border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.10)] px-3 py-1 text-xs font-semibold text-[#22C55E]">
+                  Active
+                </span>
+                <Button
+                  onClick={() => handleDeleteKey(key.id)}
+                  className="rounded-[1.25rem] border border-[#E7E7E9] bg-[#FFFFFF] p-2 text-[#EF4444] hover:bg-[#FEF2F2]"
+                  title="Delete key"
+                >
+                  <Trash2 size={16} />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function BillingTab() {
+  const paymentMethods = [
+    { id: "pm_1", brand: "Visa", last4: "4242", exp: "12/26", primary: true },
+    { id: "pm_2", brand: "Mastercard", last4: "9876", exp: "08/25", primary: false },
+  ];
+
+  const invoices = [
+    { id: "INV-0081", date: "May 1, 2024", amount: "$120.00", status: "Paid" },
+    { id: "INV-0080", date: "Apr 1, 2024", amount: "$110.00", status: "Paid" },
+    { id: "INV-0079", date: "Mar 1, 2024", amount: "$98.00", status: "Due" },
+  ];
+
+  const [selectedMethod, setSelectedMethod] = React.useState(paymentMethods[0].id);
+
+  const activeMethod = paymentMethods.find((method) => method.id === selectedMethod) ?? paymentMethods[0];
+
+  return (
+    <div className="space-y-6">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
+              <CreditCard size={18} className="text-[#2563EB]" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-[#0D0C22]">Billing</p>
+              <p className="mt-1 text-sm text-[#6E6D7A]">
+                Manage invoices, payment methods, and subscription details.
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-[1.5rem] border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-3 text-sm text-[#6E6D7A]">
+            Next renewal: <span className="font-semibold text-[#0D0C22]">June 5, 2024</span>
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <Card className="rounded-[1.75rem] border-[#E7E7E9] bg-[#FFFFFF] p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#6E6D7A]">Current invoice</p>
+            <p className="mt-3 text-2xl font-semibold text-[#0D0C22]">$120.00</p>
+            <p className="mt-2 text-sm text-[#6E6D7A]">Due May 1, 2024</p>
+          </Card>
+          <Card className="rounded-[1.75rem] border-[#E7E7E9] bg-[#FFFFFF] p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#6E6D7A]">Subscription plan</p>
+            <p className="mt-3 text-2xl font-semibold text-[#0D0C22]">Scale</p>
+            <p className="mt-2 text-sm text-[#6E6D7A]">Up to 50 users and audit reports.</p>
+          </Card>
+          <Card className="rounded-[1.75rem] border-[#E7E7E9] bg-[#FFFFFF] p-4">
+            <p className="text-xs uppercase tracking-[0.18em] text-[#6E6D7A]">Payment method</p>
+            <p className="mt-3 text-sm font-semibold text-[#0D0C22]">
+              {activeMethod.brand} •••• {activeMethod.last4}
+            </p>
+            <p className="mt-2 text-sm text-[#6E6D7A]">Expires {activeMethod.exp}</p>
+          </Card>
+        </div>
+      </Card>
+
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-[#0D0C22]">Payment Methods</p>
+            <p className="mt-1 text-sm text-[#6E6D7A]">Select the card for your next renewal.</p>
+          </div>
+          <Button className="rounded-[1.25rem] bg-[#2563EB] px-5 text-white hover:bg-[#1D4ED8]">
+            Add card
+          </Button>
+        </div>
+
+        <div className="mt-5 space-y-3">
+          {paymentMethods.map((method) => (
+            <button
+              key={method.id}
+              type="button"
+              onClick={() => setSelectedMethod(method.id)}
+              className={
+                "w-full rounded-[1.5rem] border px-4 py-4 text-left transition " +
+                (selectedMethod === method.id
+                  ? "border-[#2563EB] bg-[#EFF6FF]"
+                  : "border-[#E7E7E9] bg-[#F6F8FB] hover:bg-white")
+              }
+            >
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-[#0D0C22]">
+                    {method.brand} •••• {method.last4}
+                  </p>
+                  <p className="mt-1 text-sm text-[#6E6D7A]">Expires {method.exp}</p>
+                </div>
+                {method.primary ? (
+                  <span className="inline-flex items-center rounded-2xl bg-[#2563EB] px-3 py-1 text-xs font-semibold text-white">
+                    Primary
+                  </span>
+                ) : null}
+              </div>
+            </button>
+          ))}
+        </div>
+      </Card>
+
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-[#0D0C22]">Recent invoices</p>
+            <p className="mt-1 text-sm text-[#6E6D7A]">Review past payments and download receipts.</p>
+          </div>
+        </div>
+
+        <div className="mt-5 divide-y divide-[#E7E7E9] rounded-[1.5rem] border border-[#E7E7E9]">
+          {invoices.map((invoice) => (
+            <div
+              key={invoice.id}
+              className="flex flex-col gap-3 px-4 py-4 first:rounded-t-[1.5rem] last:rounded-b-[1.5rem] md:flex-row md:items-center md:justify-between"
+            >
+              <div>
+                <p className="text-sm font-semibold text-[#0D0C22]">{invoice.id}</p>
+                <p className="mt-1 text-sm text-[#6E6D7A]">{invoice.date}</p>
+              </div>
+              <div className="flex items-center gap-3">
+                <p className="text-sm font-semibold text-[#0D0C22]">{invoice.amount}</p>
+                <span
+                  className={
+                    "inline-flex rounded-2xl border px-3 py-1 text-xs font-semibold " +
+                    (invoice.status === "Paid"
+                      ? "border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.10)] text-[#22C55E]"
+                      : "border-[rgba(245,158,11,0.25)] bg-[rgba(245,158,11,0.10)] text-[#F59E0B]")
+                  }
+                >
+                  {invoice.status}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function TeamTab() {
+  const [inviteEmail, setInviteEmail] = React.useState("");
+  const [members, setMembers] = React.useState([
+    { id: "m1", name: "Jordan Taylor", role: "Owner", status: "You" },
+    { id: "m2", name: "Avery Blake", role: "Admin", status: "Active" },
+    { id: "m3", name: "Morgan Lee", role: "Member", status: "Pending" },
+  ]);
+
+  const handleInvite = () => {
+    const email = inviteEmail.trim();
+    if (!email) return;
+    setMembers((current) => [
+      ...current,
+      { id: `m_${Date.now()}`, name: email, role: "Member", status: "Invited" },
+    ]);
+    setInviteEmail("");
+  };
+
+  const handleRemove = (id: string) => {
+    setMembers((current) => current.filter((member) => member.id !== id));
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#F6F8FB] border border-[#E7E7E9]">
+              <Users size={18} className="text-[#2563EB]" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-[#0D0C22]">Team</p>
+              <p className="mt-1 text-sm text-[#6E6D7A]">Invite members, manage roles, and keep team access up to date.</p>
+            </div>
+          </div>
+          <div className="rounded-[1.5rem] border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-3 text-sm text-[#6E6D7A]">
+            {members.length} team members, {members.filter((member) => member.status === "Pending").length} pending invites
+          </div>
+        </div>
+
+        <div className="mt-6 grid gap-4 md:grid-cols-2">
+          <div className="rounded-[1.5rem] border border-[#E7E7E9] bg-[#F6F8FB] p-4">
+            <p className="text-sm font-semibold text-[#0D0C22]">Team access</p>
+            <p className="mt-2 text-sm text-[#6E6D7A]">
+              Grant teammates access to audits, reports, and workspace settings.
+            </p>
+          </div>
+
+          <div className="rounded-[1.5rem] border border-[#E7E7E9] bg-[#F6F8FB] p-4">
+            <p className="text-sm font-semibold text-[#0D0C22]">Invite new member</p>
+            <p className="mt-2 text-sm text-[#6E6D7A]">Send an invite to someone who should access your workspace.</p>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+              <input
+                type="email"
+                value={inviteEmail}
+                onChange={(event) => setInviteEmail(event.target.value)}
+                placeholder="Email address"
+                className="w-full rounded-[1.25rem] border border-[#E7E7E9] bg-[#FFFFFF] px-4 py-2.5 text-sm outline-none focus:border-[#2563EB]"
+              />
+              <Button
+                type="button"
+                onClick={handleInvite}
+                disabled={!inviteEmail.trim()}
+                className="rounded-[1.25rem] bg-[#2563EB] px-5 text-white hover:bg-[#1D4ED8] disabled:opacity-60"
+              >
+                Invite
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+        <div className="flex items-center justify-between gap-4 mb-6">
+          <div>
+            <p className="text-sm font-semibold text-[#0D0C22]">Team members</p>
+            <p className="mt-1 text-sm text-[#6E6D7A]">See who has access and remove users as needed.</p>
+          </div>
+        </div>
+
+        <div className="divide-y divide-[#E7E7E9] rounded-[1.5rem] border border-[#E7E7E9]">
+          {members.map((member) => (
+            <div key={member.id} className="flex flex-col gap-4 px-4 py-4 first:rounded-t-[1.5rem] last:rounded-b-[1.5rem] md:flex-row md:items-center md:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-[#0D0C22]">{member.name}</p>
+                <p className="mt-1 text-sm text-[#6E6D7A]">{member.role}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-1 text-xs font-semibold text-[#6E6D7A]">
+                  {member.status}
+                </span>
+                {member.status !== "You" ? (
+                  <Button
+                    type="button"
+                    onClick={() => handleRemove(member.id)}
+                    className="rounded-[1.25rem] border border-[#E7E7E9] bg-[#FFFFFF] px-4 py-2 text-sm text-[#EF4444] hover:bg-[#FEF2F2]"
+                  >
+                    Remove
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+function DangerTab() {
+  const [confirmText, setConfirmText] = React.useState("");
+  const canDelete = confirmText === "DELETE";
+
+  return (
+    <div className="space-y-6">
+      <Card className="rounded-4xl border-[#FECACA] bg-[#FEF2F2] p-6 shadow-[0_24px_64px_rgba(239,68,68,0.08)]">
+        <div className="flex items-center gap-3">
+          <TriangleAlert size={18} className="text-[#DC2626]" />
+          <div>
+            <p className="text-sm font-semibold text-[#B91C1C]">Danger Zone</p>
+            <p className="mt-1 text-sm text-[#7C2D2D]">
+              These actions are permanent and can’t be undone. Use caution when making changes.
+            </p>
+          </div>
+        </div>
+      </Card>
+
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Card className="rounded-[1.75rem] border-[#FECACA] bg-[#FEF2F2] p-4">
+          <p className="text-sm font-semibold text-[#B91C1C]">Export workspace data</p>
+          <p className="mt-2 text-sm text-[#6E6D7A]">Generate a backup of your workspace before proceeding with destructive changes.</p>
+          <Button className="mt-4 rounded-[1.25rem] bg-[#B91C1C] px-5 text-white hover:bg-[#991B1B]">
+            Export data
+          </Button>
+        </Card>
+
+        <Card className="rounded-[1.75rem] border-[#FECACA] bg-[#FEF2F2] p-4">
+          <p className="text-sm font-semibold text-[#B91C1C]">Disable workspace</p>
+          <p className="mt-2 text-sm text-[#6E6D7A]">Temporarily stop activity and sign-ins for your current workspace.</p>
+          <Button className="mt-4 rounded-[1.25rem] border border-[#EF4444] bg-white px-5 text-[#EF4444] hover:bg-[#FEE2E2]">
+            Disable workspace
+          </Button>
+        </Card>
+
+        <Card className="rounded-[1.75rem] border-[#FECACA] bg-[#FEF2F2] p-4">
+          <p className="text-sm font-semibold text-[#B91C1C]">Delete account</p>
+          <p className="mt-2 text-sm text-[#6E6D7A]">Permanently delete all workspace data and remove access for everyone.</p>
+          <Button className="mt-4 rounded-[1.25rem] bg-[#EF4444] px-5 text-white hover:bg-[#DC2626]">
+            Delete account
+          </Button>
+        </Card>
+      </div>
+
+      <Card className="rounded-4xl border-[#FECACA] bg-[#FFF1F2] p-6 shadow-[0_24px_64px_rgba(239,68,68,0.08)]">
+        <div className="space-y-4">
+          <p className="text-sm font-semibold text-[#0D0C22]">Confirm deletion</p>
+          <p className="text-sm text-[#6E6D7A]">Type DELETE to confirm you understand that this action is irreversible.</p>
+          <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+            <input
+              type="text"
+              value={confirmText}
+              onChange={(event) => setConfirmText(event.target.value)}
+              placeholder="Type DELETE to confirm"
+              className="w-full rounded-[1.25rem] border border-[#E7E7E9] bg-[#FFFFFF] px-4 py-2.5 text-sm outline-none focus:border-[#DC2626]"
+            />
+            <Button
+              type="button"
+              disabled={!canDelete}
+              className="rounded-[1.25rem] bg-[#EF4444] px-5 text-white hover:bg-[#DC2626] disabled:opacity-50"
+            >
+              Confirm delete
+            </Button>
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
