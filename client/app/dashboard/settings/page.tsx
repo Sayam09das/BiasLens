@@ -724,16 +724,8 @@ export default function SettingsPage() {
         </div>
         )}
 
-        {/* 6) Notifications tab placeholder */}
-        {tab === "notifications" && (
-          <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
-            <div className="flex items-center gap-3">
-              <Bell size={18} className="text-[#2563EB]" />
-              <h2 className="text-lg font-semibold text-[#0D0C22]">Notifications</h2>
-            </div>
-            <p className="mt-3 text-sm text-[#6E6D7A]">Configure email and push notification preferences.</p>
-          </Card>
-        )}
+        {/* 6) Notifications tab */}
+        {tab === "notifications" && <NotificationsTab />}
 
         {/* 7) API Keys tab placeholder */}
         {tab === "api-keys" && (
@@ -779,6 +771,280 @@ export default function SettingsPage() {
           </Card>
         )}
       </form>
+    </div>
+  );
+}
+
+function NotificationsTab() {
+  type Prefs = {
+    // Email
+    emailAuditComplete: boolean;
+    emailFairnessAlert: boolean;
+    emailReportShared: boolean;
+    emailWeeklyDigest: boolean;
+    emailProductUpdates: boolean;
+    emailSecurityAlerts: boolean;
+    // In-app
+    inAppAuditComplete: boolean;
+    inAppFairnessAlert: boolean;
+    inAppReportShared: boolean;
+    inAppTeamActivity: boolean;
+    // Frequency
+    digestFrequency: "realtime" | "daily" | "weekly";
+    quietHoursEnabled: boolean;
+    quietFrom: string;
+    quietTo: string;
+  };
+
+  const [prefs, setPrefs] = React.useState<Prefs>({
+    emailAuditComplete: true,
+    emailFairnessAlert: true,
+    emailReportShared: true,
+    emailWeeklyDigest: true,
+    emailProductUpdates: false,
+    emailSecurityAlerts: true,
+    inAppAuditComplete: true,
+    inAppFairnessAlert: true,
+    inAppReportShared: false,
+    inAppTeamActivity: true,
+    digestFrequency: "daily",
+    quietHoursEnabled: false,
+    quietFrom: "22:00",
+    quietTo: "08:00",
+  });
+
+  const set = <K extends keyof Prefs>(key: K, val: Prefs[K]) =>
+    setPrefs((p) => ({ ...p, [key]: val }));
+
+  const [saveState, setSaveState] = React.useState<
+    | { status: "idle" }
+    | { status: "saving" }
+    | { status: "success" }
+    | { status: "error" }
+  >({ status: "idle" });
+
+  const save = async () => {
+    setSaveState({ status: "saving" });
+    await new Promise((r) => setTimeout(r, 800));
+    setSaveState({ status: "success" });
+    await new Promise((r) => setTimeout(r, 1400));
+    setSaveState({ status: "idle" });
+  };
+
+  const emailRows = [
+    { key: "emailAuditComplete" as const,   label: "Audit complete",      desc: "When a resume audit finishes processing."              },
+    { key: "emailFairnessAlert" as const,   label: "Fairness alert",      desc: "When bias or fairness risks are detected."             },
+    { key: "emailReportShared" as const,    label: "Report shared",       desc: "When a report is shared with you or your team."        },
+    { key: "emailWeeklyDigest" as const,    label: "Weekly digest",       desc: "A summary of audits and insights every week."          },
+    { key: "emailProductUpdates" as const,  label: "Product updates",     desc: "New features, improvements, and release notes."        },
+    { key: "emailSecurityAlerts" as const,  label: "Security alerts",     desc: "Unusual login activity or account changes."            },
+  ];
+
+  const inAppRows = [
+    { key: "inAppAuditComplete" as const,   label: "Audit complete",      desc: "Show a notification when an audit finishes."           },
+    { key: "inAppFairnessAlert" as const,   label: "Fairness alert",      desc: "Highlight fairness issues in the dashboard."           },
+    { key: "inAppReportShared" as const,    label: "Report shared",       desc: "Notify when a report is shared with you."              },
+    { key: "inAppTeamActivity" as const,    label: "Team activity",       desc: "Activity from teammates in your workspace."            },
+  ];
+
+  const enabledEmailCount = emailRows.filter((r) => prefs[r.key]).length;
+  const enabledInAppCount = inAppRows.filter((r) => prefs[r.key]).length;
+
+  return (
+    <div className="space-y-6">
+      {/* Overview stats */}
+      <div className="grid grid-cols-3 gap-4">
+        {[
+          { label: "Email on",   value: enabledEmailCount,  total: emailRows.length,  icon: <Bell size={16} className="text-[#2563EB]" /> },
+          { label: "In-app on",  value: enabledInAppCount,  total: inAppRows.length,  icon: <Bell size={16} className="text-[#2563EB]" /> },
+          { label: "Frequency",  value: prefs.digestFrequency.charAt(0).toUpperCase() + prefs.digestFrequency.slice(1), total: null, icon: <Bell size={16} className="text-[#2563EB]" /> },
+        ].map((stat) => (
+          <Card key={stat.label} className="rounded-[1.9rem] border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_20px_50px_rgba(13,12,34,0.05)]">
+            <div className="flex items-center gap-2">
+              <span className="grid h-9 w-9 place-items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB]">
+                {stat.icon}
+              </span>
+              <p className="text-xs font-semibold text-[#6E6D7A]">{stat.label}</p>
+            </div>
+            <p className="mt-3 text-2xl font-semibold tracking-[-0.04em] text-[#0D0C22]">
+              {stat.total !== null ? `${stat.value}/${stat.total}` : stat.value}
+            </p>
+          </Card>
+        ))}
+      </div>
+
+      {/* Email notifications */}
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB]">
+              <Bell size={18} className="text-[#2563EB]" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-[#0D0C22]">Email Notifications</p>
+              <p className="mt-1 text-sm text-[#6E6D7A]">Choose which events trigger an email to your inbox.</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => emailRows.forEach((r) => set(r.key, true))}
+            className="hidden text-xs font-semibold text-[#2563EB] hover:underline sm:block"
+          >
+            Enable all
+          </button>
+        </div>
+
+        <div className="mt-5 divide-y divide-[#E7E7E9] rounded-[1.5rem] border border-[#E7E7E9]">
+          {emailRows.map((row) => (
+            <div key={row.key} className="flex items-center justify-between gap-4 px-4 py-3.5 first:rounded-t-[1.5rem] last:rounded-b-[1.5rem] hover:bg-[#F6F8FB] transition">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-[#0D0C22]">{row.label}</p>
+                <p className="mt-0.5 text-xs text-[#6E6D7A]">{row.desc}</p>
+              </div>
+              <Switch checked={prefs[row.key]} onCheckedChange={(v) => set(row.key, v)} label={row.label} />
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* In-app notifications */}
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB]">
+              <Bell size={18} className="text-[#2563EB]" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-[#0D0C22]">In-App Notifications</p>
+              <p className="mt-1 text-sm text-[#6E6D7A]">Control what appears in your dashboard notification panel.</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-5 divide-y divide-[#E7E7E9] rounded-[1.5rem] border border-[#E7E7E9]">
+          {inAppRows.map((row) => (
+            <div key={row.key} className="flex items-center justify-between gap-4 px-4 py-3.5 first:rounded-t-[1.5rem] last:rounded-b-[1.5rem] hover:bg-[#F6F8FB] transition">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-[#0D0C22]">{row.label}</p>
+                <p className="mt-0.5 text-xs text-[#6E6D7A]">{row.desc}</p>
+              </div>
+              <Switch checked={prefs[row.key]} onCheckedChange={(v) => set(row.key, v)} label={row.label} />
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* Digest frequency + quiet hours */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB]">
+              <Bell size={18} className="text-[#2563EB]" aria-hidden="true" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-[#0D0C22]">Digest Frequency</p>
+              <p className="mt-1 text-sm text-[#6E6D7A]">How often you receive bundled notifications.</p>
+            </div>
+          </div>
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            {(["realtime", "daily", "weekly"] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => set("digestFrequency", f)}
+                className={
+                  "rounded-[1.25rem] border px-3 py-2.5 text-sm font-semibold transition " +
+                  (prefs.digestFrequency === f
+                    ? "border-[#1463ff]/30 bg-[#dbe8ff] text-[#1463ff]"
+                    : "border-[#E7E7E9] bg-[#F6F8FB] text-[#6E6D7A] hover:bg-white hover:text-[#0D0C22]")
+                }
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+              </button>
+            ))}
+          </div>
+        </Card>
+
+        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB]">
+                <Bell size={18} className="text-[#2563EB]" aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-[#0D0C22]">Quiet Hours</p>
+                <p className="mt-1 text-sm text-[#6E6D7A]">Pause notifications during a set time window.</p>
+              </div>
+            </div>
+            <Switch
+              checked={prefs.quietHoursEnabled}
+              onCheckedChange={(v) => set("quietHoursEnabled", v)}
+              label="Quiet hours toggle"
+            />
+          </div>
+          <div className={"mt-5 grid grid-cols-2 gap-3 transition " + (!prefs.quietHoursEnabled ? "pointer-events-none opacity-40" : "")}>
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">From</p>
+              <input
+                type="time"
+                value={prefs.quietFrom}
+                onChange={(e) => set("quietFrom", e.target.value)}
+                disabled={!prefs.quietHoursEnabled}
+                className="w-full rounded-[1.25rem] border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-2.5 text-sm outline-none focus:border-[#2563EB]"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">To</p>
+              <input
+                type="time"
+                value={prefs.quietTo}
+                onChange={(e) => set("quietTo", e.target.value)}
+                disabled={!prefs.quietHoursEnabled}
+                className="w-full rounded-[1.25rem] border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-2.5 text-sm outline-none focus:border-[#2563EB]"
+              />
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {/* Save */}
+      <div className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-[#0D0C22]">Save Preferences</p>
+            <p className="text-sm text-[#6E6D7A]">Your notification settings will be applied immediately.</p>
+          </div>
+          <Button
+            type="button"
+            onClick={save}
+            disabled={saveState.status === "saving"}
+            className="rounded-[1.25rem] bg-[#2563EB] px-5 text-white hover:bg-[#1D4ED8] disabled:opacity-60"
+          >
+            {saveState.status === "saving" ? "Saving..." : "Save Preferences"}
+          </Button>
+        </div>
+        <div className="mt-4">
+          <AnimatePresence>
+            {saveState.status === "success" && (
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="rounded-[1.25rem] border border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.10)] p-4"
+                role="status"
+              >
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="text-[#22C55E]" size={18} aria-hidden="true" />
+                  <div>
+                    <p className="text-sm font-semibold text-[#0D0C22]">Saved</p>
+                    <p className="mt-1 text-sm text-[#6E6D7A]">Notification preferences updated successfully.</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
     </div>
   );
 }
