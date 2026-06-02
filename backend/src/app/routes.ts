@@ -12,5 +12,7 @@ export function registerRoutes(app: Express): void {
   });
 
   app.use("/", healthRoutes);
+  // Mount versioned API under the same root so client can call /v1/*
   app.use("/", apiRoutes);
 }
+

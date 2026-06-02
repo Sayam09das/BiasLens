@@ -13,6 +13,8 @@ import {
 
 type SessionStatus = "idle" | "loading" | "authenticated" | "unauthenticated";
 
+let bootstrapPromise: Promise<void> | null = null;
+
 export interface AuthState {
   user: AuthUser | null;
   status: SessionStatus;
@@ -35,13 +37,23 @@ export const useAuthStore = create<AuthState>()(
       permissions: [],
 
       bootstrap: async () => {
+        if (bootstrapPromise) {
+          return bootstrapPromise;
+        }
+
+        bootstrapPromise = (async () => {
         set({ status: "loading" });
         try {
           const { user } = await getCurrentSession();
           set({ user, status: "authenticated", permissions: resolvePermissions(user) });
         } catch {
           set({ user: null, status: "unauthenticated", permissions: [] });
+        } finally {
+          bootstrapPromise = null;
         }
+        })();
+
+        return bootstrapPromise;
       },
 
       login: async (payload) => {

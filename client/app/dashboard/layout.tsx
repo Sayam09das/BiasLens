@@ -414,7 +414,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router   = useRouter();
   const pathname = usePathname();
 
-  const { user, status, bootstrap, logout, refresh } = useAuthStore();
+  const { user, status, logout, refresh } = useAuthStore();
   const { sidebarCollapsed, setSidebarCollapsed, theme, setTheme, profileAvatar } = useUIStore();
   const fetchHistory = useAuditStore((s) => s.fetchHistory);
   const { data: notificationSummary, refresh: refreshNotifications } = useNotifications(
@@ -423,10 +423,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   );
 
   const searchRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (status === "idle") bootstrap();
-  }, [status, bootstrap]);
 
   useEffect(() => {
     if (status === "authenticated") fetchHistory();

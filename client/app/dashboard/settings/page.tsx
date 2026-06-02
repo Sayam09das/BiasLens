@@ -32,6 +32,7 @@ import { makeSecurityScanSseUrl, startSecurityScan, type SecurityScanEvent } fro
 import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
+import { SecurityScanWidget } from "./security/SecurityScanWidget";
 
 type AccountSettingsPayload = {
   defaultDashboardView: string;
@@ -1056,10 +1057,18 @@ export default function SettingsPage() {
         </div>
         )}
 
-        {/* 6) Notifications tab */}
+        {/* 6) Security scan tab */}
+        {tab === "security" && (
+          <>
+            {/* Lazy UI import would be better, but keep it simple for now */}
+            <SecurityScanWidget />
+          </>
+        )}
+
+        {/* 7) Notifications tab */}
         {tab === "notifications" && <NotificationsTab />}
 
-        {/* 7) API Keys tab */}
+        {/* 8) API Keys tab */}
         {tab === "api-keys" && <ApiKeysTab />}
 
         {tab === "billing" && <BillingTab />}
