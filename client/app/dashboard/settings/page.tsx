@@ -1,9 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import * as React from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import type { Resolver } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,16 +21,15 @@ import {
   KeyRound,
   Users,
   TriangleAlert,
-  Copy,
   Trash2,
   Plus,
-  Eye,
-  EyeOff,
-  RefreshCw,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { apiFetch } from "@/lib/api";
+import { useAuthStore } from "@/store/auth.store";
+import { useUIStore } from "@/store/ui.store";
 
 function FieldLabel({ htmlFor, children, className }: { htmlFor?: string; children: React.ReactNode; className?: string }) {
   return (
@@ -201,7 +201,7 @@ function Select({
   error,
   placeholder,
 }: {
-  value: string;
+  value?: string;
   onChange: (v: string) => void;
   options: Option[];
   label: string;
@@ -214,7 +214,7 @@ function Select({
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <select
         id={id}
-        value={value}
+        value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         className="w-full rounded-[1.25rem] border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-2.5 text-sm outline-none focus:border-[#2563EB]"
         aria-invalid={!!error}
@@ -235,6 +235,8 @@ function Select({
 export default function SettingsPage() {
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") ?? "profile";
+  const { user, status, setUser } = useAuthStore();
+  const { profileAvatar, setProfileAvatar } = useUIStore();
   const mockUser = React.useMemo(
     () => ({
       fullName: "Jordan Taylor",
@@ -268,12 +270,17 @@ export default function SettingsPage() {
     | { status: "success"; message: string }
     | { status: "error"; message: string }
   >({ status: "idle" });
+  const [profileError, setProfileError] = React.useState<string | null>(null);
+  const [isProfileLoading, setIsProfileLoading] = React.useState(false);
+  const [profileLoaded, setProfileLoaded] = React.useState(false);
+  const [avatarDraftUrl, setAvatarDraftUrl] = React.useState<string | null>(profileAvatar);
 
   const {
     register,
     handleSubmit,
     setValue,
-    watch,
+    control,
+    reset,
     formState: { errors, isSubmitting },
   } = useForm<SettingsFormValues>({
     resolver: zodResolver(schema) as unknown as Resolver<SettingsFormValues>,
@@ -297,26 +304,147 @@ export default function SettingsPage() {
     mode: "onChange",
   });
 
-  const values = watch();
+  React.useEffect(() => {
+    if (tab !== "profile" || !user?.id || status !== "authenticated" || profileLoaded) {
+      return;
+    }
+
+    const kickoff = setTimeout(() => {
+      void (async () => {
+        setIsProfileLoading(true);
+        setProfileError(null);
+
+        try {
+          const profile = await apiFetch<{
+            id: string;
+            email: string;
+            fullName: string;
+            role: string;
+            jobTitle?: string | null;
+            company?: string | null;
+            phoneNumber?: string | null;
+            isActive: boolean;
+            emailVerified: boolean;
+            emailVerifiedAt?: string | null;
+            createdAt?: string;
+            updatedAt?: string;
+          }>(`/v1/users/${user.id}`);
+
+          reset({
+            fullName: profile.fullName,
+            workEmail: profile.email,
+            jobTitle: profile.jobTitle ?? undefined,
+            company: profile.company ?? undefined,
+            phoneNumber: profile.phoneNumber ?? undefined,
+            avatarFileName: undefined,
+            defaultDashboardView: mockUser.defaultDashboardView,
+            emailNotifications: mockUser.emailNotifications,
+            productUpdateEmails: mockUser.productUpdateEmails,
+            auditReportEmails: mockUser.auditReportEmails,
+            weeklySummaryEmails: mockUser.weeklySummaryEmails,
+            workspaceName: mockUser.workspaceName,
+            organizationType: mockUser.organizationType,
+            teamSize: mockUser.teamSize,
+            hiringVolume: mockUser.hiringVolume,
+          });
+
+          setUser({
+            id: profile.id,
+            email: profile.email,
+            fullName: profile.fullName,
+            role: profile.role,
+            jobTitle: profile.jobTitle ?? null,
+            company: profile.company ?? null,
+            phoneNumber: profile.phoneNumber ?? null,
+            isActive: profile.isActive,
+            emailVerified: profile.emailVerified,
+            emailVerifiedAt: profile.emailVerifiedAt ?? null,
+            createdAt: profile.createdAt,
+            updatedAt: profile.updatedAt,
+          });
+          setProfileLoaded(true);
+        } catch (e) {
+          setProfileError(e instanceof Error ? e.message : "Failed to load profile.");
+        } finally {
+          setIsProfileLoading(false);
+        }
+      })();
+    }, 0);
+
+    return () => clearTimeout(kickoff);
+  }, [mockUser, profileLoaded, reset, setUser, status, tab, user?.id]);
+
+  const values = useWatch({ control });
 
   const avatarPreview = React.useMemo(() => {
-    // For mock UX, we just show initials when no upload.
-    if (!values.avatarFileName) return null;
+    if (avatarDraftUrl) {
+      return { image: avatarDraftUrl, initials: null };
+    }
+
     const parts = (values.fullName || "").trim().split(/\s+/).filter(Boolean);
     const initials = parts.slice(0, 2).map((p) => p[0]?.toUpperCase()).join("");
-    return { initials };
-  }, [values.avatarFileName, values.fullName]);
+    return initials ? { image: null, initials } : null;
+  }, [avatarDraftUrl, values.fullName]);
 
   const onSubmit = async (data: SettingsFormValues) => {
     setSaveState({ status: "saving" });
 
     try {
-      // Mock async save
-      await new Promise((r) => setTimeout(r, 900));
+      if (tab === "profile") {
+        if (!user?.id) {
+          throw new Error("You need to be signed in to update your profile.");
+        }
 
-      // Example: validate that email isn’t the same for demo (no-op)
-      if (!data.workEmail.includes("@")) {
-        throw new Error("Please enter a valid email.");
+        const updated = await apiFetch<{
+          id: string;
+          email: string;
+          fullName: string;
+          role: string;
+          jobTitle?: string | null;
+          company?: string | null;
+          phoneNumber?: string | null;
+          isActive: boolean;
+          emailVerified: boolean;
+          emailVerifiedAt?: string | null;
+          createdAt?: string;
+          updatedAt?: string;
+        }>(`/v1/users/${user.id}`, {
+          method: "PATCH",
+          body: {
+            fullName: data.fullName,
+            jobTitle: data.jobTitle ?? "",
+            company: data.company ?? "",
+            phoneNumber: data.phoneNumber ?? "",
+          },
+        });
+
+        reset({
+          ...data,
+          fullName: updated.fullName,
+          workEmail: updated.email,
+          jobTitle: updated.jobTitle ?? undefined,
+          company: updated.company ?? undefined,
+          phoneNumber: updated.phoneNumber ?? undefined,
+        });
+        setProfileAvatar(avatarDraftUrl);
+        setUser({
+          id: updated.id,
+          email: updated.email,
+          fullName: updated.fullName,
+          role: updated.role,
+          jobTitle: updated.jobTitle ?? null,
+          company: updated.company ?? null,
+          phoneNumber: updated.phoneNumber ?? null,
+          isActive: updated.isActive,
+          emailVerified: updated.emailVerified,
+          emailVerifiedAt: updated.emailVerifiedAt ?? null,
+          createdAt: updated.createdAt,
+          updatedAt: updated.updatedAt,
+        });
+        setProfileError(null);
+        setProfileLoaded(true);
+      } else {
+        await new Promise((r) => setTimeout(r, 900));
       }
 
       setSaveState({ status: "success", message: "Settings saved successfully." });
@@ -331,23 +459,37 @@ export default function SettingsPage() {
   };
 
   const cancelToMock = () => {
-    setValue("fullName", mockUser.fullName, { shouldValidate: true });
-    setValue("workEmail", mockUser.workEmail, { shouldValidate: true });
-    setValue("jobTitle", mockUser.jobTitle, { shouldValidate: true });
-    setValue("company", mockUser.company, { shouldValidate: true });
-    setValue("phoneNumber", mockUser.phoneNumber as string, { shouldValidate: true });
-    setValue("avatarFileName", mockUser.avatarFileName, { shouldValidate: true });
+    if (tab === "profile" && user) {
+      reset({
+        ...values,
+        fullName: user.fullName,
+        workEmail: user.email,
+        jobTitle: user.jobTitle ?? undefined,
+        company: user.company ?? undefined,
+        phoneNumber: user.phoneNumber ?? undefined,
+        avatarFileName: undefined,
+      });
+      setAvatarDraftUrl(profileAvatar);
+    } else {
+      setValue("fullName", mockUser.fullName, { shouldValidate: true });
+      setValue("workEmail", mockUser.workEmail, { shouldValidate: true });
+      setValue("jobTitle", mockUser.jobTitle, { shouldValidate: true });
+      setValue("company", mockUser.company, { shouldValidate: true });
+      setValue("phoneNumber", mockUser.phoneNumber as string, { shouldValidate: true });
+      setValue("avatarFileName", mockUser.avatarFileName, { shouldValidate: true });
 
-    setValue("defaultDashboardView", mockUser.defaultDashboardView, { shouldValidate: true });
-    setValue("emailNotifications", mockUser.emailNotifications);
-    setValue("productUpdateEmails", mockUser.productUpdateEmails);
-    setValue("auditReportEmails", mockUser.auditReportEmails);
-    setValue("weeklySummaryEmails", mockUser.weeklySummaryEmails);
+      setValue("defaultDashboardView", mockUser.defaultDashboardView, { shouldValidate: true });
+      setValue("emailNotifications", mockUser.emailNotifications);
+      setValue("productUpdateEmails", mockUser.productUpdateEmails);
+      setValue("auditReportEmails", mockUser.auditReportEmails);
+      setValue("weeklySummaryEmails", mockUser.weeklySummaryEmails);
 
-    setValue("workspaceName", mockUser.workspaceName, { shouldValidate: true });
-    setValue("organizationType", mockUser.organizationType, { shouldValidate: true });
-    setValue("teamSize", mockUser.teamSize, { shouldValidate: true });
-    setValue("hiringVolume", mockUser.hiringVolume, { shouldValidate: true });
+      setValue("workspaceName", mockUser.workspaceName, { shouldValidate: true });
+      setValue("organizationType", mockUser.organizationType, { shouldValidate: true });
+      setValue("teamSize", mockUser.teamSize, { shouldValidate: true });
+      setValue("hiringVolume", mockUser.hiringVolume, { shouldValidate: true });
+      setAvatarDraftUrl(profileAvatar);
+    }
 
     setSaveState({ status: "idle" });
   };
@@ -371,6 +513,29 @@ export default function SettingsPage() {
               <div className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">Premium UI</div>
             </div>
           </div>
+
+          {profileError ? (
+            <div className="mt-6 rounded-[1.25rem] border border-[rgba(239,68,68,0.25)] bg-[rgba(239,68,68,0.10)] p-4">
+              <div className="flex items-start gap-3">
+                <AlertCircle className="text-[#EF4444]" size={18} aria-hidden="true" />
+                <div>
+                  <p className="text-sm font-semibold text-[#0D0C22]">Profile could not be loaded</p>
+                  <p className="mt-1 text-sm text-[#6E6D7A]">{profileError}</p>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
+          {isProfileLoading ? (
+            <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="h-3 w-24 animate-pulse rounded-full bg-[#dbe8ff]" />
+                  <div className="h-11 animate-pulse rounded-[1.25rem] bg-[#F6F8FB]" />
+                </div>
+              ))}
+            </div>
+          ) : (
 
           <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
@@ -397,10 +562,12 @@ export default function SettingsPage() {
                 type="email"
                 {...register("workEmail")}
                 placeholder="name@company.com"
+                disabled
                 aria-invalid={!!errors.workEmail}
                 className="rounded-[1.25rem] border-[#E7E7E9] bg-[#F6F8FB] px-4 py-2.5 text-sm"
               />
               {errors.workEmail ? <p className="text-sm text-[#EF4444]">{errors.workEmail.message}</p> : null}
+              {!errors.workEmail ? <p className="text-sm text-[#6E6D7A]">Email is loaded from your account and cannot be edited here yet.</p> : null}
             </div>
 
             <div className="space-y-2">
@@ -447,12 +614,21 @@ export default function SettingsPage() {
                   <Label htmlFor="avatarUpload">
                     <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Profile Avatar Upload</span>
                   </Label>
-                  <p className="mt-1 text-sm text-[#6E6D7A]">Mock upload (filename stored locally).</p>
+                  <p className="mt-1 text-sm text-[#6E6D7A]">Local-only for now. Profile text fields are saved to the backend.</p>
                 </div>
                 <div className="flex h-12 items-center justify-end">
                   <div className="relative">
-                    <div className="grid h-12 w-12 place-items-center rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] text-[#2563EB]">
-                      {avatarPreview ? (
+                    <div className="grid h-12 w-12 place-items-center overflow-hidden rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] text-[#2563EB]">
+                      {avatarPreview?.image ? (
+                        <Image
+                          src={avatarPreview.image}
+                          alt="Profile avatar preview"
+                          width={48}
+                          height={48}
+                          unoptimized
+                          className="h-full w-full object-cover"
+                        />
+                      ) : avatarPreview ? (
                         <span className="text-sm font-semibold">{avatarPreview.initials}</span>
                       ) : (
                         <Sparkles size={18} aria-hidden="true" />
@@ -468,13 +644,37 @@ export default function SettingsPage() {
                 accept="image/*"
                 className="block w-full cursor-pointer rounded-[1.25rem] border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-2.5 text-sm text-[#6E6D7A] file:mr-3 file:rounded-full file:border file:border-[#E7E7E9] file:bg-[#FFFFFF] file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-[#0D0C22] hover:file:bg-[#F6F8FB]"
                 aria-label="Upload profile avatar"
-                onChange={(e) => {
+                onChange={async (e) => {
                   const file = e.target.files?.[0];
                   setValue("avatarFileName", file?.name ?? undefined, { shouldValidate: true });
+
+                  if (!file) {
+                    setAvatarDraftUrl(profileAvatar);
+                    return;
+                  }
+
+                  const nextAvatar = await new Promise<string>((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                      if (typeof reader.result === "string") {
+                        resolve(reader.result);
+                        return;
+                      }
+
+                      reject(new Error("Could not read the selected avatar file."));
+                    };
+                    reader.onerror = () => reject(reader.error ?? new Error("Could not read the selected avatar file."));
+                    reader.readAsDataURL(file);
+                  }).catch(() => null);
+
+                  if (nextAvatar) {
+                    setAvatarDraftUrl(nextAvatar);
+                  }
                 }}
               />
             </div>
           </div>
+          )}
         </Card>}
 
         {/* 2) Account Preferences */}
@@ -494,7 +694,7 @@ export default function SettingsPage() {
           <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
             <Select
               label="Default dashboard view"
-              value={values.defaultDashboardView}
+              value={values.defaultDashboardView ?? ""}
               onChange={(v) => setValue("defaultDashboardView", v, { shouldValidate: true })}
               options={[
                 { label: "Reports", value: "reports" },
@@ -514,7 +714,7 @@ export default function SettingsPage() {
                     <p className="mt-1 text-sm text-[#6E6D7A]">Receive important account changes.</p>
                   </div>
                   <Switch
-                    checked={values.emailNotifications}
+                    checked={values.emailNotifications ?? false}
                     onCheckedChange={(next) => setValue("emailNotifications", next)}
                     label="Email notifications toggle"
                   />
@@ -526,7 +726,7 @@ export default function SettingsPage() {
                     <p className="mt-1 text-sm text-[#6E6D7A]">New features and release notes.</p>
                   </div>
                   <Switch
-                    checked={values.productUpdateEmails}
+                    checked={values.productUpdateEmails ?? false}
                     onCheckedChange={(next) => setValue("productUpdateEmails", next)}
                     label="Product update emails toggle"
                   />
@@ -538,7 +738,7 @@ export default function SettingsPage() {
                     <p className="mt-1 text-sm text-[#6E6D7A]">When reports are generated or shared.</p>
                   </div>
                   <Switch
-                    checked={values.auditReportEmails}
+                    checked={values.auditReportEmails ?? false}
                     onCheckedChange={(next) => setValue("auditReportEmails", next)}
                     label="Audit report emails toggle"
                   />
@@ -550,7 +750,7 @@ export default function SettingsPage() {
                     <p className="mt-1 text-sm text-[#6E6D7A]">Weekly report digest.</p>
                   </div>
                   <Switch
-                    checked={values.weeklySummaryEmails}
+                    checked={values.weeklySummaryEmails ?? false}
                     onCheckedChange={(next) => setValue("weeklySummaryEmails", next)}
                     label="Weekly summary emails toggle"
                   />
@@ -591,7 +791,7 @@ export default function SettingsPage() {
 
             <Select
               label="Organization Type"
-              value={values.organizationType}
+              value={values.organizationType ?? ""}
               onChange={(v) => setValue("organizationType", v, { shouldValidate: true })}
               options={organizationTypeOptions}
               placeholder="Select organization type"
@@ -600,7 +800,7 @@ export default function SettingsPage() {
 
             <Select
               label="Team Size"
-              value={values.teamSize}
+              value={values.teamSize ?? ""}
               onChange={(v) => setValue("teamSize", v, { shouldValidate: true })}
               options={teamSizeOptions}
               placeholder="Select team size"
@@ -609,7 +809,7 @@ export default function SettingsPage() {
 
             <Select
               label="Hiring Volume"
-              value={values.hiringVolume}
+              value={values.hiringVolume ?? ""}
               onChange={(v) => setValue("hiringVolume", v, { shouldValidate: true })}
               options={hiringVolumeOptions}
               placeholder="Select hiring volume"
@@ -1495,4 +1695,3 @@ function StatusCard({
     </div>
   );
 }
-

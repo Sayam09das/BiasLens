@@ -20,6 +20,9 @@ model User {
   fullName                        String
   passwordHash                    String?
   role                            String    @default("user")
+  jobTitle                        String?
+  company                         String?
+  phoneNumber                     String?
   isActive                        Boolean   @default(true)
   emailVerified                   Boolean   @default(false)
   emailVerifiedAt                 DateTime?

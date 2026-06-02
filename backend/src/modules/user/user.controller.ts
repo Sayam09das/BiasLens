@@ -52,6 +52,18 @@ export async function updateUserController(request: Request, response: Response)
     updates.fullName = request.body.fullName.trim();
   }
 
+  if (typeof request.body?.jobTitle === "string") {
+    updates.jobTitle = request.body.jobTitle.trim() || null;
+  }
+
+  if (typeof request.body?.company === "string") {
+    updates.company = request.body.company.trim() || null;
+  }
+
+  if (typeof request.body?.phoneNumber === "string") {
+    updates.phoneNumber = request.body.phoneNumber.trim() || null;
+  }
+
   if (typeof request.body?.role === "string" && request.body.role.trim()) {
     if (!isAdmin) {
       throw new ForbiddenError("Only admins can change user roles.");

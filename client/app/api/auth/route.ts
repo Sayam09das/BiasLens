@@ -11,6 +11,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 const BACKEND = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const ACCESS_COOKIE = "biaslens_access_token";
+const REFRESH_COOKIE = "biaslens_refresh_token";
 
 const ACTION_MAP: Record<string, { path: string; method: string }> = {
   login:    { path: "/v1/auth/login",   method: "POST" },
@@ -29,6 +31,22 @@ async function proxy(req: NextRequest): Promise<NextResponse> {
   }
 
   const isGet = route.method === "GET";
+  const hasAccessCookie = req.cookies.has(ACCESS_COOKIE);
+  const hasRefreshCookie = req.cookies.has(REFRESH_COOKIE);
+
+  if (action === "me" && !hasAccessCookie && !hasRefreshCookie) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "UNAUTHORIZED",
+          message: "No active session.",
+        },
+      },
+      { status: 401 }
+    );
+  }
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
@@ -44,7 +62,23 @@ async function proxy(req: NextRequest): Promise<NextResponse> {
     headers,
     body: isGet ? undefined : await req.text(),
     credentials: "include",
+  }).catch((err) => {
+    console.error("[auth-proxy] upstream error", err);
+    return null;
   });
+
+  if (!upstream) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          code: "BACKEND_UNREACHABLE",
+          message: "Auth backend is unavailable.",
+        },
+      },
+      { status: 502 }
+    );
+  }
 
   const payload = await upstream.json().catch(() => null);
   const response = NextResponse.json(payload, { status: upstream.status });

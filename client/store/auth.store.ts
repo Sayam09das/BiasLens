@@ -24,6 +24,7 @@ export interface AuthState {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => Promise<void>;
+  setUser: (user: AuthUser) => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -62,6 +63,10 @@ export const useAuthStore = create<AuthState>()(
 
       refresh: async () => {
         const { user } = await refreshAuthSession();
+        set({ user, status: "authenticated", permissions: resolvePermissions(user) });
+      },
+
+      setUser: (user) => {
         set({ user, status: "authenticated", permissions: resolvePermissions(user) });
       },
     }),

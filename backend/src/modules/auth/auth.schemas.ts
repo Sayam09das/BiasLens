@@ -61,12 +61,16 @@ export const authSchemas = {
   updateUserBody: z
     .object({
       fullName: z.string().trim().min(2).max(120).optional(),
+      jobTitle: z.string().trim().max(120).optional(),
+      company: z.string().trim().max(120).optional(),
+      phoneNumber: z.string().trim().max(30).optional(),
       role: z.string().trim().min(2).max(40).optional(),
       isActive: z.boolean().optional(),
     })
     .refine(
       (value) =>
-        value.fullName !== undefined || value.role !== undefined || value.isActive !== undefined,
+        value.fullName !== undefined || value.role !== undefined || value.isActive !== undefined ||
+        value.jobTitle !== undefined || value.company !== undefined || value.phoneNumber !== undefined,
       "At least one user field must be provided."
     ),
 };

@@ -8,6 +8,7 @@ interface UIState {
   sidebarCollapsed: boolean;
   activeModal: string | null;
   globalLoading: boolean;
+  profileAvatar: string | null;
 
   // actions
   setTheme: (theme: Theme) => void;
@@ -16,6 +17,7 @@ interface UIState {
   openModal: (id: string) => void;
   closeModal: () => void;
   setGlobalLoading: (loading: boolean) => void;
+  setProfileAvatar: (profileAvatar: string | null) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -26,6 +28,7 @@ export const useUIStore = create<UIState>()(
         sidebarCollapsed: false,
         activeModal: null,
         globalLoading: false,
+        profileAvatar: null,
 
         setTheme: (theme) => set({ theme }),
         toggleSidebar: () =>
@@ -34,10 +37,15 @@ export const useUIStore = create<UIState>()(
         openModal: (id) => set({ activeModal: id }),
         closeModal: () => set({ activeModal: null }),
         setGlobalLoading: (globalLoading) => set({ globalLoading }),
+        setProfileAvatar: (profileAvatar) => set({ profileAvatar }),
       }),
       {
         name: "biaslens-ui",
-        partialize: (s) => ({ theme: s.theme, sidebarCollapsed: s.sidebarCollapsed }),
+        partialize: (s) => ({
+          theme: s.theme,
+          sidebarCollapsed: s.sidebarCollapsed,
+          profileAvatar: s.profileAvatar,
+        }),
       }
     ),
     { name: "ui" }

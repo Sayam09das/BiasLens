@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
@@ -159,6 +160,7 @@ function SidebarContent({
   collapsed,
   onNavigate,
   avatarText,
+  avatarImage,
   displayName,
   displayRole,
   onLogout,
@@ -167,10 +169,18 @@ function SidebarContent({
   collapsed: boolean;
   onNavigate: () => void;
   avatarText: string;
+  avatarImage: string | null;
   displayName: string;
   displayRole: string;
   onLogout: () => void;
 }) {
+  const router = useRouter();
+
+  const navigateMenu = (href: string) => {
+    onNavigate();
+    router.push(href);
+  };
+
   return (
     <div className="flex h-full flex-col">
 
@@ -308,8 +318,19 @@ function SidebarContent({
               transition={SPRING_SNAPPY}
               aria-label="User menu"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#1463ff] to-[#4f46e5] text-xs font-bold text-white shadow-[0_2px_8px_rgba(20,99,255,0.3)]">
-                {avatarText}
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-[#1463ff] to-[#4f46e5] text-xs font-bold text-white shadow-[0_2px_8px_rgba(20,99,255,0.3)]">
+                {avatarImage ? (
+                  <Image
+                    src={avatarImage}
+                    alt={`${displayName} avatar`}
+                    width={32}
+                    height={32}
+                    unoptimized
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  avatarText
+                )}
               </span>
               <AnimatePresence initial={false}>
                 {!collapsed && (
@@ -333,9 +354,15 @@ function SidebarContent({
 
           <DropdownMenuContent className="mb-1 w-52 rounded-xl">
             <DropdownMenuLabel>My account</DropdownMenuLabel>
-            <DropdownMenuItem><User size={13} className="mr-2" /> Profile</DropdownMenuItem>
-            <DropdownMenuItem><Settings size={13} className="mr-2" /> Account settings</DropdownMenuItem>
-            <DropdownMenuItem><ShieldCheck size={13} className="mr-2" /> Security</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigateMenu("/dashboard/settings?tab=profile") }>
+              <User size={13} className="mr-2" /> Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigateMenu("/dashboard/settings?tab=account") }>
+              <Settings size={13} className="mr-2" /> Account settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigateMenu("/dashboard/settings/security") }>
+              <ShieldCheck size={13} className="mr-2" /> Security
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={onLogout}>
               <LogOut size={13} className="mr-2" /> Logout
@@ -387,7 +414,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
 
   const { user, status, bootstrap, logout, refresh } = useAuthStore();
-  const { sidebarCollapsed, setSidebarCollapsed, theme, setTheme } = useUIStore();
+  const { sidebarCollapsed, setSidebarCollapsed, theme, setTheme, profileAvatar } = useUIStore();
   const fetchHistory = useAuditStore((s) => s.fetchHistory);
 
   const searchRef = useRef<HTMLInputElement>(null);
@@ -453,6 +480,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               collapsed={sidebarCollapsed}
               onNavigate={() => {}}
               avatarText={avatarText}
+              avatarImage={profileAvatar}
               displayName={displayName}
               displayRole={displayRole}
               onLogout={handleLogout}
@@ -523,6 +551,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     collapsed={false}
                     onNavigate={() => setSidebarCollapsed(false)}
                     avatarText={avatarText}
+                    avatarImage={profileAvatar}
                     displayName={displayName}
                     displayRole={displayRole}
                     onLogout={handleLogout}
@@ -671,10 +700,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       className="flex items-center gap-2 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] py-1.5 pl-1.5 pr-2.5 text-left outline-none transition-colors hover:border-[#1463ff]/30 hover:bg-white"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.97 }}
-                      transition={SPRING_SNAPPY}
-                    >
-                      <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-gradient-to-br from-[#1463ff] to-[#4f46e5] text-[11px] font-bold text-white shadow-[0_2px_6px_rgba(20,99,255,0.35)]">
-                        {avatarText}
+                    transition={SPRING_SNAPPY}
+                  >
+                      <span className="flex h-7 w-7 items-center justify-center overflow-hidden rounded-lg bg-gradient-to-br from-[#1463ff] to-[#4f46e5] text-[11px] font-bold text-white shadow-[0_2px_6px_rgba(20,99,255,0.35)]">
+                        {profileAvatar ? (
+                          <Image
+                            src={profileAvatar}
+                            alt={`${displayName} avatar`}
+                            width={28}
+                            height={28}
+                            unoptimized
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          avatarText
+                        )}
                       </span>
                       <span className="hidden min-w-0 sm:block">
                         <span className="block max-w-[100px] truncate text-[12px] font-semibold text-[#0f172a]">
@@ -689,13 +729,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   <DropdownMenuContent align="end" className="w-52 rounded-xl">
                     <DropdownMenuLabel className="text-xs">My account</DropdownMenuLabel>
                     <DropdownMenuItem className="text-sm">
-                      <User size={13} className="mr-2" /> Profile
+                      <Link href="/dashboard/settings?tab=profile" className="flex items-center">
+                        <User size={13} className="mr-2" /> Profile
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-sm">
-                      <Settings size={13} className="mr-2" /> Account settings
+                      <Link href="/dashboard/settings?tab=account" className="flex items-center">
+                        <Settings size={13} className="mr-2" /> Account settings
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem className="text-sm">
-                      <ShieldCheck size={13} className="mr-2" /> Security
+                      <Link href="/dashboard/settings/security" className="flex items-center">
+                        <ShieldCheck size={13} className="mr-2" /> Security
+                      </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
