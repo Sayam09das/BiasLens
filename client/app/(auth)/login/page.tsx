@@ -29,6 +29,7 @@ export default function LoginPage() {
       await loginWithEmail({
         email: values.email.trim(),
         password: values.password,
+        rememberMe: values.rememberMe ?? false,
       });
       router.push("/dashboard");
       return;

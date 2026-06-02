@@ -22,6 +22,78 @@ const ACTION_MAP: Record<string, { path: string; method: string }> = {
   me:       { path: "/v1/auth/me",      method: "GET"  },
 };
 
+async function forwardUpstream(
+  req: NextRequest,
+  route: { path: string; method: string },
+  cookieOverride?: string,
+) {
+  const isGet = route.method === "GET";
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  const cookie = cookieOverride ?? req.headers.get("cookie");
+  if (cookie) headers.cookie = cookie;
+
+  const csrfToken = req.headers.get("x-csrf-token");
+  if (csrfToken) headers["x-csrf-token"] = csrfToken;
+
+  return fetch(`${BACKEND}${route.path}`, {
+    method: route.method,
+    headers,
+    body: isGet ? undefined : await req.text(),
+    credentials: "include",
+  }).catch((err) => {
+    console.error("[auth-proxy] upstream error", err);
+    return null;
+  });
+}
+
+function appendUpstreamCookies(response: NextResponse, upstream: Response): string[] {
+  const setCookies =
+    typeof upstream.headers.getSetCookie === "function"
+      ? upstream.headers.getSetCookie()
+      : [];
+
+  if (setCookies.length) {
+    for (const value of setCookies) {
+      response.headers.append("set-cookie", value);
+    }
+    return setCookies;
+  }
+
+  const singleCookie = upstream.headers.get("set-cookie");
+  if (singleCookie) {
+    response.headers.append("set-cookie", singleCookie);
+    return [singleCookie];
+  }
+
+  return [];
+}
+
+function buildCookieHeader(req: NextRequest, setCookies: string[]): string | null {
+  const jar = new Map<string, string>();
+  const incoming = req.headers.get("cookie");
+
+  if (incoming) {
+    for (const chunk of incoming.split(";")) {
+      const [rawName, ...rest] = chunk.trim().split("=");
+      if (!rawName) continue;
+      jar.set(rawName, rest.join("="));
+    }
+  }
+
+  for (const cookieValue of setCookies) {
+    const [pair] = cookieValue.split(";");
+    const [rawName, ...rest] = pair.split("=");
+    if (!rawName) continue;
+    jar.set(rawName.trim(), rest.join("="));
+  }
+
+  const entries = [...jar.entries()].map(([name, value]) => `${name}=${value}`);
+  return entries.length ? entries.join("; ") : null;
+}
+
 async function proxy(req: NextRequest): Promise<NextResponse> {
   const action = req.nextUrl.searchParams.get("action") ?? "";
   const route = ACTION_MAP[action];
@@ -30,7 +102,6 @@ async function proxy(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Unknown auth action" }, { status: 400 });
   }
 
-  const isGet = route.method === "GET";
   const hasAccessCookie = req.cookies.has(ACCESS_COOKIE);
   const hasRefreshCookie = req.cookies.has(REFRESH_COOKIE);
 
@@ -47,25 +118,7 @@ async function proxy(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-
-  const cookie = req.headers.get("cookie");
-  if (cookie) headers["cookie"] = cookie;
-
-  const csrfToken = req.headers.get("x-csrf-token");
-  if (csrfToken) headers["x-csrf-token"] = csrfToken;
-
-  const upstream = await fetch(`${BACKEND}${route.path}`, {
-    method: route.method,
-    headers,
-    body: isGet ? undefined : await req.text(),
-    credentials: "include",
-  }).catch((err) => {
-    console.error("[auth-proxy] upstream error", err);
-    return null;
-  });
+  let upstream = await forwardUpstream(req, route);
 
   if (!upstream) {
     return NextResponse.json(
@@ -80,23 +133,33 @@ async function proxy(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const payload = await upstream.json().catch(() => null);
-  const response = NextResponse.json(payload, { status: upstream.status });
-  const setCookies =
-    typeof upstream.headers.getSetCookie === "function"
-      ? upstream.headers.getSetCookie()
-      : [];
+  let retryCookies: string[] = [];
 
-  if (setCookies.length) {
-    for (const value of setCookies) {
-      response.headers.append("set-cookie", value);
-    }
-  } else {
-    const singleCookie = upstream.headers.get("set-cookie");
-    if (singleCookie) {
-      response.headers.append("set-cookie", singleCookie);
+  if (action === "me" && upstream.status === 401 && hasRefreshCookie) {
+    const refreshUpstream = await forwardUpstream(req, ACTION_MAP.refresh);
+
+    if (refreshUpstream?.ok) {
+      retryCookies =
+        typeof refreshUpstream.headers.getSetCookie === "function"
+          ? refreshUpstream.headers.getSetCookie()
+          : refreshUpstream.headers.get("set-cookie")
+            ? [refreshUpstream.headers.get("set-cookie") as string]
+            : [];
+
+      const cookieHeader = buildCookieHeader(req, retryCookies);
+      const retried = await forwardUpstream(req, route, cookieHeader ?? undefined);
+      if (retried) {
+        upstream = retried;
+      }
     }
   }
+
+  const payload = await upstream.json().catch(() => null);
+  const response = NextResponse.json(payload, { status: upstream.status });
+  for (const value of retryCookies) {
+    response.headers.append("set-cookie", value);
+  }
+  appendUpstreamCookies(response, upstream);
 
   return response;
 }

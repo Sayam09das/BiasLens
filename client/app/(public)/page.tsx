@@ -1,3 +1,4 @@
+import HomeRedirectGate from "@/components/auth/HomeRedirectGate";
 import Hero from "./home/hero";
 import SocialProof from "./home/SocialProof";
 import ProblemSection from "./home/ProblemSection";
@@ -15,6 +16,7 @@ import CTASection from "./home/CTASection";
 export default function HomePage() {
   return (
     <>
+      <HomeRedirectGate />
       <Hero />
       <SocialProof />
       <ProblemSection />

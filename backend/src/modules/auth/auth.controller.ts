@@ -10,13 +10,21 @@ import { ForbiddenError } from "../../utils/errors.js";
 import { successResponse } from "../../utils/api-response.js";
 import { authService } from "./auth.service.js";
 
-function setAuthCookies(response: Response, accessToken: string, refreshToken: string): void {
+function setAuthCookies(
+  response: Response,
+  accessToken: string,
+  refreshToken: string,
+  rememberMe = false,
+): void {
   const baseCookieConfig = {
     httpOnly: true,
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
     path: "/",
   };
+  const refreshTokenMaxAge = rememberMe
+    ? AUTH_CONSTANTS.rememberMeRefreshTokenMaxAgeMs
+    : AUTH_CONSTANTS.refreshTokenMaxAgeMs;
 
   response.cookie(authConfig.accessTokenCookieName, accessToken, {
     ...baseCookieConfig,
@@ -25,7 +33,7 @@ function setAuthCookies(response: Response, accessToken: string, refreshToken: s
 
   response.cookie(authConfig.refreshTokenCookieName, refreshToken, {
     ...baseCookieConfig,
-    maxAge: AUTH_CONSTANTS.refreshTokenMaxAgeMs,
+    maxAge: refreshTokenMaxAge,
   });
 }
 
@@ -79,7 +87,12 @@ export async function resendVerificationController(
 export async function loginController(request: Request, response: Response): Promise<void> {
   const result = await authService.login(request.body, request);
 
-  setAuthCookies(response, result.tokens.accessToken, result.tokens.refreshToken);
+  setAuthCookies(
+    response,
+    result.tokens.accessToken,
+    result.tokens.refreshToken,
+    result.session.rememberMe,
+  );
 
   response
     .status(StatusCodes.OK)
@@ -116,7 +129,12 @@ export async function refreshTokenController(
 
   const result = await authService.refreshSession(String(refreshToken ?? ""), request);
 
-  setAuthCookies(response, result.tokens.accessToken, result.tokens.refreshToken);
+  setAuthCookies(
+    response,
+    result.tokens.accessToken,
+    result.tokens.refreshToken,
+    result.session.rememberMe,
+  );
 
   response
     .status(StatusCodes.OK)

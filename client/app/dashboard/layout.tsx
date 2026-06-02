@@ -442,7 +442,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const handleLogout = async () => {
     await logout();
-    router.push("/login");
+    router.push("/");
   };
 
   const displayName = user?.fullName ?? "—";
@@ -458,7 +458,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <AuthGuard
-      redirectTo="/login"
+      redirectTo="/"
       isAuthenticated={
         status === "authenticated" ? true
         : status === "unauthenticated" ? false

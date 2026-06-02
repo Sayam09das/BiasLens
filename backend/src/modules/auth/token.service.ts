@@ -17,15 +17,18 @@ function getSecret(tokenType: TokenType): string {
   return tokenType === "access" ? authConfig.accessSecret : authConfig.refreshSecret;
 }
 
-function getExpiresIn(tokenType: TokenType): SignOptions["expiresIn"] {
+function getExpiresIn(tokenType: TokenType, rememberMe = false): SignOptions["expiresIn"] {
   return tokenType === "access"
     ? AUTH_CONSTANTS.accessTokenTtl
-    : AUTH_CONSTANTS.refreshTokenTtl;
+    : rememberMe
+      ? AUTH_CONSTANTS.rememberMeRefreshTokenTtl
+      : AUTH_CONSTANTS.refreshTokenTtl;
 }
 
 function signToken(
   payload: Omit<AuthTokenPayload, "type">,
-  tokenType: TokenType
+  tokenType: TokenType,
+  rememberMe = false,
 ): string {
   return jwt.sign(
     {
@@ -34,7 +37,7 @@ function signToken(
     },
     getSecret(tokenType),
     {
-      expiresIn: getExpiresIn(tokenType),
+      expiresIn: getExpiresIn(tokenType, rememberMe),
     }
   );
 }
@@ -44,8 +47,8 @@ export const tokenService = {
     return signToken(payload, "access");
   },
 
-  generateRefreshToken(payload: Omit<AuthTokenPayload, "type">): string {
-    return signToken(payload, "refresh");
+  generateRefreshToken(payload: Omit<AuthTokenPayload, "type">, rememberMe = false): string {
+    return signToken(payload, "refresh", rememberMe);
   },
 
   verifyToken(token: string, tokenType: TokenType): AuthTokenPayload {

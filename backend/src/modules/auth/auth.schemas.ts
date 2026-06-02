@@ -104,6 +104,7 @@ export const authSchemas = {
   loginBody: z.object({
     email: z.email().transform((value) => value.trim().toLowerCase()),
     password: z.string().min(8).max(128),
+    rememberMe: z.boolean().optional(),
   }),
   verifyEmailQuery: z.object({
     token: z.string().trim().min(16),

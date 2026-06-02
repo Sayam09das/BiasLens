@@ -96,6 +96,7 @@ model Session {
   userAgent        String?
   ipAddress        String?
   refreshTokenHash String
+  rememberMe       Boolean  @default(false)
   expiresAt        DateTime
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

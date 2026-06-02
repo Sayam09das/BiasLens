@@ -1,4 +1,5 @@
 import type { Request } from "express";
+import type { Prisma } from "@prisma/client";
 
 import { sendTransactionalEmail } from "../../config/brevo.js";
 import { prisma } from "../../config/prisma.js";
@@ -36,6 +37,7 @@ type RegisterInput = {
 type LoginInput = {
   email?: string;
   password?: string;
+  rememberMe?: boolean;
 };
 
 type ResetPasswordInput = {
@@ -297,6 +299,7 @@ export const authService = {
   async login(input: LoginInput, request: Request) {
     const email = assertEmail(input.email);
     const password = assertPassword(input.password);
+    const rememberMe = Boolean(input.rememberMe);
 
     const user = await prisma.user.findUnique({
       where: { email },
@@ -316,18 +319,24 @@ export const authService = {
       throw new ForbiddenError("Please verify your email before logging in.");
     }
 
-    const refreshToken = tokenService.generateRefreshToken(buildJwtPayload(user));
+    const refreshToken = tokenService.generateRefreshToken(buildJwtPayload(user), rememberMe);
     const accessToken = tokenService.generateAccessToken(buildJwtPayload(user));
     const metadata = getRequestMetadata(request);
+    const sessionMaxAgeMs = rememberMe
+      ? AUTH_CONSTANTS.rememberMeSessionTimeoutMs
+      : AUTH_CONSTANTS.sessionTimeoutMs;
+
+    const sessionCreateData: Prisma.SessionUncheckedCreateInput = {
+      userId: user.id,
+      refreshTokenHash: hashToken(refreshToken),
+      rememberMe,
+      userAgent: metadata.userAgent,
+      ipAddress: metadata.ipAddress,
+      expiresAt: new Date(Date.now() + sessionMaxAgeMs),
+    };
 
     await prisma.session.create({
-      data: {
-        userId: user.id,
-        refreshTokenHash: hashToken(refreshToken),
-        userAgent: metadata.userAgent,
-        ipAddress: metadata.ipAddress,
-        expiresAt: new Date(Date.now() + AUTH_CONSTANTS.sessionTimeoutMs),
-      },
+      data: sessionCreateData,
     });
 
     await auditLogService.record({
@@ -358,6 +367,9 @@ export const authService = {
         accessToken,
         refreshToken,
       },
+      session: {
+        rememberMe,
+      },
     };
   },
 
@@ -386,22 +398,28 @@ export const authService = {
       throw new UnauthorizedError("Refresh token is invalid or expired.");
     }
 
-    const nextRefreshToken = tokenService.generateRefreshToken(buildJwtPayload(session.user));
+    const rememberMe = Boolean((session as { rememberMe?: boolean | null }).rememberMe);
+    const sessionMaxAgeMs = rememberMe
+      ? AUTH_CONSTANTS.rememberMeSessionTimeoutMs
+      : AUTH_CONSTANTS.sessionTimeoutMs;
+    const nextRefreshToken = tokenService.generateRefreshToken(buildJwtPayload(session.user), rememberMe);
     const nextAccessToken = tokenService.generateAccessToken(buildJwtPayload(session.user));
     const metadata = getRequestMetadata(request);
+    const nextSessionCreateData: Prisma.SessionUncheckedCreateInput = {
+      userId: session.user.id,
+      refreshTokenHash: hashToken(nextRefreshToken),
+      rememberMe,
+      userAgent: metadata.userAgent,
+      ipAddress: metadata.ipAddress,
+      expiresAt: new Date(Date.now() + sessionMaxAgeMs),
+    };
 
     await prisma.$transaction([
       prisma.session.delete({
         where: { id: session.id },
       }),
       prisma.session.create({
-        data: {
-          userId: session.user.id,
-          refreshTokenHash: hashToken(nextRefreshToken),
-          userAgent: metadata.userAgent,
-          ipAddress: metadata.ipAddress,
-          expiresAt: new Date(Date.now() + AUTH_CONSTANTS.sessionTimeoutMs),
-        },
+        data: nextSessionCreateData,
       }),
     ]);
 
@@ -429,6 +447,9 @@ export const authService = {
       tokens: {
         accessToken: nextAccessToken,
         refreshToken: nextRefreshToken,
+      },
+      session: {
+        rememberMe,
       },
     };
   },

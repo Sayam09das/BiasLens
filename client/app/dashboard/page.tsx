@@ -5,13 +5,19 @@ import {
   Activity,
   ArrowUpRight,
   BadgeCheck,
+  Bot,
+  Brain,
   Clock3,
+  FileText,
+  History,
+  Loader2,
+  PlusCircle,
   ShieldCheck,
   Sparkles,
   TrendingUp,
   AlertTriangle,
   CheckCircle2,
-  Loader2,
+  Upload,
 } from "lucide-react";
 import { motion, Variants } from "framer-motion";
 
@@ -219,6 +225,8 @@ function AuditRow({
 
 /** Queue item */
 function QueueItem({
+  // NOTE: used in the existing dashboard pipeline card
+
   icon: Icon,
   iconClass,
   title,
@@ -347,6 +355,556 @@ export default function DashboardPage() {
         {stats.map((stat, i) => (
           <StatCard key={stat.label} {...stat} index={i} />
         ))}
+      </motion.section>
+
+      {/* ── BiasLens AI Insights ── */}
+      <motion.section
+        className="space-y-4 sm:space-y-5"
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        custom={0.12}
+      >
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">
+              BiasLens AI Insights
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-[#0D0C22] sm:text-2xl">
+              AI-powered hiring intelligence, fairness &amp; explainability
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm text-[#6E6D7A]">
+              AI-powered recommendations and observations generated from your latest resume audits.
+            </p>
+          </div>
+
+          {/* AI assistant badge */}
+          <div className="flex items-center gap-2 rounded-full border border-[#E7E7E9] bg-[#FFFFFF] px-3 py-2 shadow-sm">
+            <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#2563EB]/10">
+              <Bot size={16} className="text-[#2563EB]" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold text-[#0D0C22]">AI Copilot</p>
+              <p className="text-[10px] text-[#6E6D7A]">Live insights · Audit-linked</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-4">
+          {/* Featured insight */}
+          <motion.div
+            className="relative overflow-hidden rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] shadow-sm lg:col-span-2"
+            variants={cardVariant}
+            initial="hidden"
+            animate="show"
+            custom={0}
+          >
+            <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-[#2563EB]/10 blur-2xl" />
+            <div className="absolute -left-24 -bottom-24 h-64 w-64 rounded-full bg-[#22C55E]/10 blur-2xl" />
+            <div className="relative p-5 sm:p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center gap-2 rounded-full bg-[#ECFDF5] px-3 py-1 text-[11px] font-semibold text-[#15803D] ring-1 ring-[#22C55E]/20">
+                  <span className="grid h-6 w-6 place-items-center rounded-lg bg-[#22C55E]/15">
+                    <CheckCircle2 size={14} className="text-[#15803D]" />
+                  </span>
+                  Healthy
+                </span>
+                <span className="inline-flex items-center rounded-full bg-[#2563EB]/10 px-3 py-1 text-[11px] font-semibold text-[#2563EB] ring-1 ring-[#2563EB]/20">
+                  Fairness Verified
+                </span>
+              </div>
+
+              <h3 className="mt-4 text-lg font-bold tracking-tight text-[#0D0C22] sm:text-xl">
+                All Fairness Checks Passed
+              </h3>
+              <p className="mt-2 text-sm leading-relaxed text-[#6E6D7A]">
+                No significant fairness risks detected across active resume audits. Counterfactual testing and fairness monitoring indicate stable scoring behavior.
+              </p>
+
+              {/* Example metrics */}
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-[#E7E7E9] bg-[#F6F8FB] p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6E6D7A]">
+                    AI Confidence
+                  </p>
+                  <p className="mt-1 text-xl font-semibold text-[#0D0C22]">96%</p>
+                </div>
+                <div className="rounded-xl border border-[#E7E7E9] bg-[#F6F8FB] p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6E6D7A]">
+                    Fairness Score
+                  </p>
+                  <p className="mt-1 text-xl font-semibold text-[#0D0C22]">94%</p>
+                </div>
+                <div className="rounded-xl border border-[#E7E7E9] bg-[#F6F8FB] p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6E6D7A]">
+                    Audit Coverage
+                  </p>
+                  <p className="mt-1 text-xl font-semibold text-[#0D0C22]">100%</p>
+                </div>
+              </div>
+
+              {/* Risk level / recommendations indicator */}
+              <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[#E7E7E9] bg-[#FFFFFF] p-3">
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-[#2563EB]/10">
+                    <ShieldCheck size={16} className="text-[#2563EB]" />
+                  </span>
+                  <div>
+                    <p className="text-xs font-semibold text-[#0D0C22]">Recommendation</p>
+                    <p className="text-[11px] text-[#6E6D7A]">Proceed to export with confidence</p>
+                  </div>
+                </div>
+
+                <Link
+                  href="/dashboard/fairness"
+                  className="group inline-flex items-center gap-2 rounded-xl border border-[#E7E7E9] bg-white px-3 py-2 text-xs font-semibold text-[#2563EB] shadow-[0_10px_30px_rgba(37,99,235,0.08)] transition hover:border-[#2563EB]/30 hover:bg-[#F6F8FB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40"
+                >
+                  Review Fairness
+                  <span className="inline-flex transition-transform duration-200 group-hover:translate-x-0.5">
+                    <ArrowUpRight size={14} strokeWidth={2.5} />
+                  </span>
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Supporting insights */}
+          <div className="grid gap-4 lg:col-span-2 lg:grid-cols-1">
+            {[ 
+              {
+                title: "Resume Quality Insights",
+                description: "2 resumes are missing measurable achievements and quantified business impact.",
+                priority: "Medium",
+                priorityTone: "text-[#F59E0B] bg-[#F59E0B]/10 ring-[#F59E0B]/20",
+                actionLabel: "Review Candidates",
+                href: "/dashboard/audits",
+                iconBg: "bg-[#F59E0B]/10",
+              },
+              {
+                title: "Explainability Signals",
+                description: "3 candidates show strong experience alignment but limited supporting evidence.",
+                priority: "Medium",
+                priorityTone: "text-[#F59E0B] bg-[#F59E0B]/10 ring-[#F59E0B]/20",
+                actionLabel: "View Explanations",
+                href: "/dashboard/explainability",
+                iconBg: "bg-[#2563EB]/10",
+              },
+              {
+                title: "Reporting Status",
+                description: "All generated reports are audit-ready and available for export.",
+                priority: "Low",
+                priorityTone: "text-[#22C55E] bg-[#22C55E]/10 ring-[#22C55E]/20",
+                actionLabel: "Open Reports",
+                href: "/dashboard/reports",
+                iconBg: "bg-[#22C55E]/10",
+              },
+            ].map((insight, idx) => (
+              <motion.div
+                key={insight.title}
+                className="relative overflow-hidden rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] shadow-sm"
+                variants={cardVariant}
+                initial="hidden"
+                animate="show"
+                custom={0.08 + idx}
+              >
+                <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-[#2563EB]/5 blur-2xl" />
+                <div className="relative p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`grid h-10 w-10 place-items-center rounded-xl ${insight.iconBg}`}>
+                          {idx === 0 ? <Sparkles size={18} className="text-[#2563EB]" /> : idx === 1 ? <Brain size={18} className="text-[#2563EB]" /> : <FileText size={18} className="text-[#22C55E]" />}
+                        </span>
+                        <span className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${insight.priorityTone}`}>
+                          {insight.priority}
+                        </span>
+                      </div>
+
+                      <h4 className="mt-3 text-sm font-bold tracking-tight text-[#0D0C22]">
+                        {insight.title}
+                      </h4>
+                      <p className="mt-2 text-xs leading-relaxed text-[#6E6D7A]">
+                        {insight.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 flex items-center justify-between gap-3">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">
+                      Confidence: {idx === 0 ? "82%" : idx === 1 ? "89%" : "96%"}
+                    </p>
+                    <Link
+                      href={insight.href}
+                      className="group inline-flex items-center gap-2 rounded-xl border border-[#E7E7E9] bg-white px-3 py-2 text-xs font-semibold text-[#2563EB] transition hover:border-[#2563EB]/30 hover:bg-[#F6F8FB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40"
+                    >
+                      {insight.actionLabel}
+                      <span className="inline-flex transition-transform duration-200 group-hover:translate-x-0.5">
+                        <ArrowUpRight size={14} strokeWidth={2.5} />
+                      </span>
+                    </Link>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Insight Categories (Smart suggestion cards) */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          {["Fairness", "Explainability", "Resume Quality", "Audit Readiness", "AI Recommendations"].map((cat) => (
+            <motion.div
+              key={cat}
+              className="rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-3 shadow-sm transition-transform duration-200 hover:-translate-y-0.5 focus-within:ring-2 focus-within:ring-[#2563EB]/40"
+              whileHover={{ y: -2 }}
+              transition={{ duration: 0.2 }}
+            >
+              <p className="text-xs font-semibold text-[#0D0C22]">{cat}</p>
+              <p className="mt-1 text-[11px] text-[#6E6D7A]">
+                {cat === "Fairness" ? "Verified stability" : cat === "Explainability" ? "Evidence-backed reasoning" : cat === "Resume Quality" ? "Impact &amp; metrics checks" : cat === "Audit Readiness" ? "Export-ready coverage" : "Actionable next steps"}
+              </p>
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
+
+      {/* ── Audit Queue ── */}
+      <motion.section
+        className="space-y-4 sm:space-y-5"
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        custom={0.1}
+      >
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">
+              Recent Activity
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-[#0D0C22] sm:text-2xl">
+              Track audits, reports, fairness reviews &amp; AI actions
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm text-[#6E6D7A]">
+              Track the latest audit events, report actions, fairness reviews, and AI-powered hiring decisions.
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-3 shadow-sm">
+            <p className="text-xs font-semibold text-[#0D0C22]">Today&apos;s Activity</p>
+            <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {[
+                { label: "Audits Completed", value: 3 },
+                { label: "Reports Generated", value: 3 },
+                { label: "Fairness Reviews", value: 3 },
+                { label: "Exports", value: 2 },
+              ].map((m) => (
+                <div key={m.label} className="min-w-0">
+                  <p className="text-[11px] font-semibold text-[#6E6D7A]">{m.label}</p>
+                  <p className="mt-0.5 text-base font-bold text-[#0D0C22]">{m.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <div className="rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] shadow-sm">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[#E7E7E9]">
+              <p className="text-sm font-semibold text-[#0D0C22]">Activity Feed</p>
+              <span className="text-[11px] font-semibold text-[#2563EB] bg-[#2563EB]/10 px-2 py-1 rounded-full">Newest first</span>
+            </div>
+
+            <div className="max-h-[520px] overflow-y-auto p-4">
+              {[
+                {
+                  type: "Upload",
+                  statusTone: "success",
+                  title: "Resume Uploaded",
+                  description: "Sayam Das.pdf uploaded for Full Stack Developer audit.",
+                  time: "2 minutes ago",
+                },
+                {
+                  type: "Audit",
+                  statusTone: "info",
+                  title: "Audit Completed",
+                  description: "Resume analysis completed successfully. Resume Score: 92% · Job Fit: 89%",
+                  time: "5 minutes ago",
+                },
+                {
+                  type: "Fairness",
+                  statusTone: "success",
+                  title: "Fairness Review Passed",
+                  description: "All fairness checks passed. No significant bias signals detected.",
+                  time: "8 minutes ago",
+                },
+                {
+                  type: "Report",
+                  statusTone: "info",
+                  title: "Report Generated",
+                  description: "Audit report successfully generated and ready for export.",
+                  time: "12 minutes ago",
+                },
+                {
+                  type: "Export",
+                  statusTone: "neutral",
+                  title: "PDF Exported",
+                  description: "Report REP-001 exported as PDF.",
+                  time: "15 minutes ago",
+                },
+                {
+                  type: "AI Agent",
+                  statusTone: "warning",
+                  title: "AI Agent Recommendation",
+                  description: "AI Agent identified missing quantified achievements.",
+                  time: "18 minutes ago",
+                },
+              ].map((event, idx) => {
+                const tone = event.statusTone;
+
+
+                const iconWrapBg =
+                  tone === "success"
+                    ? "bg-[#22C55E]/10"
+                    : tone === "warning"
+                      ? "bg-[#F59E0B]/10"
+                      : tone === "info"
+                        ? "bg-[#2563EB]/10"
+                        : "bg-[#F6F8FB]";
+
+                const iconFg =
+                  tone === "success"
+                    ? "text-[#22C55E]"
+                    : tone === "warning"
+                      ? "text-[#F59E0B]"
+                      : tone === "info"
+                        ? "text-[#2563EB]"
+                        : "text-[#6E6D7A]";
+
+                const Icon =
+                  event.type === "Upload"
+                    ? Upload
+                    : event.type === "Audit"
+                      ? Sparkles
+                      : event.type === "Fairness"
+                        ? ShieldCheck
+                        : event.type === "Report"
+                          ? FileText
+                          : event.type === "Export"
+                            ? FileText
+                            : Bot;
+
+                const badgeBg =
+                  tone === "success"
+                    ? "bg-[#ECFDF5] text-[#15803D] ring-[#22C55E]/20"
+                    : tone === "warning"
+                      ? "bg-[#FFFBEB] text-[#B45309] ring-[#F59E0B]/20"
+                      : tone === "info"
+                        ? "bg-[#EFF6FF] text-[#2563EB] ring-[#2563EB]/20"
+                        : "bg-[#F6F8FB] text-[#6E6D7A] ring-[#E7E7E9]";
+
+                return (
+                  <div
+                    key={event.title}
+                    className="relative flex gap-4 pb-4 last:pb-0"
+                  >
+                    {/* Timeline */}
+                    <div className="relative flex w-10 flex-col items-center">
+                      <div className="z-10 grid h-10 w-10 place-items-center rounded-xl border border-[#E7E7E9] bg-white">
+                        <span className={["grid h-9 w-9 place-items-center rounded-xl", iconWrapBg].join(" ")}
+                          >
+                          <Icon size={18} className={iconFg} />
+                        </span>
+                      </div>
+                      {idx !== 5 && (
+                        <div className="absolute top-10 h-full w-px bg-[#E7E7E9]" />
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="min-w-0 flex-1 rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-[#0D0C22] truncate">{event.title}</p>
+                          <p className="mt-1 text-xs leading-relaxed text-[#6E6D7A]">{event.description}</p>
+                        </div>
+                        <span className={["inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold ring-1", badgeBg].join(" ")}
+                          >
+                          {event.type}
+                        </span>
+                      </div>
+                      <div className="mt-3 text-[11px] font-semibold text-[#94A3B8]">
+                        {event.time}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] shadow-sm overflow-hidden">
+            <div className="px-4 py-3 border-b border-[#E7E7E9]">
+              <p className="text-sm font-semibold text-[#0D0C22]">AI Signal Summary</p>
+              <p className="mt-1 text-xs text-[#6E6D7A]">What changed most recently in your workflow.</p>
+            </div>
+            <div className="p-4 space-y-3">
+              {[ 
+                { title: "Audit readiness", value: "High", tone: "success" },
+                { title: "Fairness signals", value: "Verified", tone: "success" },
+                { title: "Explainability", value: "Ready", tone: "info" },
+                { title: "AI recommendations", value: "Review suggested", tone: "warning" },
+              ].map((s) => (
+                <div key={s.title} className="rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB] p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold text-[#6E6D7A]">{s.title}</p>
+                    <span
+                      className={
+                        s.tone === "success"
+                          ? "inline-flex items-center rounded-full bg-[#ECFDF5] px-3 py-1 text-[11px] font-semibold text-[#15803D] ring-1 ring-[#22C55E]/20"
+                          : s.tone === "warning"
+                            ? "inline-flex items-center rounded-full bg-[#FFFBEB] px-3 py-1 text-[11px] font-semibold text-[#B45309] ring-1 ring-[#F59E0B]/20"
+                            : "inline-flex items-center rounded-full bg-[#EFF6FF] px-3 py-1 text-[11px] font-semibold text-[#2563EB] ring-1 ring-[#2563EB]/20"
+                      }
+                    >
+                      {s.value}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              <Link
+                href="/dashboard/reports"
+                className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-[#E7E7E9] bg-white px-4 py-3 text-sm font-semibold text-[#2563EB] shadow-sm transition hover:border-[#2563EB]/30 hover:bg-[#F6F8FB] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40"
+              >
+                Open reports
+                <ArrowUpRight size={16} strokeWidth={2.5} />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ── Quick Actions ── */}
+      <motion.section
+        className="space-y-4 sm:space-y-5"
+        variants={fadeUp}
+        initial="hidden"
+        animate="show"
+        custom={0.15}
+      >
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">
+              Quick Actions
+            </p>
+            <h2 className="mt-2 text-xl font-semibold tracking-tight text-[#0D0C22] sm:text-2xl">
+              One-click hiring workflows for recruiters
+            </h2>
+            <p className="mt-2 max-w-3xl text-sm text-[#6E6D7A]">
+              Jump directly into resume auditing, fairness analysis, reporting, and AI-powered hiring workflows.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {[
+              {
+                title: "New Audit",
+                description: "Start a new resume audit and generate hiring intelligence.",
+                href: "/dashboard/audits/new",
+                icon: PlusCircle,
+                iconBg: "bg-[#1463ff]/10",
+                iconFg: "text-[#2563EB]",
+              },
+              {
+                title: "Upload Resume",
+                description: "Upload a candidate resume for analysis and scoring.",
+                href: "/dashboard/audits/new",
+                icon: Upload,
+                iconBg: "bg-[#2563EB]/10",
+                iconFg: "text-[#2563EB]",
+              },
+            {
+              title: "Generate Report",
+              description: "Create an audit-ready PDF report with explainability insights.",
+              href: "/dashboard/reports",
+                icon: FileText,
+              iconBg: "bg-[#1463ff]/10",
+              iconFg: "text-[#2563EB]",
+            },
+            {
+              title: "Open AI Agent",
+              description: "Use the BiasLens AI Agent to review, explain, and improve hiring decisions.",
+              href: "/ai-agent",
+                icon: Bot,
+              iconBg: "bg-[#1463ff]/10",
+              iconFg: "text-[#2563EB]",
+            },
+            {
+              title: "Fairness Center",
+              description: "Review fairness metrics, bias signals, and counterfactual analysis.",
+              href: "/dashboard/fairness",
+                icon: ShieldCheck,
+              iconBg: "bg-[#22c55e]/10",
+              iconFg: "text-[#22c55e]",
+            },
+            {
+              title: "Audit History",
+              description: "Browse completed audits, reports, and compliance records.",
+              href: "/dashboard/audits",
+                icon: History,
+              iconBg: "bg-[#1463ff]/10",
+              iconFg: "text-[#2563EB]",
+            },
+          ].map((action, idx) => {
+            // Avoid react element type import gymnastics from require(); recover the component type.
+            const Icon = action.icon as React.ComponentType<{ size?: number; strokeWidth?: number; className?: string }>;
+            return (
+              <motion.div
+                key={action.title}
+                custom={idx}
+                variants={cardVariant}
+                initial="hidden"
+                animate="show"
+              >
+                <Link
+                  href={action.href}
+                  className="group block rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] p-5 shadow-sm transition-all will-change-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB]/40"
+                >
+                  <div className="flex items-start gap-4">
+                    <div
+                      className={[
+                        "mt-0.5 grid h-11 w-11 place-items-center rounded-xl transition-colors",
+                        action.iconBg,
+                      ].join(" ")}
+                    >
+                      <Icon
+                        size={18}
+                        strokeWidth={2.2}
+                        className={["transition-transform duration-200", action.iconFg, "group-hover:scale-105"].join(" ")}
+                      />
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold tracking-tight text-[#0D0C22]">
+                        {action.title}
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-[#6E6D7A]">
+                        {action.description}
+                      </p>
+                    </div>
+
+                    <span className="mt-1 flex h-7 w-7 items-center justify-center rounded-full border border-[#E7E7E9] bg-white/70 text-[#2563EB] opacity-0 -translate-x-1 transition-all duration-200 group-hover:opacity-100 group-hover:translate-x-0 group-hover:border-[#2563EB]/30">
+                      <ArrowUpRight size={14} strokeWidth={2.5} />
+                    </span>
+                  </div>
+
+                  <span className="pointer-events-none mt-4 block h-[1px] w-full bg-gradient-to-r from-transparent via-[#1463ff]/30 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
+
+                  <div className="pointer-events-none absolute" />
+                </Link>
+              </motion.div>
+            );
+          })}
+        </div>
       </motion.section>
 
       {/* ── Main 2-col section ── */}
