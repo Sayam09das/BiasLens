@@ -31,6 +31,18 @@ import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
 
+type AccountSettingsPayload = {
+  defaultDashboardView: string;
+  emailNotifications: boolean;
+  productUpdateEmails: boolean;
+  auditReportEmails: boolean;
+  weeklySummaryEmails: boolean;
+  workspaceName: string;
+  organizationType: string;
+  teamSize: string;
+  hiringVolume: string;
+};
+
 function FieldLabel({ htmlFor, children, className }: { htmlFor?: string; children: React.ReactNode; className?: string }) {
   return (
     <label
@@ -160,6 +172,47 @@ const schema = z.object({
 
 type SettingsFormValues = z.infer<typeof schema>;
 
+function buildAccountSettingsFallback(mockUser: {
+  defaultDashboardView: string;
+  emailNotifications: boolean;
+  productUpdateEmails: boolean;
+  auditReportEmails: boolean;
+  weeklySummaryEmails: boolean;
+  workspaceName: string;
+  organizationType: string;
+  teamSize: string;
+  hiringVolume: string;
+}): AccountSettingsPayload {
+  return {
+    defaultDashboardView: mockUser.defaultDashboardView,
+    emailNotifications: mockUser.emailNotifications,
+    productUpdateEmails: mockUser.productUpdateEmails,
+    auditReportEmails: mockUser.auditReportEmails,
+    weeklySummaryEmails: mockUser.weeklySummaryEmails,
+    workspaceName: mockUser.workspaceName,
+    organizationType: mockUser.organizationType,
+    teamSize: mockUser.teamSize,
+    hiringVolume: mockUser.hiringVolume,
+  };
+}
+
+function mergeAccountSettings(
+  settings: Partial<AccountSettingsPayload> | null | undefined,
+  fallback: AccountSettingsPayload,
+): AccountSettingsPayload {
+  return {
+    defaultDashboardView: settings?.defaultDashboardView ?? fallback.defaultDashboardView,
+    emailNotifications: settings?.emailNotifications ?? fallback.emailNotifications,
+    productUpdateEmails: settings?.productUpdateEmails ?? fallback.productUpdateEmails,
+    auditReportEmails: settings?.auditReportEmails ?? fallback.auditReportEmails,
+    weeklySummaryEmails: settings?.weeklySummaryEmails ?? fallback.weeklySummaryEmails,
+    workspaceName: settings?.workspaceName ?? fallback.workspaceName,
+    organizationType: settings?.organizationType ?? fallback.organizationType,
+    teamSize: settings?.teamSize ?? fallback.teamSize,
+    hiringVolume: settings?.hiringVolume ?? fallback.hiringVolume,
+  };
+}
+
 function Switch({
   checked,
   onCheckedChange,
@@ -272,8 +325,9 @@ export default function SettingsPage() {
   >({ status: "idle" });
   const [profileError, setProfileError] = React.useState<string | null>(null);
   const [isProfileLoading, setIsProfileLoading] = React.useState(false);
-  const [profileLoaded, setProfileLoaded] = React.useState(false);
+  const [settingsLoaded, setSettingsLoaded] = React.useState(false);
   const [avatarDraftUrl, setAvatarDraftUrl] = React.useState<string | null>(profileAvatar);
+  const accountFallback = React.useMemo(() => buildAccountSettingsFallback(mockUser), [mockUser]);
 
   const {
     register,
@@ -305,7 +359,7 @@ export default function SettingsPage() {
   });
 
   React.useEffect(() => {
-    if (tab !== "profile" || !user?.id || status !== "authenticated" || profileLoaded) {
+    if ((tab !== "profile" && tab !== "account") || !user?.id || status !== "authenticated" || settingsLoaded) {
       return;
     }
 
@@ -323,12 +377,15 @@ export default function SettingsPage() {
             jobTitle?: string | null;
             company?: string | null;
             phoneNumber?: string | null;
+            settings?: Partial<AccountSettingsPayload> | null;
             isActive: boolean;
             emailVerified: boolean;
             emailVerifiedAt?: string | null;
             createdAt?: string;
             updatedAt?: string;
           }>(`/v1/users/${user.id}`);
+
+          const mergedSettings = mergeAccountSettings(profile.settings, accountFallback);
 
           reset({
             fullName: profile.fullName,
@@ -337,15 +394,7 @@ export default function SettingsPage() {
             company: profile.company ?? undefined,
             phoneNumber: profile.phoneNumber ?? undefined,
             avatarFileName: undefined,
-            defaultDashboardView: mockUser.defaultDashboardView,
-            emailNotifications: mockUser.emailNotifications,
-            productUpdateEmails: mockUser.productUpdateEmails,
-            auditReportEmails: mockUser.auditReportEmails,
-            weeklySummaryEmails: mockUser.weeklySummaryEmails,
-            workspaceName: mockUser.workspaceName,
-            organizationType: mockUser.organizationType,
-            teamSize: mockUser.teamSize,
-            hiringVolume: mockUser.hiringVolume,
+            ...mergedSettings,
           });
 
           setUser({
@@ -356,13 +405,14 @@ export default function SettingsPage() {
             jobTitle: profile.jobTitle ?? null,
             company: profile.company ?? null,
             phoneNumber: profile.phoneNumber ?? null,
+            settings: mergedSettings,
             isActive: profile.isActive,
             emailVerified: profile.emailVerified,
             emailVerifiedAt: profile.emailVerifiedAt ?? null,
             createdAt: profile.createdAt,
             updatedAt: profile.updatedAt,
           });
-          setProfileLoaded(true);
+          setSettingsLoaded(true);
         } catch (e) {
           setProfileError(e instanceof Error ? e.message : "Failed to load profile.");
         } finally {
@@ -372,7 +422,7 @@ export default function SettingsPage() {
     }, 0);
 
     return () => clearTimeout(kickoff);
-  }, [mockUser, profileLoaded, reset, setUser, status, tab, user?.id]);
+  }, [accountFallback, reset, setSettingsLoaded, setUser, settingsLoaded, status, tab, user?.id]);
 
   const values = useWatch({ control });
 
@@ -403,6 +453,7 @@ export default function SettingsPage() {
           jobTitle?: string | null;
           company?: string | null;
           phoneNumber?: string | null;
+          settings?: Partial<AccountSettingsPayload> | null;
           isActive: boolean;
           emailVerified: boolean;
           emailVerifiedAt?: string | null;
@@ -435,6 +486,7 @@ export default function SettingsPage() {
           jobTitle: updated.jobTitle ?? null,
           company: updated.company ?? null,
           phoneNumber: updated.phoneNumber ?? null,
+          settings: mergeAccountSettings(updated.settings, accountFallback),
           isActive: updated.isActive,
           emailVerified: updated.emailVerified,
           emailVerifiedAt: updated.emailVerifiedAt ?? null,
@@ -442,9 +494,65 @@ export default function SettingsPage() {
           updatedAt: updated.updatedAt,
         });
         setProfileError(null);
-        setProfileLoaded(true);
-      } else {
-        await new Promise((r) => setTimeout(r, 900));
+        setSettingsLoaded(true);
+      } else if (tab === "account") {
+        if (!user?.id) {
+          throw new Error("You need to be signed in to update account preferences.");
+        }
+
+        const updated = await apiFetch<{
+          id: string;
+          email: string;
+          fullName: string;
+          role: string;
+          jobTitle?: string | null;
+          company?: string | null;
+          phoneNumber?: string | null;
+          settings?: Partial<AccountSettingsPayload> | null;
+          isActive: boolean;
+          emailVerified: boolean;
+          emailVerifiedAt?: string | null;
+          createdAt?: string;
+          updatedAt?: string;
+        }>(`/v1/users/${user.id}`, {
+          method: "PATCH",
+          body: {
+            settings: {
+              defaultDashboardView: data.defaultDashboardView,
+              emailNotifications: data.emailNotifications,
+              productUpdateEmails: data.productUpdateEmails,
+              auditReportEmails: data.auditReportEmails,
+              weeklySummaryEmails: data.weeklySummaryEmails,
+              workspaceName: data.workspaceName,
+              organizationType: data.organizationType,
+              teamSize: data.teamSize,
+              hiringVolume: data.hiringVolume,
+            },
+          },
+        });
+
+        const mergedSettings = mergeAccountSettings(updated.settings, accountFallback);
+        reset({
+          ...data,
+          ...mergedSettings,
+        });
+        setUser({
+          id: updated.id,
+          email: updated.email,
+          fullName: updated.fullName,
+          role: updated.role,
+          jobTitle: updated.jobTitle ?? null,
+          company: updated.company ?? null,
+          phoneNumber: updated.phoneNumber ?? null,
+          settings: mergedSettings,
+          isActive: updated.isActive,
+          emailVerified: updated.emailVerified,
+          emailVerifiedAt: updated.emailVerifiedAt ?? null,
+          createdAt: updated.createdAt,
+          updatedAt: updated.updatedAt,
+        });
+        setProfileError(null);
+        setSettingsLoaded(true);
       }
 
       setSaveState({ status: "success", message: "Settings saved successfully." });
@@ -614,7 +722,7 @@ export default function SettingsPage() {
                   <Label htmlFor="avatarUpload">
                     <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Profile Avatar Upload</span>
                   </Label>
-                  <p className="mt-1 text-sm text-[#6E6D7A]">Local-only for now. Profile text fields are saved to the backend.</p>
+                  <p className="mt-1 text-sm text-[#6E6D7A]">Avatar preview is stored on this device. Profile text fields are saved to the backend.</p>
                 </div>
                 <div className="flex h-12 items-center justify-end">
                   <div className="relative">
@@ -686,7 +794,7 @@ export default function SettingsPage() {
               </span>
               <div>
                 <p className="text-sm font-semibold text-[#0D0C22]">Account Preferences</p>
-                <p className="mt-1 text-sm text-[#6E6D7A]">Control notification settings and dashboard behavior.</p>
+                <p className="mt-1 text-sm text-[#6E6D7A]">Control notification settings and dashboard behavior with live account data.</p>
               </div>
             </div>
           </div>
@@ -769,7 +877,7 @@ export default function SettingsPage() {
               </span>
               <div>
                 <p className="text-sm font-semibold text-[#0D0C22]">Workspace Profile</p>
-                <p className="mt-1 text-sm text-[#6E6D7A]">Configure workspace-level hiring and reporting context.</p>
+                <p className="mt-1 text-sm text-[#6E6D7A]">Configure workspace-level hiring and reporting context stored on your account.</p>
               </div>
             </div>
           </div>
@@ -827,7 +935,7 @@ export default function SettingsPage() {
               </span>
               <div>
                 <p className="text-sm font-semibold text-[#0D0C22]">Connected Account Status</p>
-                <p className="mt-1 text-sm text-[#6E6D7A]">Security and access overview (mock).</p>
+                <p className="mt-1 text-sm text-[#6E6D7A]">Security and access overview from your current account state.</p>
               </div>
             </div>
           </div>
@@ -835,24 +943,24 @@ export default function SettingsPage() {
           <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
             <StatusCard
               title="Email Verified"
-              value={mockUser.connected.emailVerified ? "Yes" : "No"}
-              tone={mockUser.connected.emailVerified ? "success" : "danger"}
+              value={user?.emailVerified ? "Yes" : "No"}
+              tone={user?.emailVerified ? "success" : "danger"}
             />
             <StatusCard
-              title="Two-Factor Authentication"
-              value={mockUser.connected.twoFactor ? "Enabled" : "Disabled"}
-              tone={mockUser.connected.twoFactor ? "success" : "warning"}
+              title="Account Status"
+              value={user?.isActive ? "Active" : "Restricted"}
+              tone={user?.isActive ? "success" : "warning"}
             />
             <StatusCard
-              title="Active Sessions"
-              value={String(mockUser.connected.activeSessions)}
-              tone={mockUser.connected.activeSessions > 0 ? "primary" : "danger"}
+              title="Role"
+              value={user?.role ? user.role.toUpperCase() : "Unknown"}
+              tone={user?.role ? "primary" : "warning"}
               icon={<CreditCard size={18} aria-hidden="true" />}
             />
             <StatusCard
               title="API Access"
-              value={mockUser.connected.apiAccess ? "Granted" : "Revoked"}
-              tone={mockUser.connected.apiAccess ? "success" : "danger"}
+              value={user?.isActive ? "Granted" : "Restricted"}
+              tone={user?.isActive ? "success" : "danger"}
               icon={<Globe size={18} aria-hidden="true" />}
             />
           </div>

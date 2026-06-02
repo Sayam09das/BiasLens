@@ -23,6 +23,7 @@ model User {
   jobTitle                        String?
   company                         String?
   phoneNumber                     String?
+  settings                        Json?
   isActive                        Boolean   @default(true)
   emailVerified                   Boolean   @default(false)
   emailVerifiedAt                 DateTime?

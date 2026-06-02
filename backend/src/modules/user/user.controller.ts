@@ -64,6 +64,10 @@ export async function updateUserController(request: Request, response: Response)
     updates.phoneNumber = request.body.phoneNumber.trim() || null;
   }
 
+  if (request.body?.settings && typeof request.body.settings === "object") {
+    updates.settings = request.body.settings;
+  }
+
   if (typeof request.body?.role === "string" && request.body.role.trim()) {
     if (!isAdmin) {
       throw new ForbiddenError("Only admins can change user roles.");

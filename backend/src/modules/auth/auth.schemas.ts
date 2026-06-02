@@ -3,6 +3,17 @@ import { z } from "zod";
 import { getPasswordPolicyIssues } from "./auth.password-policy.js";
 
 const objectIdPattern = /^[a-f0-9]{24}$/i;
+const userSettingsSchema = z.object({
+  defaultDashboardView: z.string().trim().min(1).max(40),
+  emailNotifications: z.boolean(),
+  productUpdateEmails: z.boolean(),
+  auditReportEmails: z.boolean(),
+  weeklySummaryEmails: z.boolean(),
+  workspaceName: z.string().trim().min(2).max(120),
+  organizationType: z.string().trim().min(1).max(60),
+  teamSize: z.string().trim().min(1).max(40),
+  hiringVolume: z.string().trim().min(1).max(40),
+});
 
 export const authSchemas = {
   registerBody: z
@@ -64,13 +75,15 @@ export const authSchemas = {
       jobTitle: z.string().trim().max(120).optional(),
       company: z.string().trim().max(120).optional(),
       phoneNumber: z.string().trim().max(30).optional(),
+      settings: userSettingsSchema.optional(),
       role: z.string().trim().min(2).max(40).optional(),
       isActive: z.boolean().optional(),
     })
     .refine(
       (value) =>
         value.fullName !== undefined || value.role !== undefined || value.isActive !== undefined ||
-        value.jobTitle !== undefined || value.company !== undefined || value.phoneNumber !== undefined,
+        value.jobTitle !== undefined || value.company !== undefined || value.phoneNumber !== undefined ||
+        value.settings !== undefined,
       "At least one user field must be provided."
     ),
 };
