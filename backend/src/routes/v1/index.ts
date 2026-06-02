@@ -8,6 +8,9 @@ import { uploadRoutes } from "./upload.routes.js";
 import { userRoutes } from "./user.routes.js";
 import { fairnessRoutes } from "../../modules/fairness/fairness.routes.js";
 import { explainabilityRoutes } from "../../modules/explainability/explainability.routes.js";
+import { notificationRoutes } from "../../modules/notification/notification.routes.js";
+import { securityRoutes } from "../../modules/security/security.routes.js";
+
 
 const router = Router();
 
@@ -19,5 +22,8 @@ router.use("/", uploadRoutes);
 router.use("/", reportRoutes);
 router.use("/", fairnessRoutes);
 router.use("/", explainabilityRoutes);
+router.use("/", notificationRoutes);
+router.use("/", securityRoutes);
+
 
 export { router as v1Routes };

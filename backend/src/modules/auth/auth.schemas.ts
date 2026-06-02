@@ -3,6 +3,22 @@ import { z } from "zod";
 import { getPasswordPolicyIssues } from "./auth.password-policy.js";
 
 const objectIdPattern = /^[a-f0-9]{24}$/i;
+const notificationSettingsSchema = z.object({
+  emailAuditComplete: z.boolean(),
+  emailFairnessAlert: z.boolean(),
+  emailReportShared: z.boolean(),
+  emailWeeklyDigest: z.boolean(),
+  emailProductUpdates: z.boolean(),
+  emailSecurityAlerts: z.boolean(),
+  inAppAuditComplete: z.boolean(),
+  inAppFairnessAlert: z.boolean(),
+  inAppReportShared: z.boolean(),
+  inAppTeamActivity: z.boolean(),
+  digestFrequency: z.enum(["realtime", "daily", "weekly"]),
+  quietHoursEnabled: z.boolean(),
+  quietFrom: z.string().trim().min(1).max(5),
+  quietTo: z.string().trim().min(1).max(5),
+});
 const userSettingsSchema = z.object({
   defaultDashboardView: z.string().trim().min(1).max(40),
   emailNotifications: z.boolean(),
@@ -13,6 +29,7 @@ const userSettingsSchema = z.object({
   organizationType: z.string().trim().min(1).max(60),
   teamSize: z.string().trim().min(1).max(40),
   hiringVolume: z.string().trim().min(1).max(40),
+  notifications: notificationSettingsSchema.optional(),
 });
 
 export const authSchemas = {

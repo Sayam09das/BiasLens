@@ -27,6 +27,8 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { useNotifications, type NotificationPreferences } from "@/hooks/useNotifications";
+import { makeSecurityScanSseUrl, startSecurityScan, type SecurityScanEvent } from "@/lib/securityScanSse";
 import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
@@ -41,6 +43,10 @@ type AccountSettingsPayload = {
   organizationType: string;
   teamSize: string;
   hiringVolume: string;
+};
+
+type UserSettingsPayload = AccountSettingsPayload & {
+  notifications?: NotificationPreferences;
 };
 
 function FieldLabel({ htmlFor, children, className }: { htmlFor?: string; children: React.ReactNode; className?: string }) {
@@ -213,6 +219,18 @@ function mergeAccountSettings(
   };
 }
 
+function mergeUserSettings(
+  settings: Partial<UserSettingsPayload> | null | undefined,
+  fallback: AccountSettingsPayload,
+): UserSettingsPayload {
+  const mergedAccount = mergeAccountSettings(settings, fallback);
+
+  return {
+    ...mergedAccount,
+    notifications: settings?.notifications,
+  };
+}
+
 function Switch({
   checked,
   onCheckedChange,
@@ -377,7 +395,7 @@ export default function SettingsPage() {
             jobTitle?: string | null;
             company?: string | null;
             phoneNumber?: string | null;
-            settings?: Partial<AccountSettingsPayload> | null;
+            settings?: Partial<UserSettingsPayload> | null;
             isActive: boolean;
             emailVerified: boolean;
             emailVerifiedAt?: string | null;
@@ -385,7 +403,7 @@ export default function SettingsPage() {
             updatedAt?: string;
           }>(`/v1/users/${user.id}`);
 
-          const mergedSettings = mergeAccountSettings(profile.settings, accountFallback);
+          const mergedSettings = mergeUserSettings(profile.settings, accountFallback);
 
           reset({
             fullName: profile.fullName,
@@ -453,7 +471,7 @@ export default function SettingsPage() {
           jobTitle?: string | null;
           company?: string | null;
           phoneNumber?: string | null;
-          settings?: Partial<AccountSettingsPayload> | null;
+          settings?: Partial<UserSettingsPayload> | null;
           isActive: boolean;
           emailVerified: boolean;
           emailVerifiedAt?: string | null;
@@ -486,7 +504,7 @@ export default function SettingsPage() {
           jobTitle: updated.jobTitle ?? null,
           company: updated.company ?? null,
           phoneNumber: updated.phoneNumber ?? null,
-          settings: mergeAccountSettings(updated.settings, accountFallback),
+          settings: mergeUserSettings(updated.settings, accountFallback),
           isActive: updated.isActive,
           emailVerified: updated.emailVerified,
           emailVerifiedAt: updated.emailVerifiedAt ?? null,
@@ -508,7 +526,7 @@ export default function SettingsPage() {
           jobTitle?: string | null;
           company?: string | null;
           phoneNumber?: string | null;
-          settings?: Partial<AccountSettingsPayload> | null;
+          settings?: Partial<UserSettingsPayload> | null;
           isActive: boolean;
           emailVerified: boolean;
           emailVerifiedAt?: string | null;
@@ -531,7 +549,7 @@ export default function SettingsPage() {
           },
         });
 
-        const mergedSettings = mergeAccountSettings(updated.settings, accountFallback);
+        const mergedSettings = mergeUserSettings(updated.settings, accountFallback);
         reset({
           ...data,
           ...mergedSettings,
@@ -1053,59 +1071,96 @@ export default function SettingsPage() {
 }
 
 function NotificationsTab() {
-  type Prefs = {
-    // Email
-    emailAuditComplete: boolean;
-    emailFairnessAlert: boolean;
-    emailReportShared: boolean;
-    emailWeeklyDigest: boolean;
-    emailProductUpdates: boolean;
-    emailSecurityAlerts: boolean;
-    // In-app
-    inAppAuditComplete: boolean;
-    inAppFairnessAlert: boolean;
-    inAppReportShared: boolean;
-    inAppTeamActivity: boolean;
-    // Frequency
-    digestFrequency: "realtime" | "daily" | "weekly";
-    quietHoursEnabled: boolean;
-    quietFrom: string;
-    quietTo: string;
-  };
+  const { user, setUser } = useAuthStore();
+  const { data, isLoading, error, refresh } = useNotifications(30000, Boolean(user?.id));
+  const [draftPrefs, setDraftPrefs] = React.useState<NotificationPreferences | null>(null);
+  const prefs = draftPrefs ?? data?.preferences ?? null;
 
-  const [prefs, setPrefs] = React.useState<Prefs>({
-    emailAuditComplete: true,
-    emailFairnessAlert: true,
-    emailReportShared: true,
-    emailWeeklyDigest: true,
-    emailProductUpdates: false,
-    emailSecurityAlerts: true,
-    inAppAuditComplete: true,
-    inAppFairnessAlert: true,
-    inAppReportShared: false,
-    inAppTeamActivity: true,
-    digestFrequency: "daily",
-    quietHoursEnabled: false,
-    quietFrom: "22:00",
-    quietTo: "08:00",
-  });
-
-  const set = <K extends keyof Prefs>(key: K, val: Prefs[K]) =>
-    setPrefs((p) => ({ ...p, [key]: val }));
+  const set = <K extends keyof NotificationPreferences>(key: K, value: NotificationPreferences[K]) =>
+    setDraftPrefs((current) => {
+      const source = current ?? data?.preferences;
+      return source ? { ...source, [key]: value } : current;
+    });
 
   const [saveState, setSaveState] = React.useState<
     | { status: "idle" }
     | { status: "saving" }
     | { status: "success" }
-    | { status: "error" }
+    | { status: "error"; message: string }
   >({ status: "idle" });
 
   const save = async () => {
+    if (!user?.id || !prefs) {
+      setSaveState({ status: "error", message: "You need to be signed in to save notification preferences." });
+      return;
+    }
+
     setSaveState({ status: "saving" });
-    await new Promise((r) => setTimeout(r, 800));
-    setSaveState({ status: "success" });
-    await new Promise((r) => setTimeout(r, 1400));
-    setSaveState({ status: "idle" });
+
+    try {
+      const currentSettings =
+        user.settings && typeof user.settings === "object"
+          ? user.settings
+          : undefined;
+
+      const updated = await apiFetch<{
+        id: string;
+        email: string;
+        fullName: string;
+        role: string;
+        jobTitle?: string | null;
+        company?: string | null;
+        phoneNumber?: string | null;
+        settings?: UserSettingsPayload | null;
+        isActive: boolean;
+        emailVerified: boolean;
+        emailVerifiedAt?: string | null;
+        createdAt?: string;
+        updatedAt?: string;
+      }>(`/v1/users/${user.id}`, {
+        method: "PATCH",
+        body: {
+          settings: {
+            defaultDashboardView: currentSettings?.defaultDashboardView ?? "reports",
+            emailNotifications: currentSettings?.emailNotifications ?? true,
+            productUpdateEmails: currentSettings?.productUpdateEmails ?? false,
+            auditReportEmails: currentSettings?.auditReportEmails ?? true,
+            weeklySummaryEmails: currentSettings?.weeklySummaryEmails ?? true,
+            workspaceName: currentSettings?.workspaceName ?? "BiasLens Workspace",
+            organizationType: currentSettings?.organizationType ?? "Startup",
+            teamSize: currentSettings?.teamSize ?? "21-100",
+            hiringVolume: currentSettings?.hiringVolume ?? "21-100",
+            notifications: prefs,
+          },
+        },
+      });
+
+      setUser({
+        id: updated.id,
+        email: updated.email,
+        fullName: updated.fullName,
+        role: updated.role,
+        jobTitle: updated.jobTitle ?? null,
+        company: updated.company ?? null,
+        phoneNumber: updated.phoneNumber ?? null,
+        settings: updated.settings ?? null,
+        isActive: updated.isActive,
+        emailVerified: updated.emailVerified,
+        emailVerifiedAt: updated.emailVerifiedAt ?? null,
+        createdAt: updated.createdAt,
+        updatedAt: updated.updatedAt,
+      });
+      setDraftPrefs(null);
+      await refresh();
+      setSaveState({ status: "success" });
+      await new Promise((r) => setTimeout(r, 1400));
+      setSaveState({ status: "idle" });
+    } catch (nextError) {
+      setSaveState({
+        status: "error",
+        message: nextError instanceof Error ? nextError.message : "Failed to save notification preferences.",
+      });
+    }
   };
 
   const emailRows = [
@@ -1124,8 +1179,32 @@ function NotificationsTab() {
     { key: "inAppTeamActivity" as const,    label: "Team activity",       desc: "Activity from teammates in your workspace."            },
   ];
 
-  const enabledEmailCount = emailRows.filter((r) => prefs[r.key]).length;
-  const enabledInAppCount = inAppRows.filter((r) => prefs[r.key]).length;
+  const enabledEmailCount = prefs ? emailRows.filter((r) => prefs[r.key]).length : 0;
+  const enabledInAppCount = prefs ? inAppRows.filter((r) => prefs[r.key]).length : 0;
+
+  if (isLoading && !prefs) {
+    return (
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+        <div className="space-y-3">
+          <div className="h-4 w-40 animate-pulse rounded-full bg-[#dbe8ff]" />
+          <div className="h-24 animate-pulse rounded-[1.5rem] bg-[#F6F8FB]" />
+          <div className="h-24 animate-pulse rounded-[1.5rem] bg-[#F6F8FB]" />
+        </div>
+      </Card>
+    );
+  }
+
+  if (!prefs) {
+    return (
+      <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+        <p className="text-sm font-semibold text-[#0D0C22]">Notifications could not be loaded</p>
+        <p className="mt-2 text-sm text-[#6E6D7A]">{error ?? "Please try again in a moment."}</p>
+        <Button type="button" onClick={() => void refresh()} className="mt-4 rounded-[1.25rem] bg-[#2563EB] px-5 text-white hover:bg-[#1D4ED8]">
+          Retry
+        </Button>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -1302,7 +1381,7 @@ function NotificationsTab() {
         </div>
         <div className="mt-4">
           <AnimatePresence>
-            {saveState.status === "success" && (
+              {saveState.status === "success" && (
               <motion.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -1318,10 +1397,61 @@ function NotificationsTab() {
                   </div>
                 </div>
               </motion.div>
-            )}
-          </AnimatePresence>
+              )}
+
+              {saveState.status === "error" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="rounded-[1.25rem] border border-[rgba(239,68,68,0.25)] bg-[rgba(239,68,68,0.10)] p-4"
+                  role="alert"
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="text-[#EF4444]" size={18} aria-hidden="true" />
+                    <div>
+                      <p className="text-sm font-semibold text-[#0D0C22]">Could not save</p>
+                      <p className="mt-1 text-sm text-[#6E6D7A]">{saveState.message}</p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
-      </div>
+
+      {data?.items?.length ? (
+        <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-[#0D0C22]">Recent Notification Activity</p>
+              <p className="mt-1 text-sm text-[#6E6D7A]">Live items currently powering the dashboard bell.</p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void refresh()}
+              className="rounded-[1.25rem] border-[#E7E7E9] text-[#6E6D7A] hover:bg-[#F6F8FB]"
+            >
+              Refresh
+            </Button>
+          </div>
+
+          <div className="mt-5 divide-y divide-[#E7E7E9] rounded-[1.5rem] border border-[#E7E7E9]">
+            {data.items.slice(0, 5).map((item) => (
+              <div key={item.id} className="px-4 py-3.5">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold text-[#0D0C22]">{item.title}</p>
+                  <span className="text-xs text-[#6E6D7A]">
+                    {new Date(item.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-[#6E6D7A]">{item.message}</p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      ) : null}
     </div>
   );
 }

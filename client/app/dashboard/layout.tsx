@@ -38,6 +38,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useNotifications } from "@/hooks/useNotifications";
 import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
 import { useAuditStore } from "@/store/audit.store";
@@ -416,6 +417,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const { user, status, bootstrap, logout, refresh } = useAuthStore();
   const { sidebarCollapsed, setSidebarCollapsed, theme, setTheme, profileAvatar } = useUIStore();
   const fetchHistory = useAuditStore((s) => s.fetchHistory);
+  const { data: notificationSummary, refresh: refreshNotifications } = useNotifications(
+    30000,
+    status === "authenticated",
+  );
 
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -630,25 +635,65 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </motion.div>
 
                 {/* Bell */}
-                <motion.div
-                  className="relative"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.93 }}
-                >
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-9 w-9 rounded-lg"
-                    aria-label="Notifications"
-                  >
-                    <Bell size={16} />
-                    <motion.span
-                      className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#1463ff] ring-2 ring-white"
-                      animate={{ scale: [1, 1.4, 1] }}
-                      transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
-                    />
-                  </Button>
-                </motion.div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger>
+                    <motion.button
+                      type="button"
+                      className="relative flex h-9 w-9 items-center justify-center rounded-lg transition hover:bg-[#f8fafc]"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.93 }}
+                      aria-label="Notifications"
+                    >
+                      <Bell size={16} />
+                      {notificationSummary?.unreadCount ? (
+                        <motion.span
+                          className="absolute right-1.5 top-1.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full bg-[#1463ff] px-1 text-[10px] font-semibold text-white ring-2 ring-white"
+                          animate={{ scale: [1, 1.08, 1] }}
+                          transition={{ repeat: Infinity, duration: 2.4, ease: "easeInOut" }}
+                        >
+                          {notificationSummary.unreadCount > 9 ? "9+" : notificationSummary.unreadCount}
+                        </motion.span>
+                      ) : null}
+                    </motion.button>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuContent align="end" className="w-80 rounded-xl">
+                    <DropdownMenuLabel className="flex items-center justify-between">
+                      <span>Notifications</span>
+                      <button
+                        type="button"
+                        onClick={() => void refreshNotifications()}
+                        className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#1463ff]"
+                      >
+                        Refresh
+                      </button>
+                    </DropdownMenuLabel>
+                    <div className="max-h-80 overflow-y-auto">
+                      {notificationSummary?.items?.length ? (
+                        notificationSummary.items.slice(0, 5).map((item) => (
+                          <div key={item.id} className="rounded-xl px-3 py-2.5 hover:bg-[#f8fafc]">
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="text-sm font-semibold text-[#0f172a]">{item.title}</p>
+                              <span className="text-[11px] text-[#94a3b8]">
+                                {new Date(item.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs leading-5 text-[#64748b]">{item.message}</p>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-3 py-4 text-sm text-[#64748b]">
+                          No recent notifications right now.
+                        </div>
+                      )}
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => router.push("/dashboard/settings?tab=notifications")}>
+                      <Bell size={13} className="mr-2" />
+                      Notification settings
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
                 {/* Theme toggle */}
                 <motion.div
