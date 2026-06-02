@@ -23,6 +23,11 @@ function SectionSkeleton({ height = 320 }: { height?: number }) {
 
 export default function ExplainabilityPage() {
   const { data, isLoading, error, lastFetch, refetch } = useExplainability();
+  const hasExplainabilityData =
+    (data?.stats.totalReports ?? 0) > 0 &&
+    ((data?.shap.length ?? 0) > 0 ||
+      (data?.features.length ?? 0) > 0 ||
+      (data?.proxySignals.length ?? 0) > 0);
 
   if (error && !data) {
     return (
@@ -103,6 +108,16 @@ export default function ExplainabilityPage() {
             ))}
       </section>
 
+      {!isLoading && data && !hasExplainabilityData ? (
+        <Card className="rounded-4xl border-[#E7E7E9] bg-white/90 p-8 text-center shadow-[0_20px_50px_rgba(13,12,34,0.06)]">
+          <p className="text-lg font-semibold text-[#0D0C22]">No live explainability data yet</p>
+          <p className="mt-2 text-sm text-[#6E6D7A]">
+            Complete an audit that stores ML explanation output to populate this dashboard in real time.
+          </p>
+        </Card>
+      ) : null}
+
+      {hasExplainabilityData ? (
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
         {isLoading && !data ? (
           <>
@@ -116,7 +131,9 @@ export default function ExplainabilityPage() {
           </>
         )}
       </section>
+      ) : null}
 
+      {hasExplainabilityData ? (
       <section className="grid gap-6 xl:grid-cols-[minmax(0,0.95fr)_minmax(420px,1.05fr)]">
         {isLoading && !data ? (
           <>
@@ -130,6 +147,7 @@ export default function ExplainabilityPage() {
           </>
         )}
       </section>
+      ) : null}
     </div>
   );
 }

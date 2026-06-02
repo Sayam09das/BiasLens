@@ -18,7 +18,7 @@ const router = Router();
 router.get("/audits/statuses", getAuditStatusesController);
 router.get("/audits",     requireAuth, listAuditsController);
 router.get("/audits/:id", requireAuth, getAuditByIdController);
-router.post("/audits",    createAuditController);
+router.post("/audits",    requireAuth, createAuditController);
 
 router.get(
   "/audit-logs",

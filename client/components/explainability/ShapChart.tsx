@@ -121,24 +121,11 @@ function ContributionTooltip({
 }
 
 export default function ShapChart({ values, className, title, description }: ShapChartProps) {
-  const fallback: ShapDatum[] = React.useMemo(
-    () => [
-      { signal: "Product Strategy Experience", value: 6.4 },
-      { signal: "UX Research", value: 3.2 },
-      { signal: "Leadership Impact", value: 2.1 },
-      { signal: "Metrics Driven Results", value: 1.4 },
-      { signal: "Missing Portfolio Link", value: -2.6 },
-      { signal: "Limited Accessibility Evidence", value: -3.9 },
-      { signal: "Weak Quantified Outcomes", value: -5.2 },
-    ],
-    []
-  );
-
   const data = React.useMemo(() => {
-    const arr = values && values.length ? values : fallback;
+    const arr = values ?? [];
     // Keep stable order by sorting magnitude descending for a readable chart.
     return [...arr].sort((a, b) => Math.abs(b.value) - Math.abs(a.value));
-  }, [values, fallback]);
+  }, [values]);
 
   const summary = React.useMemo(() => getSummary(data), [data]);
 
@@ -161,7 +148,7 @@ export default function ShapChart({ values, className, title, description }: Sha
             </h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6E6D7A]">
               {description ??
-                "Horizontal bars show which resume signals push the decision up or down. Values are mock-friendly and computed from provided props."}
+                "Horizontal bars show which live resume signals push the decision up or down."}
             </p>
           </div>
 
@@ -195,6 +182,7 @@ export default function ShapChart({ values, className, title, description }: Sha
               </div>
 
               <div className="mt-3 h-[320px]" role="img" aria-label="Horizontal bar chart of SHAP contributions">
+                {data.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={data.map((d) => ({ ...d, label: d.signal }))}
@@ -232,6 +220,11 @@ export default function ShapChart({ values, className, title, description }: Sha
                     />
                   </BarChart>
                 </ResponsiveContainer>
+                ) : (
+                  <div className="grid h-full place-items-center rounded-[1.25rem] border border-dashed border-[#d0d5dd] bg-white text-sm text-[#6E6D7A]">
+                    No stored SHAP contributions yet.
+                  </div>
+                )}
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-2 px-2">

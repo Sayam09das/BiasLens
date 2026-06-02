@@ -141,62 +141,11 @@ function FieldKV({ label, value }: { label: string; value: string }) {
 }
 
 export default function ProxySignalTable({ signals, className }: ProxySignalTableProps) {
-  const fallback: ProxySignal[] = React.useMemo(
-    () => [
-      {
-        id: "college-tier",
-        signal: "College Tier",
-        category: "Education",
-        risk: "Medium",
-        reason: "May correlate with socioeconomic background and indirect access to opportunities.",
-        recommendation: "Normalize education weight and focus on demonstrated skills.",
-        status: "Review",
-      },
-      {
-        id: "location",
-        signal: "Location",
-        category: "Geography",
-        risk: "High",
-        reason: "May influence scoring through regional hiring bias or uneven access to networks.",
-        recommendation: "Remove location weighting unless role-relevant.",
-        status: "Action Needed",
-      },
-      {
-        id: "career-gap",
-        signal: "Career Gap",
-        category: "Employment History",
-        risk: "Medium",
-        reason: "May unfairly penalize caregiving, health-related gaps, or non-linear careers.",
-        recommendation: "Evaluate context and avoid automatic penalty.",
-        status: "Review",
-      },
-      {
-        id: "name-pattern",
-        signal: "Name Pattern",
-        category: "Identity Proxy",
-        risk: "High",
-        reason: "Could act as a demographic proxy when correlated with protected attributes.",
-        recommendation: "Mask identity signals during scoring.",
-        status: "Action Needed",
-      },
-      {
-        id: "keyword-density",
-        signal: "Keyword Density",
-        category: "Resume Style",
-        risk: "Low",
-        reason: "May favor ATS-optimized resumes over equally qualified candidates.",
-        recommendation: "Balance keyword scoring with experience evidence.",
-        status: "Monitor",
-      },
-    ],
-    [],
-  );
-
   const base = React.useMemo(() => {
-    const arr = signals ?? fallback;
-    if (!Array.isArray(arr) || !arr.length) return fallback;
+    const arr = signals ?? [];
+    if (!Array.isArray(arr)) return [];
     return arr;
-  }, [signals, fallback]);
+  }, [signals]);
 
   const [query, setQuery] = React.useState("");
   const [riskFilter, setRiskFilter] = React.useState<"All" | ProxyRiskLevel>("All");
@@ -297,6 +246,12 @@ export default function ProxySignalTable({ signals, className }: ProxySignalTabl
           </div>
         </div>
 
+        {base.length === 0 ? (
+          <div className="mt-6 rounded-[1.5rem] border border-dashed border-[#d0d5dd] bg-[#f8fafc] p-5 text-sm text-[#6E6D7A]">
+            No stored proxy-signal detections yet.
+          </div>
+        ) : (
+        <>
         {/* Desktop table */}
         <div className="mt-6 hidden lg:block">
           <div className="overflow-x-auto rounded-[1.5rem] border border-[#E7E7E9] bg-[#FFFFFF]">
@@ -393,6 +348,8 @@ export default function ProxySignalTable({ signals, className }: ProxySignalTabl
             </div>
           </div>
         </div>
+        </>
+        )}
       </Card>
     </div>
   );

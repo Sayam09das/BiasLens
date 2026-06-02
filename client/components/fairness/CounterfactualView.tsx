@@ -227,25 +227,8 @@ function ExampleCard({ example, index }: { example: CounterfactualExample; index
   );
 }
 
-const defaultExamples: CounterfactualExample[] = [
-  {
-    originalSignal: "Graduated from Tier-3 college",
-    counterfactualSignal: "Graduated from Tier-1 college",
-    originalScorePct: 52.4,
-    counterfactualScorePct: 55.6,
-    interpretation: "Low sensitivity detected. The recommendation remains mostly stable after the attribute change.",
-  },
-  {
-    originalSignal: "Located in a higher-risk region",
-    counterfactualSignal: "Located in a lower-risk region",
-    originalScorePct: 47.8,
-    counterfactualScorePct: 50.9,
-    interpretation: "Moderate sensitivity detected. Some fairness mitigation may be needed for geographic signals.",
-  },
-];
-
 export default function CounterfactualView({ examples, className }: CounterfactualViewProps) {
-  const data = React.useMemo(() => examples && examples.length ? examples : defaultExamples, [examples]);
+  const data = React.useMemo(() => examples ?? [], [examples]);
   return (
     <div className={className}>
       <Card className="rounded-4xl border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_24px_64px_rgba(13,12,34,0.03)] sm:p-6">
@@ -267,11 +250,17 @@ export default function CounterfactualView({ examples, className }: Counterfactu
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4">
-          <AnimatePresence initial={false} mode="popLayout">
-            {data.map((ex, idx) => (
-              <ExampleCard key={`${ex.originalSignal}-${idx}`} example={ex} index={idx} />
-            ))}
-          </AnimatePresence>
+          {data.length > 0 ? (
+            <AnimatePresence initial={false} mode="popLayout">
+              {data.map((ex, idx) => (
+                <ExampleCard key={`${ex.originalSignal}-${idx}`} example={ex} index={idx} />
+              ))}
+            </AnimatePresence>
+          ) : (
+            <div className="rounded-[1.5rem] border border-dashed border-[#d0d5dd] bg-[#f8fafc] p-5 text-sm text-[#6E6D7A]">
+              No counterfactual examples have been stored for this fairness cohort yet.
+            </div>
+          )}
         </div>
 
         <div className="mt-5 rounded-[1.5rem] border border-[#E7E7E9] bg-[#F6F8FB] p-4">
@@ -291,4 +280,3 @@ export default function CounterfactualView({ examples, className }: Counterfactu
     </div>
   );
 }
-

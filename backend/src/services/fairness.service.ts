@@ -80,9 +80,28 @@ export const fairnessService = {
       take: 50,
     });
 
-    // If no real data, return sensible defaults so the UI is never empty
+    // No reports means no fairness cohort yet.
     if (reports.length === 0) {
-      return buildDefault();
+      return {
+        metrics: {
+          demographicParityGap: 0,
+          equalizedOddsDifference: 0,
+          counterfactualConsistency: 0,
+          fairnessScore: 0,
+          biasRiskLevel: "Low",
+          groupScoreVariance: 0,
+        },
+        trend: [],
+        groupComparison: [],
+        heatmap: {},
+        counterfactuals: [],
+        stats: {
+          overallFairnessScore: 0,
+          highestRiskSignal: "No fairness data yet",
+          counterfactualStability: 0,
+          totalReports: 0,
+        },
+      };
     }
 
     // ── Aggregate snapshots ──────────────────────────────────────────────────
@@ -96,11 +115,11 @@ export const fairnessService = {
       return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : fallback;
     };
 
-    const dpGap  = clamp(avg("demographic_parity_gap",       0.12), 0, 1);
-    const eoGap  = clamp(avg("equalized_odds_difference",    0.09), 0, 1);
-    const cfCons = clamp(avg("counterfactual_consistency",   0.74), 0, 1);
-    const fScore = clamp(avg("fairness_score",               63),   0, 100);
-    const gVar   = clamp(avg("group_score_variance",         0.11), 0, 1);
+    const dpGap  = clamp(avg("demographic_parity_gap", 0), 0, 1);
+    const eoGap  = clamp(avg("equalized_odds_difference", 0), 0, 1);
+    const cfCons = clamp(avg("counterfactual_consistency", 0), 0, 1);
+    const fScore = clamp(avg("fairness_score", 0), 0, 100);
+    const gVar   = clamp(avg("group_score_variance", 0), 0, 1);
 
     // ── Trend — use last 4 reports as T-4…T-1 ───────────────────────────────
     const trendReports = reports.slice(-4);
@@ -108,10 +127,10 @@ export const fairnessService = {
       const s = (r.fairnessSnapshot as Snap) ?? {};
       return {
         label:                    `T-${trendReports.length - i}`,
-        fairnessScore:            clamp(safeNum(s["fairness_score"],             fScore - (3 - i) * 1.5), 0, 100),
-        parityGap:                clamp(safeNum(s["demographic_parity_gap"],     dpGap  + (3 - i) * 0.02), 0, 1),
-        equalizedOdds:            clamp(safeNum(s["equalized_odds_difference"],  eoGap  + (3 - i) * 0.01), 0, 1),
-        counterfactualConsistency:clamp(safeNum(s["counterfactual_consistency"], cfCons - (3 - i) * 0.02), 0, 1),
+        fairnessScore: clamp(safeNum(s["fairness_score"], fScore), 0, 100),
+        parityGap: clamp(safeNum(s["demographic_parity_gap"], dpGap), 0, 1),
+        equalizedOdds: clamp(safeNum(s["equalized_odds_difference"], eoGap), 0, 1),
+        counterfactualConsistency: clamp(safeNum(s["counterfactual_consistency"], cfCons), 0, 1),
       };
     });
 
@@ -126,7 +145,6 @@ export const fairnessService = {
         score: clamp(safeNum(g.score, 60), 0, 100),
       }));
     } else {
-      // Derive from probability spread across reports
       const probs = reports.map((r) => safeNum(r.topProbability, 0.6) * 100);
       const base  = probs.reduce((a, b) => a + b, 0) / (probs.length || 1);
       groupComparison = [
@@ -140,20 +158,27 @@ export const fairnessService = {
     // ── Heatmap ──────────────────────────────────────────────────────────────
     const heatmapRaw = lastSnap["heatmap"] as Record<string, Record<string, number>> | undefined;
     const signals    = ["Education", "Experience", "Skills", "Location", "Keywords", "Career Gap"];
-    const groups     = ["Group A", "Group B", "Group C", "Group D"];
+    const groups     = groupComparison.map((item) => item.group);
 
     const heatmap: FairnessSummary["heatmap"] = {};
-    for (const g of groups) {
+    const averageGroupScore =
+      groupComparison.reduce((sum, group) => sum + group.score, 0) / Math.max(groupComparison.length, 1);
+    for (const [groupIndex, g] of groups.entries()) {
       heatmap[g] = {};
-      for (const sig of signals) {
-        const rawGap = heatmapRaw?.[g]?.[sig] ?? dpGap + (Math.random() * 0.1 - 0.05);
-        const gap    = clamp(rawGap, 0, 1);
+      const groupDelta = Math.abs((groupComparison[groupIndex]?.score ?? averageGroupScore) - averageGroupScore) / 100;
+      signals.forEach((sig, signalIndex) => {
+        const derivedGap = clamp(
+          dpGap + groupDelta * 0.7 + signalIndex * 0.01,
+          0,
+          1,
+        );
+        const gap = clamp(heatmapRaw?.[g]?.[sig] ?? derivedGap, 0, 1);
         const sev    = severityFromGap(gap);
         heatmap[g][sig] = {
           severity:  sev,
           riskLabel: sev === "low" ? "Minimal skew" : sev === "medium" ? "Moderate disparity" : "High disparity",
         };
-      }
+      });
     }
 
     // ── Counterfactuals ──────────────────────────────────────────────────────
@@ -169,25 +194,7 @@ export const fairnessService = {
         interpretation:        safeStr(cf["interpretation"],         "Counterfactual analysis result."),
       }));
     } else {
-      const base = clamp(fScore * 0.8, 30, 90);
-      counterfactuals = [
-        {
-          originalSignal:        "Career gap present (> 6 months)",
-          counterfactualSignal:  "No career gap",
-          originalScorePct:      clamp(base - 4, 0, 100),
-          counterfactualScorePct:clamp(base + 2, 0, 100),
-          interpretation:        dpGap > 0.15
-            ? "Moderate sensitivity detected. Career gap penalization may introduce fairness risk."
-            : "Low sensitivity. Career gap has minimal impact on recommendation stability.",
-        },
-        {
-          originalSignal:        "Location: Tier-2 city",
-          counterfactualSignal:  "Location: Tier-1 city",
-          originalScorePct:      clamp(base - 2, 0, 100),
-          counterfactualScorePct:clamp(base + 1, 0, 100),
-          interpretation:        "Geographic signal shows low sensitivity. Recommendation remains stable.",
-        },
-      ];
+      counterfactuals = [];
     }
 
     // ── Highest risk signal ──────────────────────────────────────────────────
@@ -223,85 +230,3 @@ export const fairnessService = {
     };
   },
 };
-
-// ── Default when no reports exist ─────────────────────────────────────────────
-function buildDefault(): FairnessSummary {
-  return {
-    metrics: {
-      demographicParityGap:      0.12,
-      equalizedOddsDifference:   0.09,
-      counterfactualConsistency: 0.74,
-      fairnessScore:             63,
-      biasRiskLevel:             "Medium",
-      groupScoreVariance:        0.11,
-    },
-    trend: [
-      { label: "T-4", fairnessScore: 58, parityGap: 0.18, equalizedOdds: 0.14, counterfactualConsistency: 0.66 },
-      { label: "T-3", fairnessScore: 60, parityGap: 0.15, equalizedOdds: 0.11, counterfactualConsistency: 0.69 },
-      { label: "T-2", fairnessScore: 62, parityGap: 0.13, equalizedOdds: 0.10, counterfactualConsistency: 0.71 },
-      { label: "T-1", fairnessScore: 63, parityGap: 0.12, equalizedOdds: 0.09, counterfactualConsistency: 0.74 },
-    ],
-    groupComparison: [
-      { group: "Group A", score: 71 },
-      { group: "Group B", score: 64 },
-      { group: "Group C", score: 58 },
-      { group: "Group D", score: 49 },
-    ],
-    heatmap: {
-      "Group A": {
-        Education:    { severity: "low",    riskLabel: "Minimal skew"          },
-        Experience:   { severity: "medium", riskLabel: "Slight disparity"      },
-        Skills:       { severity: "low",    riskLabel: "Aligned outcomes"      },
-        Location:     { severity: "medium", riskLabel: "Regional weighting"    },
-        Keywords:     { severity: "medium", riskLabel: "Keyword sensitivity"   },
-        "Career Gap": { severity: "high",   riskLabel: "Gap penalization"      },
-      },
-      "Group B": {
-        Education:    { severity: "medium", riskLabel: "Education weighting"   },
-        Experience:   { severity: "low",    riskLabel: "Stable"                },
-        Skills:       { severity: "medium", riskLabel: "Tool mismatch"         },
-        Location:     { severity: "low",    riskLabel: "No major skew"         },
-        Keywords:     { severity: "low",    riskLabel: "Balanced"              },
-        "Career Gap": { severity: "medium", riskLabel: "Mild disadvantage"     },
-      },
-      "Group C": {
-        Education:    { severity: "high",   riskLabel: "Qualification bias"    },
-        Experience:   { severity: "medium", riskLabel: "Seniority mismatch"    },
-        Skills:       { severity: "high",   riskLabel: "Skill under-recognition"},
-        Location:     { severity: "medium", riskLabel: "Local signal dominance"},
-        Keywords:     { severity: "high",   riskLabel: "Keyword overfit"       },
-        "Career Gap": { severity: "low",    riskLabel: "Robust"                },
-      },
-      "Group D": {
-        Education:    { severity: "low",    riskLabel: "Consistent"            },
-        Experience:   { severity: "high",   riskLabel: "Tenure advantage"      },
-        Skills:       { severity: "medium", riskLabel: "Partial disparity"     },
-        Location:     { severity: "high",   riskLabel: "Geo bias"              },
-        Keywords:     { severity: "medium", riskLabel: "Résumé phrasing"       },
-        "Career Gap": { severity: "medium", riskLabel: "Moderate penalty"      },
-      },
-    },
-    counterfactuals: [
-      {
-        originalSignal:        "Graduated from Tier-3 college",
-        counterfactualSignal:  "Graduated from Tier-1 college",
-        originalScorePct:      52.4,
-        counterfactualScorePct:55.6,
-        interpretation:        "Low sensitivity detected. The recommendation remains mostly stable after the attribute change.",
-      },
-      {
-        originalSignal:        "Located in a higher-risk region",
-        counterfactualSignal:  "Located in a lower-risk region",
-        originalScorePct:      47.8,
-        counterfactualScorePct:50.9,
-        interpretation:        "Moderate sensitivity detected. Some fairness mitigation may be needed for geographic signals.",
-      },
-    ],
-    stats: {
-      overallFairnessScore:    63,
-      highestRiskSignal:       "Career Gap",
-      counterfactualStability: 74,
-      totalReports:            0,
-    },
-  };
-}

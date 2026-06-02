@@ -141,73 +141,11 @@ export default function FeatureImportance({
   title,
   description,
 }: FeatureImportanceProps) {
-  const fallback: FeatureImportanceDatum[] = React.useMemo(
-    () => [
-      {
-        key: "exp",
-        label: "Relevant Experience",
-        category: "Experience",
-        importancePct: 28,
-        delta: "positive",
-        helperText: "Demonstrates directly transferable experience aligned to the role’s priorities.",
-      },
-      {
-        key: "skills",
-        label: "Skills Match",
-        category: "Skills",
-        importancePct: 24,
-        delta: "positive",
-        helperText: "High overlap between listed skills and the role’s required capabilities.",
-      },
-      {
-        key: "projects",
-        label: "Project Impact",
-        category: "Impact",
-        importancePct: 17,
-        delta: "positive",
-        helperText: "Shows outcomes, measurable improvements, and scope of impact.",
-      },
-      {
-        key: "edu",
-        label: "Education Alignment",
-        category: "Education",
-        importancePct: 12,
-        delta: "neutral",
-        helperText: "Supports baseline qualification but is less decisive than experience/impact.",
-      },
-      {
-        key: "lead",
-        label: "Leadership Signals",
-        category: "Leadership",
-        importancePct: 9,
-        delta: "positive",
-        helperText: "Indicates collaboration, ownership, or responsibility beyond individual tasks.",
-      },
-      {
-        key: "evidence",
-        label: "Missing Evidence",
-        category: "Evidence",
-        importancePct: 6,
-        delta: "negative",
-        helperText: "Key claims lack proof (metrics, artifacts, or concrete results).",
-      },
-      {
-        key: "clarity",
-        label: "Resume Clarity",
-        category: "Quality",
-        importancePct: 4,
-        delta: "neutral",
-        helperText: "Readability and structure improve signal extraction for evaluators.",
-      },
-    ],
-    [],
-  );
-
   const merged = React.useMemo(() => {
-    const arr = (features ?? fallback) as FeatureImportanceDatum[];
-    const safe = Array.isArray(arr) && arr.length ? arr : fallback;
+    const arr = (features ?? []) as FeatureImportanceDatum[];
+    const safe = Array.isArray(arr) ? arr : [];
     return [...safe].sort((a, b) => b.importancePct - a.importancePct);
-  }, [features, fallback]);
+  }, [features]);
 
   const maxPct = React.useMemo(() => {
     return Math.max(1, ...merged.map((f) => Math.abs(f.importancePct)));
@@ -226,7 +164,7 @@ export default function FeatureImportance({
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Feature importance</p>
             <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-[#0D0C22]">{title ?? "Resume scoring signals"}</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6E6D7A]">
-              {description ?? "Ranked scoring signals with importance percentages, impact indicators, and accessible helper tooltips."}
+              {description ?? "Ranked scoring signals with importance percentages from the live explainability payload."}
             </p>
           </div>
 
@@ -262,7 +200,7 @@ export default function FeatureImportance({
         </div>
 
         <div className="mt-6 grid grid-cols-1 gap-4">
-          {merged.map((f, idx) => {
+          {merged.length > 0 ? merged.map((f, idx) => {
             const pct = clamp(f.importancePct, 0, 100);
             const width = `${(pct / maxPct) * 100}%`;
             const tone = f.delta === "positive" ? BRAND.success : f.delta === "negative" ? BRAND.danger : BRAND.warning;
@@ -329,7 +267,11 @@ export default function FeatureImportance({
                 </div>
               </motion.div>
             );
-          })}
+          }) : (
+            <div className="rounded-[1.5rem] border border-dashed border-[#d0d5dd] bg-[#f8fafc] p-5 text-sm text-[#6E6D7A]">
+              No stored feature-importance data yet.
+            </div>
+          )}
         </div>
 
         <div className="mt-5 rounded-[1.5rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4">

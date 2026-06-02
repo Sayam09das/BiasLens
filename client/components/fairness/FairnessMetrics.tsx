@@ -207,31 +207,19 @@ export type FairnessMetricsProps = {
 };
 
 export default function FairnessMetrics({ values, trend, className }: FairnessMetricsProps) {
-  const fallback: FairnessMetricsValues = React.useMemo(
-    () => ({
-      demographicParityGap: 0.12,
-      equalizedOddsDifference: 0.09,
-      counterfactualConsistency: 0.74,
-      fairnessScore: 63,
-      biasRiskLevel: "Medium",
-      groupScoreVariance: 0.11,
-    }),
-    [],
-  );
-
   const merged: FairnessMetricsValues = React.useMemo(() => {
     const v = values ?? {};
     return {
-      demographicParityGap: typeof v.demographicParityGap === "number" ? v.demographicParityGap : fallback.demographicParityGap,
+      demographicParityGap: typeof v.demographicParityGap === "number" ? v.demographicParityGap : 0,
       equalizedOddsDifference:
-        typeof v.equalizedOddsDifference === "number" ? v.equalizedOddsDifference : fallback.equalizedOddsDifference,
+        typeof v.equalizedOddsDifference === "number" ? v.equalizedOddsDifference : 0,
       counterfactualConsistency:
-        typeof v.counterfactualConsistency === "number" ? v.counterfactualConsistency : fallback.counterfactualConsistency,
-      fairnessScore: typeof v.fairnessScore === "number" ? v.fairnessScore : fallback.fairnessScore,
-      biasRiskLevel: v.biasRiskLevel ?? fallback.biasRiskLevel,
-      groupScoreVariance: typeof v.groupScoreVariance === "number" ? v.groupScoreVariance : fallback.groupScoreVariance,
+        typeof v.counterfactualConsistency === "number" ? v.counterfactualConsistency : 0,
+      fairnessScore: typeof v.fairnessScore === "number" ? v.fairnessScore : 0,
+      biasRiskLevel: v.biasRiskLevel ?? "Low",
+      groupScoreVariance: typeof v.groupScoreVariance === "number" ? v.groupScoreVariance : 0,
     };
-  }, [values, fallback]);
+  }, [values]);
 
   const derived = React.useMemo(() => {
     const dpTone = toneFromGap(merged.demographicParityGap);

@@ -14,4 +14,14 @@ export const reportSelect = {
   updatedAt: true,
   auditId: true,
   userId: true,
+  audit: {
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      jobRole: true,
+      createdAt: true,
+      updatedAt: true,
+    },
+  },
 } satisfies Prisma.ReportSelect;

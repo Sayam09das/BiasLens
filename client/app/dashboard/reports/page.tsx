@@ -11,10 +11,10 @@ import {
   ReportPreview,
 } from "@/components/reports";
 import type { ReportFiltersState } from "@/components/reports/ReportFilters";
-import type { FairnessRisk, ExplainabilityQuality, ReportStatus, ReportType } from "@/components/reports/ReportCard";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { useReports, type BackendReport } from "@/hooks/useReports";
+import { useReports } from "@/hooks/useReports";
+import { mapBackendReportToCard, mapBackendReportToPreview } from "@/lib/report-mappers";
 
 const initialFilters: ReportFiltersState = {
   query: "",
@@ -22,70 +22,6 @@ const initialFilters: ReportFiltersState = {
   fairnessRisk: "All",
   reportType: "All",
 };
-
-type ReportListItem = {
-  reportId: string;
-  auditId: string;
-  candidateName: string;
-  role: string;
-  resumeScore: number;
-  jobFit: number;
-  fairnessRisk: FairnessRisk;
-  explainability: ExplainabilityQuality;
-  status: ReportStatus;
-  createdAt: string;
-  reportType: ReportType;
-};
-
-function clampScore(value: number, min = 0, max = 100) {
-  return Math.max(min, Math.min(max, value));
-}
-
-function mapFairnessRisk(score: number): FairnessRisk {
-  if (score <= 25) return "Low";
-  if (score <= 45) return "Medium";
-  return "High";
-}
-
-function mapExplainability(probability: number): ExplainabilityQuality {
-  if (probability >= 82) return "Clear";
-  if (probability >= 65) return "Moderate";
-  return "Limited";
-}
-
-function mapReportType(label: string | null): ReportType {
-  const text = (label ?? "").toLowerCase();
-  if (text.includes("fair")) return "Fairness";
-  if (text.includes("explain")) return "Explainability";
-  return "Resume Audit";
-}
-
-function parseFairnessScore(snapshot: unknown) {
-  if (!snapshot || typeof snapshot !== "object") {
-    return 36;
-  }
-
-  const risk = "fairnessRisk" in snapshot ? Number(snapshot.fairnessRisk) : NaN;
-  return clampScore(Number.isFinite(risk) ? risk : 36);
-}
-
-function mapReport(report: BackendReport): ReportListItem {
-  const confidence = clampScore(Math.round((report.topProbability ?? 0.72) * 100));
-  const fairnessScore = parseFairnessScore(report.fairnessSnapshot);
-  return {
-    reportId: report.id,
-    auditId: report.auditId ?? report.id,
-    candidateName: report.title,
-    role: report.predictionLabel ?? "BiasLens report",
-    resumeScore: clampScore(confidence + 4),
-    jobFit: confidence,
-    fairnessRisk: mapFairnessRisk(fairnessScore),
-    explainability: mapExplainability(confidence),
-    status: "Ready",
-    createdAt: report.createdAt,
-    reportType: mapReportType(report.predictionLabel),
-  };
-}
 
 function StatSkeleton() {
   return (
@@ -102,7 +38,7 @@ export default function ReportsPage() {
   const [previewId, setPreviewId] = useState<string | null>(null);
   const { data, isLoading, error, lastFetch, refetch } = useReports();
 
-  const reports = useMemo(() => (data ?? []).map(mapReport), [data]);
+  const reports = useMemo(() => (data ?? []).map(mapBackendReportToCard), [data]);
 
   const filtered = useMemo(() => {
     const query = filters.query.trim().toLowerCase();
@@ -128,19 +64,32 @@ export default function ReportsPage() {
     });
   }, [filters, reports]);
 
-  const previewReport =
-    filtered.find((report) => report.reportId === previewId) ??
-    reports.find((report) => report.reportId === previewId) ??
-    null;
+  const previewSource =
+    (data ?? []).find((report) => report.id === previewId) ?? null;
 
+  const auditIds = new Set(reports.map((report) => report.auditId));
   const stats = [
-    { label: "Total reports", value: `${reports.length}` },
     {
-      label: "Ready to export",
+      label: "Total audits",
+      helper: "Across all statuses",
+      value: `${auditIds.size}`,
+    },
+    {
+      label: "Completed",
+      helper: "Reports ready to export",
       value: `${reports.filter((report) => report.status === "Ready").length}`,
     },
     {
-      label: "High fairness risk",
+      label: "Reports ready",
+      helper: "Export-ready records",
+      value: `${reports.filter((report) => report.status === "Ready").length}`,
+    },
+    {
+      label: "Elevated fairness risk",
+      helper:
+        reports.filter((report) => report.fairnessRisk === "High").length === 0
+          ? "All clear"
+          : "Needs review",
       value: `${reports.filter((report) => report.fairnessRisk === "High").length}`,
     },
   ] as const;
@@ -187,9 +136,9 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {isLoading && !data
-          ? Array.from({ length: 3 }).map((_, i) => <StatSkeleton key={i} />)
+          ? Array.from({ length: 4 }).map((_, i) => <StatSkeleton key={i} />)
           : stats.map((stat) => (
               <Card
                 key={stat.label}
@@ -199,6 +148,7 @@ export default function ReportsPage() {
                 <p className="mt-3 text-3xl font-semibold tracking-[-0.04em] text-[#0D0C22]">
                   {stat.value}
                 </p>
+                <p className="mt-2 text-xs text-[#6E6D7A]">{stat.helper}</p>
               </Card>
             ))}
       </section>
@@ -256,38 +206,7 @@ export default function ReportsPage() {
       <ReportPreview
         open={previewId !== null}
         onClose={() => setPreviewId(null)}
-        report={
-          previewReport
-            ? {
-                ...previewReport,
-                generatedDate: previewReport.createdAt,
-                executiveSummary: {
-                  overview:
-                    "BiasLens generated a review-ready report with balanced scoring, fairness context, and explainability guidance.",
-                  keyStrengths: [
-                    "Clear evidence chain for the top skills",
-                    "Decision summary is audit-ready",
-                  ],
-                  keyRisks: [
-                    "One or more resume claims still need recruiter verification",
-                  ],
-                },
-                improvementSuggestions: {
-                  resumeEdits: [
-                    "Add stronger quantified outcomes to each role entry.",
-                    "Include direct links to portfolio or supporting work.",
-                  ],
-                },
-                auditTrail: [
-                  {
-                    timestamp: previewReport.createdAt,
-                    actor: "BiasLens",
-                    action: "Report generated",
-                  },
-                ],
-              }
-            : null
-        }
+        report={previewSource ? mapBackendReportToPreview(previewSource) : null}
         onView={(reportId) => router.push(`/dashboard/reports/${reportId}`)}
         onShare={() => {}}
         onExport={async () => {}}

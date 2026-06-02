@@ -29,6 +29,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useExplainability } from "@/hooks/useExplainability";
 import { Audit, useAuditStore } from "@/store/audit.store";
 
 /* ─────────────────────────────────────────────
@@ -261,6 +262,7 @@ function QueueItem({
 ───────────────────────────────────────────── */
 export default function DashboardPage() {
   const { history, isLoading } = useAuditStore();
+  const { data: explainability, isLoading: explainabilityLoading } = useExplainability();
 
   const completed  = history.filter((a) => normalizeStatus(a.status) === "COMPLETED").length;
   const processing = history.filter((a) =>
@@ -270,6 +272,74 @@ export default function DashboardPage() {
   const failed = fairnessAlerts;
   const total   = history.length;
   const recent  = history.slice(0, 5);
+  const actionNeededSignals =
+    explainability?.proxySignals.filter((signal) => signal.status === "Action Needed").length ?? 0;
+  const positiveSignalCount = explainability?.explanation.positiveSignals.length ?? 0;
+  const missingEvidenceCount = explainability?.explanation.missingEvidence.length ?? 0;
+  const explainabilityReports = explainability?.stats.totalReports ?? 0;
+  const topFeature = explainability?.features[0];
+  const topProxySignal = explainability?.proxySignals[0];
+  const copilotStatus = actionNeededSignals > 0 ? "Review recommended" : "Healthy";
+  const copilotStatusTone =
+    actionNeededSignals > 0
+      ? "text-[#B45309] bg-[#F59E0B]/10 ring-[#F59E0B]/20"
+      : "text-[#15803D] bg-[#22C55E]/10 ring-[#22C55E]/20";
+  const copilotFeaturedTitle =
+    actionNeededSignals > 0
+      ? `${actionNeededSignals} model signals need human review`
+      : "ML explainability signals look stable";
+  const copilotFeaturedDescription = explainability?.explanation.summary
+    ?? "Live model explanations, proxy signal checks, and audit-linked evidence will appear here.";
+  const copilotRecommendation = explainability?.explanation.recommendedHumanReview
+    ?? "Run an audit to generate live Copilot guidance.";
+  const copilotConfidence = explainability?.explanation.confidence ?? "Waiting for ML output";
+  const insightCards = [
+    {
+      title: "Top positive driver",
+      description:
+        topFeature?.helperText
+        ?? `Strongest positive signal: ${explainability?.stats.topPositiveDriver ?? "Role-fit evidence"}.`,
+      priority: copilotConfidence,
+      priorityTone: "text-[#2563EB] bg-[#2563EB]/10 ring-[#2563EB]/20",
+      actionLabel: "View Explanations",
+      href: "/dashboard/explainability",
+      iconBg: "bg-[#2563EB]/10",
+      icon: Brain,
+    },
+    {
+      title: "Missing evidence to verify",
+      description:
+        explainability?.explanation.missingEvidence[0]
+        ?? explainability?.stats.topNegativeDriver
+        ?? "Copilot will highlight evidence gaps that reduce confidence.",
+      priority: missingEvidenceCount > 0 ? `${missingEvidenceCount} gaps` : "Clear",
+      priorityTone:
+        missingEvidenceCount > 0
+          ? "text-[#F59E0B] bg-[#F59E0B]/10 ring-[#F59E0B]/20"
+          : "text-[#22C55E] bg-[#22C55E]/10 ring-[#22C55E]/20",
+      actionLabel: "Review Audit",
+      href: "/dashboard/audits",
+      iconBg: "bg-[#F59E0B]/10",
+      icon: Sparkles,
+    },
+    {
+      title: "Proxy signal watch",
+      description:
+        topProxySignal?.recommendation
+        ?? "Proxy attribution from the ML service will surface here when available.",
+      priority: topProxySignal?.risk ?? "Low",
+      priorityTone:
+        topProxySignal?.risk === "High"
+          ? "text-[#EF4444] bg-[#EF4444]/10 ring-[#EF4444]/20"
+          : topProxySignal?.risk === "Medium"
+            ? "text-[#F59E0B] bg-[#F59E0B]/10 ring-[#F59E0B]/20"
+            : "text-[#22C55E] bg-[#22C55E]/10 ring-[#22C55E]/20",
+      actionLabel: "Open Fairness",
+      href: "/dashboard/fairness",
+      iconBg: "bg-[#22C55E]/10",
+      icon: ShieldCheck,
+    },
+  ] as const;
 
   const stats = [
     {
@@ -391,7 +461,9 @@ export default function DashboardPage() {
             </span>
             <div className="min-w-0">
               <p className="truncate text-xs font-semibold text-[#0D0C22]">AI Copilot</p>
-              <p className="text-[10px] text-[#6E6D7A]">Live insights · Audit-linked</p>
+              <p className="text-[10px] text-[#6E6D7A]">
+                {explainabilityLoading ? "Syncing ML insights..." : "Live insights · ML-linked"}
+              </p>
             </div>
           </div>
         </div>
@@ -409,43 +481,49 @@ export default function DashboardPage() {
             <div className="absolute -left-24 -bottom-24 h-64 w-64 rounded-full bg-[#22C55E]/10 blur-2xl" />
             <div className="relative p-5 sm:p-6">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-2 rounded-full bg-[#ECFDF5] px-3 py-1 text-[11px] font-semibold text-[#15803D] ring-1 ring-[#22C55E]/20">
-                  <span className="grid h-6 w-6 place-items-center rounded-lg bg-[#22C55E]/15">
-                    <CheckCircle2 size={14} className="text-[#15803D]" />
+                <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${copilotStatusTone}`}>
+                  <span className={`grid h-6 w-6 place-items-center rounded-lg ${actionNeededSignals > 0 ? "bg-[#F59E0B]/15" : "bg-[#22C55E]/15"}`}>
+                    <CheckCircle2 size={14} className={actionNeededSignals > 0 ? "text-[#B45309]" : "text-[#15803D]"} />
                   </span>
-                  Healthy
+                  {copilotStatus}
                 </span>
                 <span className="inline-flex items-center rounded-full bg-[#2563EB]/10 px-3 py-1 text-[11px] font-semibold text-[#2563EB] ring-1 ring-[#2563EB]/20">
-                  Fairness Verified
+                  {explainabilityLoading ? "Waiting on ML" : "SHAP + proxy signals live"}
                 </span>
               </div>
 
               <h3 className="mt-4 text-lg font-bold tracking-tight text-[#0D0C22] sm:text-xl">
-                All Fairness Checks Passed
+                {copilotFeaturedTitle}
               </h3>
               <p className="mt-2 text-sm leading-relaxed text-[#6E6D7A]">
-                No significant fairness risks detected across active resume audits. Counterfactual testing and fairness monitoring indicate stable scoring behavior.
+                {copilotFeaturedDescription}
               </p>
 
               {/* Example metrics */}
               <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 <div className="rounded-xl border border-[#E7E7E9] bg-[#F6F8FB] p-3">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6E6D7A]">
-                    AI Confidence
+                    Positive Signals
                   </p>
-                  <p className="mt-1 text-xl font-semibold text-[#0D0C22]">96%</p>
+                  <p className="mt-1 text-xl font-semibold text-[#0D0C22]">
+                    {explainabilityLoading ? "—" : positiveSignalCount}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-[#E7E7E9] bg-[#F6F8FB] p-3">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6E6D7A]">
-                    Fairness Score
+                    Proxy Signals
                   </p>
-                  <p className="mt-1 text-xl font-semibold text-[#0D0C22]">94%</p>
+                  <p className="mt-1 text-xl font-semibold text-[#0D0C22]">
+                    {explainabilityLoading ? "—" : explainability?.proxySignals.length ?? 0}
+                  </p>
                 </div>
                 <div className="rounded-xl border border-[#E7E7E9] bg-[#F6F8FB] p-3">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#6E6D7A]">
-                    Audit Coverage
+                    Reports Analyzed
                   </p>
-                  <p className="mt-1 text-xl font-semibold text-[#0D0C22]">100%</p>
+                  <p className="mt-1 text-xl font-semibold text-[#0D0C22]">
+                    {explainabilityLoading ? "—" : explainabilityReports}
+                  </p>
                 </div>
               </div>
 
@@ -457,7 +535,7 @@ export default function DashboardPage() {
                   </span>
                   <div>
                     <p className="text-xs font-semibold text-[#0D0C22]">Recommendation</p>
-                    <p className="text-[11px] text-[#6E6D7A]">Proceed to export with confidence</p>
+                    <p className="text-[11px] text-[#6E6D7A]">{copilotRecommendation}</p>
                   </div>
                 </div>
 
@@ -476,35 +554,7 @@ export default function DashboardPage() {
 
           {/* Supporting insights */}
           <div className="grid gap-4 lg:col-span-2 lg:grid-cols-1">
-            {[ 
-              {
-                title: "Resume Quality Insights",
-                description: "2 resumes are missing measurable achievements and quantified business impact.",
-                priority: "Medium",
-                priorityTone: "text-[#F59E0B] bg-[#F59E0B]/10 ring-[#F59E0B]/20",
-                actionLabel: "Review Candidates",
-                href: "/dashboard/audits",
-                iconBg: "bg-[#F59E0B]/10",
-              },
-              {
-                title: "Explainability Signals",
-                description: "3 candidates show strong experience alignment but limited supporting evidence.",
-                priority: "Medium",
-                priorityTone: "text-[#F59E0B] bg-[#F59E0B]/10 ring-[#F59E0B]/20",
-                actionLabel: "View Explanations",
-                href: "/dashboard/explainability",
-                iconBg: "bg-[#2563EB]/10",
-              },
-              {
-                title: "Reporting Status",
-                description: "All generated reports are audit-ready and available for export.",
-                priority: "Low",
-                priorityTone: "text-[#22C55E] bg-[#22C55E]/10 ring-[#22C55E]/20",
-                actionLabel: "Open Reports",
-                href: "/dashboard/reports",
-                iconBg: "bg-[#22C55E]/10",
-              },
-            ].map((insight, idx) => (
+            {insightCards.map((insight, idx) => (
               <motion.div
                 key={insight.title}
                 className="relative overflow-hidden rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] shadow-sm"
@@ -519,7 +569,7 @@ export default function DashboardPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <span className={`grid h-10 w-10 place-items-center rounded-xl ${insight.iconBg}`}>
-                          {idx === 0 ? <Sparkles size={18} className="text-[#2563EB]" /> : idx === 1 ? <Brain size={18} className="text-[#2563EB]" /> : <FileText size={18} className="text-[#22C55E]" />}
+                          <insight.icon size={18} className="text-[#2563EB]" />
                         </span>
                         <span className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold ring-1 ${insight.priorityTone}`}>
                           {insight.priority}
@@ -537,7 +587,11 @@ export default function DashboardPage() {
 
                   <div className="mt-4 flex items-center justify-between gap-3">
                     <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6E6D7A]">
-                      Confidence: {idx === 0 ? "82%" : idx === 1 ? "89%" : "96%"}
+                      {idx === 0
+                        ? `Top driver: ${explainability?.stats.topPositiveDriver ?? "—"}`
+                        : idx === 1
+                          ? `Evidence gaps: ${missingEvidenceCount}`
+                          : `Action-needed signals: ${actionNeededSignals}`}
                     </p>
                     <Link
                       href={insight.href}

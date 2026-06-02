@@ -191,54 +191,40 @@ function AccordionSection({
 }
 
 export default function ExplanationViewer({ explanation, className }: ExplanationViewerProps) {
-  const fallback = React.useMemo(
-    () => ({
-      summary:
-        "This resume received a strong score because the candidate demonstrates relevant product design experience, UX research background, and leadership impact.",
-      whyThisScore:
-        "The model weighed clear role alignment, strong evidence of outcomes, and consistent signal quality. It also detected a few areas that limit confidence, such as missing portfolio links and limited accessibility proof.",
-      positiveSignals: [
-        "Strong product strategy experience",
-        "UX research experience",
-        "Leadership indicators",
-        "Metrics-driven achievements",
-      ],
-      negativeSignals: [
-        "Missing portfolio link",
-        "Limited accessibility evidence",
-        "Weak quantified outcomes",
-      ],
-      missingEvidence: ["Portfolio URL", "Accessibility case study", "A/B testing metrics"],
-      confidence: "High confidence",
-      confidenceReasoning:
-        "Confidence is high because multiple independent experience signals align with the role and the evidence is specific. The remaining uncertainty comes from gaps in accessibility and measurable impact documentation.",
-      recommendedHumanReview:
-        "Verify portfolio availability, review accessibility contributions, and assess whether quantified outcomes exist but are not captured in the resume text.",
-    }),
-    [],
+  const ex = explanation as NonNullable<ExplanationViewerProps["explanation"]> | undefined;
+  const safeExplanation = React.useMemo<NonNullable<ExplanationViewerProps["explanation"]>>(
+    () =>
+      ex ?? {
+        summary: "",
+        whyThisScore: "",
+        positiveSignals: [],
+        negativeSignals: [],
+        missingEvidence: [],
+        confidence: "",
+        confidenceReasoning: "",
+        recommendedHumanReview: "",
+      },
+    [ex],
   );
-
-  const ex = (explanation ?? fallback) as NonNullable<ExplanationViewerProps["explanation"]>;
   const copy = useCopyToClipboard();
-  const plain = React.useMemo(() => toPlainText(ex), [ex]);
-
-  const confidenceText = ex.confidence ?? "Medium confidence";
+  const plain = React.useMemo(() => (ex ? toPlainText(ex) : ""), [ex]);
+  const confidenceText = safeExplanation.confidence || "No confidence available";
 
   const sections: ExplanationSection[] = React.useMemo(() => {
-    const pos = ex.positiveSignals ?? [];
-    const neg = ex.negativeSignals ?? [];
-    const miss = ex.missingEvidence ?? [];
+    const pos = safeExplanation.positiveSignals ?? [];
+    const neg = safeExplanation.negativeSignals ?? [];
+    const miss = safeExplanation.missingEvidence ?? [];
 
     return [
       {
         id: "summary",
         title: "Decision Summary",
-        body: <p className="text-sm leading-6 text-[#6E6D7A]">{ex.summary}</p>,
+        body: <p className="text-sm leading-6 text-[#6E6D7A]">{safeExplanation.summary}</p>,
       },
       {
         id: "why",
         title: "Why This Score Was Assigned",
-        body: <p className="text-sm leading-6 text-[#6E6D7A]">{ex.whyThisScore}</p>,
+        body: <p className="text-sm leading-6 text-[#6E6D7A]">{safeExplanation.whyThisScore}</p>,
       },
       {
         id: "positive",
@@ -305,7 +291,7 @@ export default function ExplanationViewer({ explanation, className }: Explanatio
         title: "Confidence Reasoning",
         body: (
           <div className="space-y-3">
-            <p className="text-sm leading-6 text-[#6E6D7A]">{ex.confidenceReasoning}</p>
+            <p className="text-sm leading-6 text-[#6E6D7A]">{safeExplanation.confidenceReasoning}</p>
             <div className="rounded-[1.25rem] border border-[#E7E7E9] bg-[#F6F8FB] p-3">
               <div className="flex items-start gap-3">
                 <span className="grid h-9 w-9 place-items-center rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF]" aria-hidden="true">
@@ -329,10 +315,24 @@ export default function ExplanationViewer({ explanation, className }: Explanatio
       {
         id: "review",
         title: "Recommended Human Review Notes",
-        body: <p className="text-sm leading-6 text-[#6E6D7A]">{ex.recommendedHumanReview}</p>,
+        body: <p className="text-sm leading-6 text-[#6E6D7A]">{safeExplanation.recommendedHumanReview}</p>,
       },
     ];
-  }, [ex, confidenceText]);
+  }, [safeExplanation, confidenceText]);
+
+  if (!ex) {
+    return (
+      <div className={className}>
+        <div className="rounded-4xl border border-[#E7E7E9] bg-[#FFFFFF] p-6 shadow-[0_24px_64px_rgba(13,12,34,0.03)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Explanation viewer</p>
+          <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-[#0D0C22]">Decision narrative</h2>
+          <div className="mt-6 rounded-[1.5rem] border border-dashed border-[#d0d5dd] bg-[#f8fafc] p-5 text-sm text-[#6E6D7A]">
+            No stored explanation narrative yet.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={className}>

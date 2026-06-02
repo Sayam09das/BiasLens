@@ -4,6 +4,7 @@ import { BaseRepository } from "./base.repository.js";
 type AuditFilters = {
   status?: string;
   userId?: string;
+  unowned?: boolean;
 };
 
 export class AuditRepository extends BaseRepository {
@@ -35,12 +36,23 @@ export class AuditRepository extends BaseRepository {
     );
   }
 
+  assignUser(id: string, userId: string) {
+    return this.run(() =>
+      this.prisma.audit.update({
+        where: { id },
+        data: { userId },
+        select: auditSelect,
+      })
+    );
+  }
+
   list(filters: AuditFilters = {}) {
     return this.run(() =>
       this.prisma.audit.findMany({
         where: {
           ...(filters.status ? { status: filters.status as never } : {}),
           ...(filters.userId ? { userId: filters.userId } : {}),
+          ...(filters.unowned ? { userId: null } : {}),
         },
         select: auditSelect,
         orderBy: { createdAt: "desc" },

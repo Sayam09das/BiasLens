@@ -3,6 +3,11 @@ import { StatusCodes } from "http-status-codes";
 
 import { successResponse } from "../utils/api-response.js";
 import { auditService } from "../services/audit.service.js";
+import type { AuthenticatedRequestUser } from "../middleware/auth/jwt.middleware.js";
+
+function authUser(response: Response): AuthenticatedRequestUser {
+  return response.locals.authUser as AuthenticatedRequestUser;
+}
 
 export async function getAuditStatusesController(
   _request: Request,
@@ -17,7 +22,7 @@ export async function createAuditController(
   request: Request,
   response: Response
 ): Promise<void> {
-  const audit = await auditService.createAudit(request.body);
+  const audit = await auditService.createAudit(request.body, authUser(response).id);
 
   response
     .status(StatusCodes.ACCEPTED)
@@ -28,9 +33,10 @@ export async function listAuditsController(
   request: Request,
   response: Response
 ): Promise<void> {
+  const user = authUser(response);
   const audits = await auditService.listAudits({
     status: typeof request.query.status === "string" ? request.query.status : undefined,
-    userId: typeof request.query.userId === "string" ? request.query.userId : undefined,
+    userId: user.id,
   });
 
   response
@@ -42,7 +48,7 @@ export async function getAuditByIdController(
   request: Request,
   response: Response
 ): Promise<void> {
-  const audit = await auditService.getAuditById(String(request.params.id));
+  const audit = await auditService.getAuditById(String(request.params.id), authUser(response).id);
 
   if (!audit) {
     response.status(StatusCodes.NOT_FOUND).json({ success: false, message: "Audit not found." });

@@ -145,44 +145,6 @@ type BiasHeatmapProps = {
 };
 
 export default function BiasHeatmap({ values, className }: BiasHeatmapProps) {
-  const fallback: HeatmapValues = React.useMemo(
-    () => ({
-      "Group A": {
-        Education: { severity: "low", riskLabel: "Minimal skew" },
-        Experience: { severity: "medium", riskLabel: "Slight disparity" },
-        Skills: { severity: "low", riskLabel: "Aligned outcomes" },
-        Location: { severity: "medium", riskLabel: "Regional weighting" },
-        Keywords: { severity: "medium", riskLabel: "Keyword sensitivity" },
-        "Career Gap": { severity: "high", riskLabel: "Gap penalization" },
-      },
-      "Group B": {
-        Education: { severity: "medium", riskLabel: "Education weighting" },
-        Experience: { severity: "low", riskLabel: "Stable" },
-        Skills: { severity: "medium", riskLabel: "Tool mismatch" },
-        Location: { severity: "low", riskLabel: "No major skew" },
-        Keywords: { severity: "low", riskLabel: "Balanced" },
-        "Career Gap": { severity: "medium", riskLabel: "Mild disadvantage" },
-      },
-      "Group C": {
-        Education: { severity: "high", riskLabel: "Qualification bias" },
-        Experience: { severity: "medium", riskLabel: "Seniority mismatch" },
-        Skills: { severity: "high", riskLabel: "Skill under-recognition" },
-        Location: { severity: "medium", riskLabel: "Local signal dominance" },
-        Keywords: { severity: "high", riskLabel: "Keyword overfit" },
-        "Career Gap": { severity: "low", riskLabel: "Robust" },
-      },
-      "Group D": {
-        Education: { severity: "low", riskLabel: "Consistent" },
-        Experience: { severity: "high", riskLabel: "Tenure advantage" },
-        Skills: { severity: "medium", riskLabel: "Partial disparity" },
-        Location: { severity: "high", riskLabel: "Geo bias" },
-        Keywords: { severity: "medium", riskLabel: "Résumé phrasing" },
-        "Career Gap": { severity: "medium", riskLabel: "Moderate penalty" },
-      },
-    }),
-    [],
-  );
-
   const merged: HeatmapValues = React.useMemo(() => {
     const v = values ?? {};
     const out = {} as HeatmapValues;
@@ -200,16 +162,16 @@ export default function BiasHeatmap({ values, className }: BiasHeatmapProps) {
                 riskLabel:
                   typeof cell.riskLabel === "string"
                     ? cell.riskLabel
-                    : fallback[g][s].riskLabel,
+                    : "Fairness signal detected",
               }
-            : fallback[g][s];
+            : { severity: "low", riskLabel: "No stored disparity signal" };
       }
 
       out[g] = nextGroup;
     }
 
     return out;
-  }, [values, fallback]);
+  }, [values]);
 
   const [tip, setTip] = React.useState<TooltipState>({
     open: false,

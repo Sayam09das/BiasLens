@@ -35,6 +35,28 @@ async function normalizeAudit(audit: Awaited<ReturnType<typeof auditRepository.f
   return completeAuditLifecycle(audit.id, audit.userId);
 }
 
+async function claimLegacyAuditsForUser(userId?: string) {
+  if (!userId) {
+    return [];
+  }
+
+  const existingAudits = await auditRepository.list({ userId });
+  if (existingAudits.length > 0) {
+    return existingAudits;
+  }
+
+  const legacyAudits = await auditRepository.list({ unowned: true });
+  if (legacyAudits.length === 0) {
+    return [];
+  }
+
+  await Promise.all(
+    legacyAudits.map((audit) => auditRepository.assignUser(audit.id, userId))
+  );
+
+  return auditRepository.list({ userId });
+}
+
 export const auditService = {
   getStatuses() {
     return {
@@ -43,14 +65,14 @@ export const auditService = {
     };
   },
 
-  async createAudit(payload: Record<string, unknown>) {
+  async createAudit(payload: Record<string, unknown>, userId?: string) {
     try {
       const audit = await auditRepository.create({
         title: typeof payload.title === "string" ? payload.title : `Audit ${Date.now()}`,
         resumeText: typeof payload.resumeText === "string" ? payload.resumeText : null,
         jobRole: typeof payload.jobRole === "string" ? payload.jobRole : null,
         status: "QUEUED",
-        user: undefined,
+        user: userId ? { connect: { id: userId } } : undefined,
         report: undefined,
       });
 
@@ -68,12 +90,16 @@ export const auditService = {
   getAuditLogById: auditReadService.getAuditLogById,
 
   async listAudits(filters: { status?: string; userId?: string } = {}) {
+    await claimLegacyAuditsForUser(filters.userId);
     const audits = await auditRepository.list(filters);
     return Promise.all(audits.map((audit) => normalizeAudit(audit)));
   },
 
-  async getAuditById(id: string) {
-    const audit = await auditRepository.findById(id);
+  async getAuditById(id: string, userId?: string) {
+    let audit = await auditRepository.findById(id);
+    if (audit && !audit.userId && userId) {
+      audit = await auditRepository.assignUser(id, userId);
+    }
     return normalizeAudit(audit);
   },
 };

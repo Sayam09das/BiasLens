@@ -66,6 +66,206 @@ function safeArr<T>(v: unknown): T[] {
   return Array.isArray(v) ? (v as T[]) : [];
 }
 
+function uniqueStrings(values: string[]) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function tokenize(value: string) {
+  return value
+    .toLowerCase()
+    .split(/[^a-z0-9+#.]+/)
+    .filter(Boolean);
+}
+
+function includesAny(text: string, patterns: string[]) {
+  return patterns.some((pattern) => text.includes(pattern));
+}
+
+function buildDerivedExplainability(input: {
+  resumeText: string;
+  jobRole: string;
+  topProbability: number | null;
+  predictionLabel: string | null;
+}) {
+  const resumeText = input.resumeText.trim();
+  const jobRole = input.jobRole.trim();
+  const lowerResume = resumeText.toLowerCase();
+  const lowerRole = jobRole.toLowerCase();
+  const roleTerms = uniqueStrings(tokenize(lowerRole)).slice(0, 6);
+  const probability = safeNum(input.topProbability, 0.65);
+
+  const yearsMatches = lowerResume.match(/\b\d+\+?\s*(?:years?|yrs?)\b/g) ?? [];
+  const metricMatches = lowerResume.match(/\b\d+(?:\.\d+)?%|\b\d+(?:\.\d+)?\s*(?:k|m|million|billion|users|clients|projects)\b/g) ?? [];
+  const leadershipPresent = includesAny(lowerResume, [
+    "led ",
+    "managed ",
+    "owner",
+    "ownership",
+    "mentored",
+    "team lead",
+    "stakeholder",
+  ]);
+  const portfolioPresent = includesAny(lowerResume, ["github", "portfolio", "behance", "dribbble", "linkedin.com", "gitlab"]);
+  const educationPresent = includesAny(lowerResume, ["b.tech", "btech", "bachelor", "master", "m.tech", "degree", "university", "college"]);
+  const impactPresent = metricMatches.length > 0;
+  const roleMatches = roleTerms.filter((term) => lowerResume.includes(term));
+  const roleMatchRatio = roleTerms.length ? roleMatches.length / roleTerms.length : 0;
+
+  const positiveSignals = uniqueStrings([
+    roleMatches.length ? `Role alignment detected for ${roleMatches.join(", ")}.` : "",
+    yearsMatches.length ? `Experience evidence found in ${yearsMatches.length} tenure reference${yearsMatches.length === 1 ? "" : "s"}.` : "",
+    impactPresent ? "Quantified impact signals were found in the resume text." : "",
+    leadershipPresent ? "Leadership and ownership language was detected." : "",
+    portfolioPresent ? "Supporting portfolio or profile evidence was referenced." : "",
+  ]);
+
+  const negativeSignals = uniqueStrings([
+    roleMatchRatio < 0.4 ? "Limited overlap between the resume wording and the requested role terms." : "",
+    !impactPresent ? "The resume lacks strong quantified outcome evidence." : "",
+    !portfolioPresent ? "No portfolio, GitHub, or supporting profile link was detected." : "",
+    !educationPresent ? "Education or qualification details were not clearly detected." : "",
+  ]);
+
+  const missingEvidence = uniqueStrings([
+    !impactPresent ? "Quantified outcomes for major responsibilities" : "",
+    !portfolioPresent ? "Portfolio, GitHub, or work-sample link" : "",
+    roleMatchRatio < 0.5 ? `More direct references to ${jobRole || "the target role"}` : "",
+  ]);
+
+  const shap: ShapDatum[] = [
+    { signal: "Role Keyword Alignment", value: Number((roleMatchRatio * 8 - 2).toFixed(2)) },
+    { signal: "Experience Evidence", value: Number((Math.min(yearsMatches.length, 4) * 1.8).toFixed(2)) },
+    { signal: "Quantified Impact", value: impactPresent ? 3.4 : -3.8 },
+    { signal: "Leadership Language", value: leadershipPresent ? 2.5 : -1.2 },
+    { signal: "Supporting Links", value: portfolioPresent ? 1.8 : -2.6 },
+    { signal: "Education Clarity", value: educationPresent ? 1.2 : -1.4 },
+  ]
+    .filter((item) => Number.isFinite(item.value) && Math.abs(item.value) > 0.05)
+    .sort((left, right) => Math.abs(right.value) - Math.abs(left.value));
+
+  const features: FeatureImportanceDatum[] = [
+    {
+      key: "role-alignment",
+      label: "Role Alignment",
+      category: "Skills" as const,
+      importancePct: Math.round(Math.max(8, roleMatchRatio * 32)),
+      delta: (roleMatchRatio >= 0.55 ? "positive" : roleMatchRatio >= 0.35 ? "neutral" : "negative") as FeatureImportanceDatum["delta"],
+      helperText: "Measures how directly the resume language overlaps with the requested role brief.",
+    },
+    {
+      key: "experience",
+      label: "Experience Depth",
+      category: "Experience" as const,
+      importancePct: Math.min(28, 8 + yearsMatches.length * 4),
+      delta: (yearsMatches.length > 0 ? "positive" : "neutral") as FeatureImportanceDatum["delta"],
+      helperText: "Looks for explicit tenure and experience depth signals in the resume text.",
+    },
+    {
+      key: "impact",
+      label: "Quantified Impact",
+      category: "Impact" as const,
+      importancePct: impactPresent ? 22 : 10,
+      delta: (impactPresent ? "positive" : "negative") as FeatureImportanceDatum["delta"],
+      helperText: "Rewards measurable outcomes, percentages, counts, and business impact evidence.",
+    },
+    {
+      key: "leadership",
+      label: "Leadership Signals",
+      category: "Leadership" as const,
+      importancePct: leadershipPresent ? 16 : 8,
+      delta: (leadershipPresent ? "positive" : "neutral") as FeatureImportanceDatum["delta"],
+      helperText: "Checks for ownership, cross-functional leadership, or team guidance language.",
+    },
+    {
+      key: "evidence",
+      label: "Supporting Evidence",
+      category: "Evidence" as const,
+      importancePct: portfolioPresent ? 14 : 7,
+      delta: (portfolioPresent ? "positive" : "negative") as FeatureImportanceDatum["delta"],
+      helperText: "Looks for portfolio, GitHub, or supporting proof that strengthens review confidence.",
+    },
+    {
+      key: "education",
+      label: "Education Clarity",
+      category: "Education" as const,
+      importancePct: educationPresent ? 8 : 5,
+      delta: (educationPresent ? "neutral" : "negative") as FeatureImportanceDatum["delta"],
+      helperText: "Captures whether education and qualification details were clearly expressed.",
+    },
+  ].sort((left, right) => right.importancePct - left.importancePct);
+
+  const proxySignals: ProxySignal[] = uniqueStrings([
+    includesAny(lowerResume, ["location", "address", "relocate", "remote", "city", "state"]) ? "location" : "",
+    includesAny(lowerResume, ["college", "university"]) ? "education" : "",
+    includesAny(lowerResume, ["gap", "career break", "break"]) ? "career-gap" : "",
+    includesAny(lowerResume, ["date of birth", "dob", "married", "single", "nationality"]) ? "identity" : "",
+  ]).map((signal, index) => {
+    if (signal === "location") {
+      return {
+        id: `proxy-${index}`,
+        signal: "Location",
+        category: "Geography",
+        risk: "Medium",
+        reason: "Location-related terms may influence review consistency when they are not role-relevant.",
+        recommendation: "Review whether geographic information is necessary for this decision.",
+        status: "Review",
+      } satisfies ProxySignal;
+    }
+
+    if (signal === "education") {
+      return {
+        id: `proxy-${index}`,
+        signal: "College / University",
+        category: "Education",
+        risk: "Low",
+        reason: "Institution references can become proxies when over-weighted during screening.",
+        recommendation: "Keep focus on demonstrated skills and outcome evidence.",
+        status: "Monitor",
+      } satisfies ProxySignal;
+    }
+
+    if (signal === "career-gap") {
+      return {
+        id: `proxy-${index}`,
+        signal: "Career Gap",
+        category: "Employment History",
+        risk: "Medium",
+        reason: "Gap-related language can penalize candidates without proper context.",
+        recommendation: "Validate context manually before using gap language as a scoring factor.",
+        status: "Review",
+      } satisfies ProxySignal;
+    }
+
+    return {
+      id: `proxy-${index}`,
+      signal: "Personal Identity Detail",
+      category: "Identity Proxy",
+      risk: "High",
+      reason: "Personal details may correlate with protected attributes and require review.",
+      recommendation: "Mask or ignore identity-related details during automated scoring.",
+      status: "Action Needed",
+    } satisfies ProxySignal;
+  });
+
+  const confidence = mapConfidence(probability);
+
+  return {
+    shap,
+    features,
+    proxySignals,
+    explanation: {
+      summary: buildSummary(input.predictionLabel, probability),
+      whyThisScore: `The current score reflects role-term overlap, evidence of experience, and whether the resume includes measurable outcomes or supporting links for ${jobRole || "the requested role"}.`,
+      positiveSignals,
+      negativeSignals,
+      missingEvidence,
+      confidence,
+      confidenceReasoning: "Confidence is derived from the quality and specificity of the stored audit text when richer ML explanations are unavailable.",
+      recommendedHumanReview: "Verify the strongest matched signals against the original resume and add any missing evidence before acting on the recommendation.",
+    } satisfies ExplanationData,
+  };
+}
+
 // ── Service ───────────────────────────────────────────────────────────────────
 
 export const explainabilityService = {
@@ -78,7 +278,29 @@ export const explainabilityService = {
       take:    20,
     });
 
-    if (reports.length === 0) return buildDefault();
+    if (reports.length === 0) {
+      return {
+        shap: [],
+        features: [],
+        proxySignals: [],
+        explanation: {
+          summary: "No explainability data has been generated yet.",
+          whyThisScore: "Complete an audit with stored explainability output to populate this dashboard.",
+          positiveSignals: [],
+          negativeSignals: [],
+          missingEvidence: [],
+          confidence: "No confidence available",
+          confidenceReasoning: "No explainability artifacts are stored for this account yet.",
+          recommendedHumanReview: "Run a new audit to generate explainability data for reviewer inspection.",
+        },
+        stats: {
+          topPositiveDriver: "No explainability data yet",
+          topNegativeDriver: "No explainability data yet",
+          proxySignalCount: 0,
+          totalReports: 0,
+        },
+      };
+    }
 
     const latest = reports[0];
     type Snap = Record<string, unknown>;
@@ -86,12 +308,16 @@ export const explainabilityService = {
 
     // ── Try ML explain endpoint for the latest audit ─────────────────────────
     let mlExplain: Snap = {};
+    let auditText = "";
+    let auditRole = "";
     if (latest.auditId) {
       try {
         const audit = await prisma.audit.findUnique({
           where:  { id: latest.auditId },
           select: { resumeText: true, jobRole: true },
         });
+        auditText = audit?.resumeText ?? "";
+        auditRole = audit?.jobRole ?? "";
         if (audit?.resumeText) {
           mlExplain = await mlClientService.explain({
             resume_text: audit.resumeText,
@@ -103,6 +329,13 @@ export const explainabilityService = {
       }
     }
 
+    const derivedExplainability = buildDerivedExplainability({
+      resumeText: auditText,
+      jobRole: auditRole,
+      topProbability: latest.topProbability,
+      predictionLabel: latest.predictionLabel,
+    });
+
     // ── SHAP values ──────────────────────────────────────────────────────────
     const rawShap = safeArr<Snap>(mlExplain["shap_values"] ?? snap["shap_values"]);
     let shap: ShapDatum[];
@@ -113,9 +346,7 @@ export const explainabilityService = {
         value:  safeNum(s["value"] ?? s["contribution"], 0),
       }));
     } else {
-      // Derive from topProbability spread across reports
-      const prob = safeNum(latest.topProbability, 0.65);
-      shap = buildDefaultShap(prob);
+      shap = derivedExplainability.shap;
     }
 
     // ── Feature importance ───────────────────────────────────────────────────
@@ -132,7 +363,7 @@ export const explainabilityService = {
         helperText:    safeStr(f["helper_text"] ?? f["description"], "Contributes to the overall score."),
       }));
     } else {
-      features = buildDefaultFeatures(safeNum(latest.topProbability, 0.65));
+      features = derivedExplainability.features;
     }
 
     // ── Proxy signals ────────────────────────────────────────────────────────
@@ -150,7 +381,7 @@ export const explainabilityService = {
         status:         mapStatus(safeStr(p["status"], "Review")),
       }));
     } else {
-      proxySignals = buildDefaultProxySignals();
+      proxySignals = derivedExplainability.proxySignals;
     }
 
     // ── Explanation narrative ────────────────────────────────────────────────
@@ -166,7 +397,15 @@ export const explainabilityService = {
           confidenceReasoning:    safeStr(rawExpl["confidence_reasoning"],     "Confidence is based on signal alignment and evidence quality."),
           recommendedHumanReview: safeStr(rawExpl["recommended_human_review"], "Verify key claims and validate evidence before final decision."),
         }
-      : buildDefaultExplanation(latest.predictionLabel, latest.topProbability, shap);
+      : {
+          ...derivedExplainability.explanation,
+          positiveSignals: derivedExplainability.explanation.positiveSignals.length
+            ? derivedExplainability.explanation.positiveSignals
+            : shap.filter((item) => item.value > 0).map((item) => item.signal),
+          negativeSignals: derivedExplainability.explanation.negativeSignals.length
+            ? derivedExplainability.explanation.negativeSignals
+            : shap.filter((item) => item.value < 0).map((item) => item.signal),
+        };
 
     // ── Stats ────────────────────────────────────────────────────────────────
     const sorted     = [...shap].sort((a, b) => b.value - a.value);
@@ -237,7 +476,7 @@ function buildWhyScore(prob: number | null): string {
   return `The model assigned a ${pct}% confidence score based on the weighted combination of experience signals, skills alignment, and evidence quality. Signals with high specificity and measurable outcomes contributed most positively.`;
 }
 
-function buildDefaultExplanation(
+function buildLiveExplanation(
   label: string | null,
   prob: number | null,
   shap: ShapDatum[]
@@ -247,67 +486,11 @@ function buildDefaultExplanation(
   return {
     summary:                buildSummary(label, prob),
     whyThisScore:           buildWhyScore(prob),
-    positiveSignals:        pos.length ? pos : ["Relevant experience", "Skills alignment"],
-    negativeSignals:        neg.length ? neg : ["Missing portfolio link", "Limited evidence"],
-    missingEvidence:        ["Portfolio URL", "Quantified outcomes", "Accessibility case study"],
+    positiveSignals:        pos,
+    negativeSignals:        neg,
+    missingEvidence:        [],
     confidence:             mapConfidence(prob),
-    confidenceReasoning:    "Confidence reflects the degree of alignment between resume signals and role requirements. Gaps in evidence reduce certainty.",
-    recommendedHumanReview: "Verify portfolio availability, review accessibility contributions, and assess whether quantified outcomes exist but are not captured in the resume text.",
-  };
-}
-
-// ── Static defaults (used when no reports exist) ──────────────────────────────
-
-function buildDefaultShap(prob: number): ShapDatum[] {
-  const base = (prob - 0.5) * 20;
-  return [
-    { signal: "Product Strategy Experience",      value: +(base + 6.4).toFixed(2) },
-    { signal: "UX Research",                      value: +(base + 3.2).toFixed(2) },
-    { signal: "Leadership Impact",                value: +(base + 2.1).toFixed(2) },
-    { signal: "Metrics Driven Results",           value: +(base + 1.4).toFixed(2) },
-    { signal: "Missing Portfolio Link",           value: -(base + 2.6).toFixed(2) as unknown as number },
-    { signal: "Limited Accessibility Evidence",   value: -3.9 },
-    { signal: "Weak Quantified Outcomes",         value: -5.2 },
-  ];
-}
-
-function buildDefaultFeatures(prob: number): FeatureImportanceDatum[] {
-  const scale = Math.max(0.5, Math.min(1.5, prob / 0.65));
-  return [
-    { key: "exp",      label: "Relevant Experience",  category: "Experience",  importancePct: Math.round(28 * scale), delta: "positive", helperText: "Demonstrates directly transferable experience aligned to the role." },
-    { key: "skills",   label: "Skills Match",         category: "Skills",      importancePct: Math.round(24 * scale), delta: "positive", helperText: "High overlap between listed skills and required capabilities." },
-    { key: "projects", label: "Project Impact",       category: "Impact",      importancePct: Math.round(17 * scale), delta: "positive", helperText: "Shows outcomes, measurable improvements, and scope of impact." },
-    { key: "edu",      label: "Education Alignment",  category: "Education",   importancePct: 12,                     delta: "neutral",  helperText: "Supports baseline qualification but less decisive than experience." },
-    { key: "lead",     label: "Leadership Signals",   category: "Leadership",  importancePct: 9,                      delta: "positive", helperText: "Indicates collaboration, ownership, or responsibility." },
-    { key: "evidence", label: "Missing Evidence",     category: "Evidence",    importancePct: 6,                      delta: "negative", helperText: "Key claims lack proof — metrics, artifacts, or concrete results." },
-    { key: "clarity",  label: "Resume Clarity",       category: "Quality",     importancePct: 4,                      delta: "neutral",  helperText: "Readability and structure improve signal extraction." },
-  ];
-}
-
-function buildDefaultProxySignals(): ProxySignal[] {
-  return [
-    { id: "college-tier",    signal: "College Tier",    category: "Education",          risk: "Medium", reason: "May correlate with socioeconomic background.",                                    recommendation: "Normalize education weight and focus on demonstrated skills.", status: "Review"        },
-    { id: "location",        signal: "Location",        category: "Geography",          risk: "High",   reason: "May influence scoring through regional hiring bias.",                             recommendation: "Remove location weighting unless role-relevant.",             status: "Action Needed" },
-    { id: "career-gap",      signal: "Career Gap",      category: "Employment History", risk: "Medium", reason: "May unfairly penalize caregiving or non-linear careers.",                        recommendation: "Evaluate context and avoid automatic penalty.",                status: "Review"        },
-    { id: "name-pattern",    signal: "Name Pattern",    category: "Identity Proxy",     risk: "High",   reason: "Could act as a demographic proxy when correlated with protected attributes.",    recommendation: "Mask identity signals during scoring.",                        status: "Action Needed" },
-    { id: "keyword-density", signal: "Keyword Density", category: "Resume Style",       risk: "Low",    reason: "May favor ATS-optimized resumes over equally qualified candidates.",              recommendation: "Balance keyword scoring with experience evidence.",            status: "Monitor"       },
-  ];
-}
-
-function buildDefault(): ExplainabilitySummary {
-  const shap     = buildDefaultShap(0.65);
-  const features = buildDefaultFeatures(0.65);
-  const proxy    = buildDefaultProxySignals();
-  return {
-    shap,
-    features,
-    proxySignals: proxy,
-    explanation:  buildDefaultExplanation(null, 0.65, shap),
-    stats: {
-      topPositiveDriver: "Product Strategy Experience",
-      topNegativeDriver: "Weak Quantified Outcomes",
-      proxySignalCount:  proxy.length,
-      totalReports:      0,
-    },
+    confidenceReasoning:    "Confidence reflects the degree of alignment between stored report signals and role requirements.",
+    recommendedHumanReview: "Review the latest audit evidence and verify key claims before making a final decision.",
   };
 }

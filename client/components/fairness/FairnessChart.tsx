@@ -112,40 +112,18 @@ function GaugeCard({ score }: { score: number }) {
 }
 
 export default function FairnessChart({ values, className, title, description }: FairnessChartProps) {
-  const fallback: FairnessChartValues = React.useMemo(
-    () => ({
-      fairnessScore: 63,
-      parityGap: 0.12,
-      equalizedOdds: 0.09,
-      counterfactualConsistency: 0.74,
-      groupComparison: [
-        { group: "Group A", score: 71 },
-        { group: "Group B", score: 64 },
-        { group: "Group C", score: 58 },
-        { group: "Group D", score: 49 },
-      ],
-      trend: [
-        { label: "T-4", fairnessScore: 58, parityGap: 0.18, equalizedOdds: 0.14, counterfactualConsistency: 0.66 },
-        { label: "T-3", fairnessScore: 60, parityGap: 0.15, equalizedOdds: 0.11, counterfactualConsistency: 0.69 },
-        { label: "T-2", fairnessScore: 62, parityGap: 0.13, equalizedOdds: 0.10, counterfactualConsistency: 0.71 },
-        { label: "T-1", fairnessScore: 63, parityGap: 0.12, equalizedOdds: 0.09, counterfactualConsistency: 0.74 },
-      ],
-    }),
-    [],
-  );
-
   const merged: FairnessChartValues = React.useMemo(() => {
     const v = values ?? {};
     return {
-      fairnessScore: typeof v.fairnessScore === "number" ? v.fairnessScore : fallback.fairnessScore,
-      parityGap: typeof v.parityGap === "number" ? v.parityGap : fallback.parityGap,
-      equalizedOdds: typeof v.equalizedOdds === "number" ? v.equalizedOdds : fallback.equalizedOdds,
+      fairnessScore: typeof v.fairnessScore === "number" ? v.fairnessScore : 0,
+      parityGap: typeof v.parityGap === "number" ? v.parityGap : 0,
+      equalizedOdds: typeof v.equalizedOdds === "number" ? v.equalizedOdds : 0,
       counterfactualConsistency:
-        typeof v.counterfactualConsistency === "number" ? v.counterfactualConsistency : fallback.counterfactualConsistency,
-      groupComparison: Array.isArray(v.groupComparison) && v.groupComparison.length ? v.groupComparison : fallback.groupComparison,
-      trend: Array.isArray(v.trend) && v.trend.length ? v.trend : fallback.trend,
+        typeof v.counterfactualConsistency === "number" ? v.counterfactualConsistency : 0,
+      groupComparison: Array.isArray(v.groupComparison) ? v.groupComparison : [],
+      trend: Array.isArray(v.trend) ? v.trend : [],
     };
-  }, [values, fallback]);
+  }, [values]);
 
   const riskTone = riskToneFromScore(merged.fairnessScore);
   const fairnessColor = riskTone === "success" ? BRAND.success : riskTone === "warning" ? BRAND.warning : BRAND.danger;
@@ -169,7 +147,7 @@ export default function FairnessChart({ values, className, title, description }:
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#2563EB]">Fairness analytics</p>
             <h2 className="mt-2 text-xl font-semibold tracking-[-0.04em] text-[#0D0C22]">{title ?? "Fairness metrics overview"}</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6E6D7A]">{description ?? "Responsive charts with accessible titles, legends, tooltips, and mock data fallback."}</p>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-[#6E6D7A]">{description ?? "Responsive charts with accessible titles, legends, and live backend fairness metrics."}</p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">

@@ -35,6 +35,7 @@ function SectionSkeleton({ height = 320 }: { height?: number }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 export default function FairnessPage() {
   const { data, isLoading, error, lastFetch, refetch } = useFairness();
+  const hasFairnessData = (data?.stats.totalReports ?? 0) > 0;
 
   // ── Error state ──
   if (error && !data) {
@@ -129,7 +130,17 @@ export default function FairnessPage() {
             ))}
       </section>
 
+      {!isLoading && data && !hasFairnessData ? (
+        <Card className="rounded-4xl border-[#E7E7E9] bg-white/90 p-8 text-center shadow-[0_20px_50px_rgba(13,12,34,0.06)]">
+          <p className="text-lg font-semibold text-[#0D0C22]">No live fairness data yet</p>
+          <p className="mt-2 text-sm text-[#6E6D7A]">
+            Complete an audit that produces a stored fairness snapshot to populate this dashboard in real time.
+          </p>
+        </Card>
+      ) : null}
+
       {/* Metrics + severity gauge */}
+      {hasFairnessData ? (
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(340px,0.85fr)]">
         {isLoading && !data ? (
           <>
@@ -149,9 +160,10 @@ export default function FairnessPage() {
           </>
         )}
       </section>
+      ) : null}
 
       {/* Charts */}
-      {isLoading && !data ? (
+      {hasFairnessData && (isLoading && !data ? (
         <SectionSkeleton height={480} />
       ) : (
         <FairnessChart
@@ -164,21 +176,21 @@ export default function FairnessPage() {
             trend:                     data!.trend,
           }}
         />
-      )}
+      ))}
 
       {/* Heatmap */}
-      {isLoading && !data ? (
+      {hasFairnessData && (isLoading && !data ? (
         <SectionSkeleton height={360} />
       ) : (
         <BiasHeatmap values={data!.heatmap as Parameters<typeof BiasHeatmap>[0]["values"]} />
-      )}
+      ))}
 
       {/* Counterfactuals */}
-      {isLoading && !data ? (
+      {hasFairnessData && (isLoading && !data ? (
         <SectionSkeleton height={320} />
       ) : (
         <CounterfactualView examples={data!.counterfactuals} />
-      )}
+      ))}
     </div>
   );
 }

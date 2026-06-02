@@ -63,9 +63,12 @@ export function useFairness() {
 
   // Initial fetch + polling
   useEffect(() => {
-    fetch();
+    const kickoff = setTimeout(() => {
+      void fetch();
+    }, 0);
     timerRef.current = setInterval(() => fetch(true), POLL_INTERVAL);
     return () => {
+      clearTimeout(kickoff);
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [fetch]);
