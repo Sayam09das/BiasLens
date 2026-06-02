@@ -28,7 +28,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNotifications, type NotificationPreferences } from "@/hooks/useNotifications";
-import { makeSecurityScanSseUrl, startSecurityScan, type SecurityScanEvent } from "@/lib/securityScanSse";
 import { apiFetch } from "@/lib/api";
 import { useAuthStore } from "@/store/auth.store";
 import { useUIStore } from "@/store/ui.store";
@@ -46,8 +45,65 @@ type AccountSettingsPayload = {
   hiringVolume: string;
 };
 
+type ApiKeyRecord = {
+  id: string;
+  name: string;
+  keyPreview: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  active: boolean;
+};
+
+type BillingPaymentMethod = {
+  id: string;
+  brand: string;
+  last4: string;
+  exp: string;
+  primary: boolean;
+};
+
+type BillingInvoice = {
+  id: string;
+  date: string;
+  amount: string;
+  status: string;
+};
+
+type BillingSettingsPayload = {
+  currentInvoiceAmount: string;
+  currentInvoiceDue: string;
+  subscriptionPlan: string;
+  subscriptionDescription: string;
+  nextRenewal: string;
+  paymentMethods: BillingPaymentMethod[];
+  invoices: BillingInvoice[];
+};
+
+type TeamMemberRecord = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+};
+
+type TeamSettingsPayload = {
+  members: TeamMemberRecord[];
+};
+
+type DangerSettingsPayload = {
+  lastExportAt: string | null;
+  lastExportStatus: string | null;
+  workspaceDisabled: boolean;
+  deletionRequestedAt: string | null;
+};
+
 type UserSettingsPayload = AccountSettingsPayload & {
   notifications?: NotificationPreferences;
+  apiKeys?: ApiKeyRecord[];
+  billing?: BillingSettingsPayload;
+  team?: TeamSettingsPayload;
+  danger?: DangerSettingsPayload;
 };
 
 function FieldLabel({ htmlFor, children, className }: { htmlFor?: string; children: React.ReactNode; className?: string }) {
@@ -105,6 +161,18 @@ const hiringVolumeOptions: Option[] = [
   { label: "101-500 resumes/month", value: "101-500" },
   { label: "500+ resumes/month", value: "500+" },
 ];
+
+const defaultAccountSettings: AccountSettingsPayload = {
+  defaultDashboardView: "reports",
+  emailNotifications: true,
+  productUpdateEmails: false,
+  auditReportEmails: true,
+  weeklySummaryEmails: true,
+  workspaceName: "BiasLens Workspace",
+  organizationType: "Startup",
+  teamSize: "21-100",
+  hiringVolume: "21-100",
+};
 
 const fullNameSchema = z
   .string()
@@ -229,8 +297,81 @@ function mergeUserSettings(
   return {
     ...mergedAccount,
     notifications: settings?.notifications,
+    apiKeys: settings?.apiKeys,
+    billing: settings?.billing,
+    team: settings?.team,
+    danger: settings?.danger,
   };
 }
+
+const defaultApiKeys = (): ApiKeyRecord[] => [
+  {
+    id: "key_live_production",
+    name: "Production API",
+    keyPreview: "bl_live_••••7A92",
+    createdAt: "2024-01-15",
+    lastUsedAt: "2024-01-20",
+    active: true,
+  },
+  {
+    id: "key_test_development",
+    name: "Development API",
+    keyPreview: "bl_test_••••1F43",
+    createdAt: "2024-01-10",
+    lastUsedAt: "2024-01-18",
+    active: true,
+  },
+];
+
+const defaultBillingSettings = (): BillingSettingsPayload => ({
+  currentInvoiceAmount: "$120.00",
+  currentInvoiceDue: "May 1, 2024",
+  subscriptionPlan: "Scale",
+  subscriptionDescription: "Up to 50 users and audit reports.",
+  nextRenewal: "June 5, 2024",
+  paymentMethods: [
+    { id: "pm_1", brand: "Visa", last4: "4242", exp: "12/26", primary: true },
+    { id: "pm_2", brand: "Mastercard", last4: "9876", exp: "08/25", primary: false },
+  ],
+  invoices: [
+    { id: "INV-0081", date: "May 1, 2024", amount: "$120.00", status: "Paid" },
+    { id: "INV-0080", date: "Apr 1, 2024", amount: "$110.00", status: "Paid" },
+    { id: "INV-0079", date: "Mar 1, 2024", amount: "$98.00", status: "Due" },
+  ],
+});
+
+const defaultTeamSettings = (user?: { fullName?: string; email?: string; role?: string } | null): TeamSettingsPayload => ({
+  members: [
+    {
+      id: "member_owner",
+      name: user?.fullName ?? "Jordan Taylor",
+      email: user?.email ?? "jordan.taylor@company.com",
+      role: user?.role ? user.role.toUpperCase() : "Owner",
+      status: "You",
+    },
+    {
+      id: "member_admin",
+      name: "Avery Blake",
+      email: "avery.blake@company.com",
+      role: "Admin",
+      status: "Active",
+    },
+    {
+      id: "member_pending",
+      name: "Morgan Lee",
+      email: "morgan.lee@company.com",
+      role: "Member",
+      status: "Pending",
+    },
+  ],
+});
+
+const defaultDangerSettings = (): DangerSettingsPayload => ({
+  lastExportAt: null,
+  lastExportStatus: null,
+  workspaceDisabled: false,
+  deletionRequestedAt: null,
+});
 
 function Switch({
   checked,
@@ -1466,31 +1607,104 @@ function NotificationsTab() {
 }
 
 function ApiKeysTab() {
-  const [apiKeys, setApiKeys] = React.useState([
-    { id: "key_1", name: "Production API", created: "2024-01-15", lastUsed: "2024-01-20", active: true },
-    { id: "key_2", name: "Development API", created: "2024-01-10", lastUsed: "2024-01-18", active: true },
-  ]);
-
+  const { user, setUser } = useAuthStore();
+  const persistedApiKeys = user?.settings?.apiKeys ?? defaultApiKeys();
+  const [draftApiKeys, setDraftApiKeys] = React.useState<ApiKeyRecord[] | null>(null);
+  const apiKeys = draftApiKeys ?? persistedApiKeys;
   const [showNewKey, setShowNewKey] = React.useState(false);
   const [newKeyName, setNewKeyName] = React.useState("");
+  const [saveState, setSaveState] = React.useState<"idle" | "saving" | "success" | "error">("idle");
+  const [error, setError] = React.useState<string | null>(null);
 
-  const handleCreateKey = () => {
-    if (newKeyName.trim()) {
-      const newKey = {
-        id: `key_${Date.now()}`,
-        name: newKeyName,
-        created: new Date().toISOString().split("T")[0],
-        lastUsed: "Never",
-        active: true,
-      };
-      setApiKeys([...apiKeys, newKey]);
+  const persistApiKeys = React.useCallback(async (nextApiKeys: ApiKeyRecord[]) => {
+    if (!user?.id) {
+      throw new Error("You need to be signed in to manage API keys.");
+    }
+
+    const currentSettings = mergeUserSettings(user.settings, defaultAccountSettings);
+
+    const updated = await apiFetch<{
+      id: string;
+      email: string;
+      fullName: string;
+      role: string;
+      jobTitle?: string | null;
+      company?: string | null;
+      phoneNumber?: string | null;
+      settings?: UserSettingsPayload | null;
+      isActive: boolean;
+      emailVerified: boolean;
+      emailVerifiedAt?: string | null;
+      createdAt?: string;
+      updatedAt?: string;
+    }>(`/v1/users/${user.id}`, {
+      method: "PATCH",
+      body: {
+        settings: {
+          ...currentSettings,
+          apiKeys: nextApiKeys,
+        },
+      },
+    });
+
+    setUser({
+      id: updated.id,
+      email: updated.email,
+      fullName: updated.fullName,
+      role: updated.role,
+      jobTitle: updated.jobTitle ?? null,
+      company: updated.company ?? null,
+      phoneNumber: updated.phoneNumber ?? null,
+      settings: updated.settings ?? null,
+      isActive: updated.isActive,
+      emailVerified: updated.emailVerified,
+      emailVerifiedAt: updated.emailVerifiedAt ?? null,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+    });
+  }, [setUser, user]);
+
+  const handleCreateKey = async () => {
+    if (!newKeyName.trim()) return;
+
+    const newKey: ApiKeyRecord = {
+      id: `key_${Date.now()}`,
+      name: newKeyName.trim(),
+      keyPreview: `bl_live_••••${Math.random().toString(16).slice(2, 6).toUpperCase()}`,
+      createdAt: new Date().toISOString().split("T")[0] ?? new Date().toLocaleDateString(),
+      lastUsedAt: null,
+      active: true,
+    };
+
+    const nextApiKeys = [newKey, ...apiKeys];
+    setSaveState("saving");
+    setError(null);
+    try {
+      await persistApiKeys(nextApiKeys);
+      setDraftApiKeys(null);
       setNewKeyName("");
       setShowNewKey(false);
+      setSaveState("success");
+      window.setTimeout(() => setSaveState("idle"), 1200);
+    } catch (nextError) {
+      setSaveState("error");
+      setError(nextError instanceof Error ? nextError.message : "Failed to create API key.");
     }
   };
 
-  const handleDeleteKey = (id: string) => {
-    setApiKeys(apiKeys.filter((key) => key.id !== id));
+  const handleDeleteKey = async (id: string) => {
+    const nextApiKeys = apiKeys.filter((key) => key.id !== id);
+    setSaveState("saving");
+    setError(null);
+    try {
+      await persistApiKeys(nextApiKeys);
+      setDraftApiKeys(null);
+      setSaveState("success");
+      window.setTimeout(() => setSaveState("idle"), 1200);
+    } catch (nextError) {
+      setSaveState("error");
+      setError(nextError instanceof Error ? nextError.message : "Failed to delete API key.");
+    }
   };
 
   return (
@@ -1553,7 +1767,9 @@ function ApiKeysTab() {
             <div key={key.id} className="flex items-center justify-between gap-4 px-4 py-3.5 first:rounded-t-[1.5rem] last:rounded-b-[1.5rem] hover:bg-[#F6F8FB] transition">
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-[#0D0C22]">{key.name}</p>
-                <p className="mt-0.5 text-xs text-[#6E6D7A]">Created {key.created} • Last used {key.lastUsed}</p>
+                <p className="mt-0.5 text-xs text-[#6E6D7A]">
+                  {key.keyPreview} • Created {key.createdAt} • Last used {key.lastUsedAt ?? "Never"}
+                </p>
               </div>
               <div className="flex items-center gap-2">
                 <span className="inline-flex items-center rounded-2xl border border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.10)] px-3 py-1 text-xs font-semibold text-[#22C55E]">
@@ -1570,26 +1786,107 @@ function ApiKeysTab() {
             </div>
           ))}
         </div>
+
+        {error ? (
+          <div className="mt-4 rounded-[1.25rem] border border-[rgba(239,68,68,0.25)] bg-[rgba(239,68,68,0.10)] p-4 text-sm text-[#6E6D7A]">
+            {error}
+          </div>
+        ) : null}
+        {saveState === "success" ? (
+          <div className="mt-4 rounded-[1.25rem] border border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.10)] p-4 text-sm text-[#6E6D7A]">
+            API keys updated successfully.
+          </div>
+        ) : null}
       </Card>
     </div>
   );
 }
 
 function BillingTab() {
-  const paymentMethods = [
-    { id: "pm_1", brand: "Visa", last4: "4242", exp: "12/26", primary: true },
-    { id: "pm_2", brand: "Mastercard", last4: "9876", exp: "08/25", primary: false },
-  ];
+  const { user, setUser } = useAuthStore();
+  const persistedBilling = user?.settings?.billing ?? defaultBillingSettings();
+  const [draftBilling, setDraftBilling] = React.useState<BillingSettingsPayload | null>(null);
+  const [draftSelectedMethod, setDraftSelectedMethod] = React.useState<string | null>(null);
+  const billing = draftBilling ?? persistedBilling;
+  const selectedMethod =
+    draftSelectedMethod ??
+    billing.paymentMethods.find((method) => method.primary)?.id ??
+    billing.paymentMethods[0]?.id ??
+    "";
+  const [saveState, setSaveState] = React.useState<"idle" | "saving" | "success" | "error">("idle");
+  const [error, setError] = React.useState<string | null>(null);
 
-  const invoices = [
-    { id: "INV-0081", date: "May 1, 2024", amount: "$120.00", status: "Paid" },
-    { id: "INV-0080", date: "Apr 1, 2024", amount: "$110.00", status: "Paid" },
-    { id: "INV-0079", date: "Mar 1, 2024", amount: "$98.00", status: "Due" },
-  ];
+  const persistBilling = React.useCallback(async (nextBilling: BillingSettingsPayload) => {
+    if (!user?.id) {
+      throw new Error("You need to be signed in to update billing settings.");
+    }
 
-  const [selectedMethod, setSelectedMethod] = React.useState(paymentMethods[0].id);
+    const currentSettings = mergeUserSettings(user.settings, defaultAccountSettings);
+    const updated = await apiFetch<{
+      id: string;
+      email: string;
+      fullName: string;
+      role: string;
+      jobTitle?: string | null;
+      company?: string | null;
+      phoneNumber?: string | null;
+      settings?: UserSettingsPayload | null;
+      isActive: boolean;
+      emailVerified: boolean;
+      emailVerifiedAt?: string | null;
+      createdAt?: string;
+      updatedAt?: string;
+    }>(`/v1/users/${user.id}`, {
+      method: "PATCH",
+      body: {
+        settings: {
+          ...currentSettings,
+          billing: nextBilling,
+        },
+      },
+    });
 
-  const activeMethod = paymentMethods.find((method) => method.id === selectedMethod) ?? paymentMethods[0];
+    setUser({
+      id: updated.id,
+      email: updated.email,
+      fullName: updated.fullName,
+      role: updated.role,
+      jobTitle: updated.jobTitle ?? null,
+      company: updated.company ?? null,
+      phoneNumber: updated.phoneNumber ?? null,
+      settings: updated.settings ?? null,
+      isActive: updated.isActive,
+      emailVerified: updated.emailVerified,
+      emailVerifiedAt: updated.emailVerifiedAt ?? null,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+    });
+  }, [setUser, user]);
+
+  const handleSelectMethod = async (methodId: string) => {
+    const nextBilling = {
+      ...billing,
+      paymentMethods: billing.paymentMethods.map((method) => ({
+        ...method,
+        primary: method.id === methodId,
+      })),
+    };
+
+    setSaveState("saving");
+    setError(null);
+    try {
+      await persistBilling(nextBilling);
+      setDraftBilling(null);
+      setDraftSelectedMethod(null);
+      setSaveState("success");
+      window.setTimeout(() => setSaveState("idle"), 1200);
+    } catch (nextError) {
+      setSaveState("error");
+      setError(nextError instanceof Error ? nextError.message : "Failed to update payment method.");
+    }
+  };
+
+  const activeMethod = billing.paymentMethods.find((method) => method.id === selectedMethod) ?? billing.paymentMethods[0];
 
   return (
     <div className="space-y-6">
@@ -1608,20 +1905,20 @@ function BillingTab() {
           </div>
 
           <div className="rounded-[1.5rem] border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-3 text-sm text-[#6E6D7A]">
-            Next renewal: <span className="font-semibold text-[#0D0C22]">June 5, 2024</span>
+            Next renewal: <span className="font-semibold text-[#0D0C22]">{billing.nextRenewal}</span>
           </div>
         </div>
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           <Card className="rounded-[1.75rem] border-[#E7E7E9] bg-[#FFFFFF] p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-[#6E6D7A]">Current invoice</p>
-            <p className="mt-3 text-2xl font-semibold text-[#0D0C22]">$120.00</p>
-            <p className="mt-2 text-sm text-[#6E6D7A]">Due May 1, 2024</p>
+            <p className="mt-3 text-2xl font-semibold text-[#0D0C22]">{billing.currentInvoiceAmount}</p>
+            <p className="mt-2 text-sm text-[#6E6D7A]">Due {billing.currentInvoiceDue}</p>
           </Card>
           <Card className="rounded-[1.75rem] border-[#E7E7E9] bg-[#FFFFFF] p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-[#6E6D7A]">Subscription plan</p>
-            <p className="mt-3 text-2xl font-semibold text-[#0D0C22]">Scale</p>
-            <p className="mt-2 text-sm text-[#6E6D7A]">Up to 50 users and audit reports.</p>
+            <p className="mt-3 text-2xl font-semibold text-[#0D0C22]">{billing.subscriptionPlan}</p>
+            <p className="mt-2 text-sm text-[#6E6D7A]">{billing.subscriptionDescription}</p>
           </Card>
           <Card className="rounded-[1.75rem] border-[#E7E7E9] bg-[#FFFFFF] p-4">
             <p className="text-xs uppercase tracking-[0.18em] text-[#6E6D7A]">Payment method</p>
@@ -1645,11 +1942,11 @@ function BillingTab() {
         </div>
 
         <div className="mt-5 space-y-3">
-          {paymentMethods.map((method) => (
+          {billing.paymentMethods.map((method) => (
             <button
               key={method.id}
               type="button"
-              onClick={() => setSelectedMethod(method.id)}
+              onClick={() => void handleSelectMethod(method.id)}
               className={
                 "w-full rounded-[1.5rem] border px-4 py-4 text-left transition " +
                 (selectedMethod === method.id
@@ -1684,7 +1981,7 @@ function BillingTab() {
         </div>
 
         <div className="mt-5 divide-y divide-[#E7E7E9] rounded-[1.5rem] border border-[#E7E7E9]">
-          {invoices.map((invoice) => (
+          {billing.invoices.map((invoice) => (
             <div
               key={invoice.id}
               className="flex flex-col gap-3 px-4 py-4 first:rounded-t-[1.5rem] last:rounded-b-[1.5rem] md:flex-row md:items-center md:justify-between"
@@ -1709,31 +2006,114 @@ function BillingTab() {
             </div>
           ))}
         </div>
+
+        {error ? (
+          <div className="mt-4 rounded-[1.25rem] border border-[rgba(239,68,68,0.25)] bg-[rgba(239,68,68,0.10)] p-4 text-sm text-[#6E6D7A]">
+            {error}
+          </div>
+        ) : null}
+        {saveState === "success" ? (
+          <div className="mt-4 rounded-[1.25rem] border border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.10)] p-4 text-sm text-[#6E6D7A]">
+            Billing preferences updated successfully.
+          </div>
+        ) : null}
       </Card>
     </div>
   );
 }
 
 function TeamTab() {
+  const { user, setUser } = useAuthStore();
   const [inviteEmail, setInviteEmail] = React.useState("");
-  const [members, setMembers] = React.useState([
-    { id: "m1", name: "Jordan Taylor", role: "Owner", status: "You" },
-    { id: "m2", name: "Avery Blake", role: "Admin", status: "Active" },
-    { id: "m3", name: "Morgan Lee", role: "Member", status: "Pending" },
-  ]);
+  const persistedMembers = (user?.settings?.team ?? defaultTeamSettings(user)).members;
+  const [draftMembers, setDraftMembers] = React.useState<TeamMemberRecord[] | null>(null);
+  const members = draftMembers ?? persistedMembers;
+  const [saveState, setSaveState] = React.useState<"idle" | "saving" | "success" | "error">("idle");
+  const [error, setError] = React.useState<string | null>(null);
 
-  const handleInvite = () => {
+  const persistMembers = React.useCallback(async (nextMembers: TeamMemberRecord[]) => {
+    if (!user?.id) {
+      throw new Error("You need to be signed in to update team members.");
+    }
+
+    const currentSettings = mergeUserSettings(user.settings, defaultAccountSettings);
+    const updated = await apiFetch<{
+      id: string;
+      email: string;
+      fullName: string;
+      role: string;
+      jobTitle?: string | null;
+      company?: string | null;
+      phoneNumber?: string | null;
+      settings?: UserSettingsPayload | null;
+      isActive: boolean;
+      emailVerified: boolean;
+      emailVerifiedAt?: string | null;
+      createdAt?: string;
+      updatedAt?: string;
+    }>(`/v1/users/${user.id}`, {
+      method: "PATCH",
+      body: {
+        settings: {
+          ...currentSettings,
+          team: { members: nextMembers },
+        },
+      },
+    });
+
+    setUser({
+      id: updated.id,
+      email: updated.email,
+      fullName: updated.fullName,
+      role: updated.role,
+      jobTitle: updated.jobTitle ?? null,
+      company: updated.company ?? null,
+      phoneNumber: updated.phoneNumber ?? null,
+      settings: updated.settings ?? null,
+      isActive: updated.isActive,
+      emailVerified: updated.emailVerified,
+      emailVerifiedAt: updated.emailVerifiedAt ?? null,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+    });
+  }, [setUser, user]);
+
+  const handleInvite = async () => {
     const email = inviteEmail.trim();
     if (!email) return;
-    setMembers((current) => [
-      ...current,
-      { id: `m_${Date.now()}`, name: email, role: "Member", status: "Invited" },
-    ]);
-    setInviteEmail("");
+
+    const nextMembers = [
+      ...members,
+      { id: `m_${Date.now()}`, name: email, email, role: "Member", status: "Invited" },
+    ];
+
+    setSaveState("saving");
+    setError(null);
+    try {
+      await persistMembers(nextMembers);
+      setDraftMembers(null);
+      setInviteEmail("");
+      setSaveState("success");
+      window.setTimeout(() => setSaveState("idle"), 1200);
+    } catch (nextError) {
+      setSaveState("error");
+      setError(nextError instanceof Error ? nextError.message : "Failed to invite team member.");
+    }
   };
 
-  const handleRemove = (id: string) => {
-    setMembers((current) => current.filter((member) => member.id !== id));
+  const handleRemove = async (id: string) => {
+    const nextMembers = members.filter((member) => member.id !== id);
+    setSaveState("saving");
+    setError(null);
+    try {
+      await persistMembers(nextMembers);
+      setDraftMembers(null);
+      setSaveState("success");
+      window.setTimeout(() => setSaveState("idle"), 1200);
+    } catch (nextError) {
+      setSaveState("error");
+      setError(nextError instanceof Error ? nextError.message : "Failed to remove team member.");
+    }
   };
 
   return (
@@ -1799,7 +2179,7 @@ function TeamTab() {
             <div key={member.id} className="flex flex-col gap-4 px-4 py-4 first:rounded-t-[1.5rem] last:rounded-b-[1.5rem] md:flex-row md:items-center md:justify-between">
               <div>
                 <p className="text-sm font-semibold text-[#0D0C22]">{member.name}</p>
-                <p className="mt-1 text-sm text-[#6E6D7A]">{member.role}</p>
+                <p className="mt-1 text-sm text-[#6E6D7A]">{member.role} • {member.email}</p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="inline-flex items-center rounded-2xl border border-[#E7E7E9] bg-[#F6F8FB] px-3 py-1 text-xs font-semibold text-[#6E6D7A]">
@@ -1818,14 +2198,128 @@ function TeamTab() {
             </div>
           ))}
         </div>
+
+        {error ? (
+          <div className="mt-4 rounded-[1.25rem] border border-[rgba(239,68,68,0.25)] bg-[rgba(239,68,68,0.10)] p-4 text-sm text-[#6E6D7A]">
+            {error}
+          </div>
+        ) : null}
+        {saveState === "success" ? (
+          <div className="mt-4 rounded-[1.25rem] border border-[rgba(34,197,94,0.25)] bg-[rgba(34,197,94,0.10)] p-4 text-sm text-[#6E6D7A]">
+            Team members updated successfully.
+          </div>
+        ) : null}
       </Card>
     </div>
   );
 }
 
 function DangerTab() {
+  const { user, setUser, logout } = useAuthStore();
   const [confirmText, setConfirmText] = React.useState("");
+  const persistedDanger = user?.settings?.danger ?? defaultDangerSettings();
+  const [draftDanger, setDraftDanger] = React.useState<DangerSettingsPayload | null>(null);
+  const danger = draftDanger ?? persistedDanger;
+  const [message, setMessage] = React.useState<string | null>(null);
   const canDelete = confirmText === "DELETE";
+
+  const persistDanger = React.useCallback(async (nextDanger: DangerSettingsPayload) => {
+    if (!user?.id) {
+      throw new Error("You need to be signed in to update workspace safeguards.");
+    }
+
+    const currentSettings = mergeUserSettings(user.settings, defaultAccountSettings);
+    const updated = await apiFetch<{
+      id: string;
+      email: string;
+      fullName: string;
+      role: string;
+      jobTitle?: string | null;
+      company?: string | null;
+      phoneNumber?: string | null;
+      settings?: UserSettingsPayload | null;
+      isActive: boolean;
+      emailVerified: boolean;
+      emailVerifiedAt?: string | null;
+      createdAt?: string;
+      updatedAt?: string;
+    }>(`/v1/users/${user.id}`, {
+      method: "PATCH",
+      body: {
+        settings: {
+          ...currentSettings,
+          danger: nextDanger,
+        },
+      },
+    });
+
+    setUser({
+      id: updated.id,
+      email: updated.email,
+      fullName: updated.fullName,
+      role: updated.role,
+      jobTitle: updated.jobTitle ?? null,
+      company: updated.company ?? null,
+      phoneNumber: updated.phoneNumber ?? null,
+      settings: updated.settings ?? null,
+      isActive: updated.isActive,
+      emailVerified: updated.emailVerified,
+      emailVerifiedAt: updated.emailVerifiedAt ?? null,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+    });
+  }, [setUser, user]);
+
+  const handleExport = async () => {
+    const nextDanger = {
+      ...danger,
+      lastExportAt: new Date().toISOString(),
+      lastExportStatus: "Completed",
+    };
+    setMessage(null);
+    try {
+      await persistDanger(nextDanger);
+      setDraftDanger(null);
+      setMessage("Workspace export request saved successfully.");
+    } catch (nextError) {
+      setMessage(nextError instanceof Error ? nextError.message : "Failed to export workspace data.");
+    }
+  };
+
+  const handleDisable = async () => {
+    const nextDanger = {
+      ...danger,
+      workspaceDisabled: !danger.workspaceDisabled,
+    };
+    setMessage(null);
+    try {
+      await persistDanger(nextDanger);
+      setDraftDanger(null);
+      setMessage(nextDanger.workspaceDisabled ? "Workspace disabled." : "Workspace re-enabled.");
+    } catch (nextError) {
+      setMessage(nextError instanceof Error ? nextError.message : "Failed to update workspace status.");
+    }
+  };
+
+  const handleDeleteRequest = async () => {
+    if (!canDelete) return;
+
+    const nextDanger = {
+      ...danger,
+      deletionRequestedAt: new Date().toISOString(),
+    };
+
+    setMessage(null);
+    try {
+      await persistDanger(nextDanger);
+      setDraftDanger(null);
+      setMessage("Deletion request recorded. Your account has been signed out for safety.");
+      setConfirmText("");
+      await logout();
+    } catch (nextError) {
+      setMessage(nextError instanceof Error ? nextError.message : "Failed to request account deletion.");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -1845,7 +2339,7 @@ function DangerTab() {
         <Card className="rounded-[1.75rem] border-[#FECACA] bg-[#FEF2F2] p-4">
           <p className="text-sm font-semibold text-[#B91C1C]">Export workspace data</p>
           <p className="mt-2 text-sm text-[#6E6D7A]">Generate a backup of your workspace before proceeding with destructive changes.</p>
-          <Button className="mt-4 rounded-[1.25rem] bg-[#B91C1C] px-5 text-white hover:bg-[#991B1B]">
+          <Button onClick={() => void handleExport()} className="mt-4 rounded-[1.25rem] bg-[#B91C1C] px-5 text-white hover:bg-[#991B1B]">
             Export data
           </Button>
         </Card>
@@ -1853,16 +2347,16 @@ function DangerTab() {
         <Card className="rounded-[1.75rem] border-[#FECACA] bg-[#FEF2F2] p-4">
           <p className="text-sm font-semibold text-[#B91C1C]">Disable workspace</p>
           <p className="mt-2 text-sm text-[#6E6D7A]">Temporarily stop activity and sign-ins for your current workspace.</p>
-          <Button className="mt-4 rounded-[1.25rem] border border-[#EF4444] bg-white px-5 text-[#EF4444] hover:bg-[#FEE2E2]">
-            Disable workspace
+          <Button onClick={() => void handleDisable()} className="mt-4 rounded-[1.25rem] border border-[#EF4444] bg-white px-5 text-[#EF4444] hover:bg-[#FEE2E2]">
+            {danger.workspaceDisabled ? "Re-enable workspace" : "Disable workspace"}
           </Button>
         </Card>
 
         <Card className="rounded-[1.75rem] border-[#FECACA] bg-[#FEF2F2] p-4">
           <p className="text-sm font-semibold text-[#B91C1C]">Delete account</p>
           <p className="mt-2 text-sm text-[#6E6D7A]">Permanently delete all workspace data and remove access for everyone.</p>
-          <Button className="mt-4 rounded-[1.25rem] bg-[#EF4444] px-5 text-white hover:bg-[#DC2626]">
-            Delete account
+          <Button onClick={() => void handleDeleteRequest()} className="mt-4 rounded-[1.25rem] bg-[#EF4444] px-5 text-white hover:bg-[#DC2626]">
+            {danger.deletionRequestedAt ? "Deletion requested" : "Delete account"}
           </Button>
         </Card>
       </div>
@@ -1882,11 +2376,27 @@ function DangerTab() {
             <Button
               type="button"
               disabled={!canDelete}
+              onClick={() => void handleDeleteRequest()}
               className="rounded-[1.25rem] bg-[#EF4444] px-5 text-white hover:bg-[#DC2626] disabled:opacity-50"
             >
               Confirm delete
             </Button>
           </div>
+          {danger.lastExportAt ? (
+            <p className="text-sm text-[#6E6D7A]">
+              Last export: {new Date(danger.lastExportAt).toLocaleString()} ({danger.lastExportStatus ?? "Unknown"})
+            </p>
+          ) : null}
+          {danger.deletionRequestedAt ? (
+            <p className="text-sm text-[#6E6D7A]">
+              Deletion requested at {new Date(danger.deletionRequestedAt).toLocaleString()}.
+            </p>
+          ) : null}
+          {message ? (
+            <div className="rounded-[1.25rem] border border-[#FECACA] bg-white p-4 text-sm text-[#6E6D7A]">
+              {message}
+            </div>
+          ) : null}
         </div>
       </Card>
     </div>

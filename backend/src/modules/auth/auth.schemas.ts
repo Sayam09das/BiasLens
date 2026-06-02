@@ -19,6 +19,52 @@ const notificationSettingsSchema = z.object({
   quietFrom: z.string().trim().min(1).max(5),
   quietTo: z.string().trim().min(1).max(5),
 });
+const apiKeySchema = z.object({
+  id: z.string().trim().min(1).max(80),
+  name: z.string().trim().min(2).max(120),
+  keyPreview: z.string().trim().min(6).max(80),
+  createdAt: z.string().trim().min(1).max(80),
+  lastUsedAt: z.string().trim().min(1).max(80).nullable(),
+  active: z.boolean(),
+});
+const billingPaymentMethodSchema = z.object({
+  id: z.string().trim().min(1).max(80),
+  brand: z.string().trim().min(1).max(40),
+  last4: z.string().trim().min(2).max(4),
+  exp: z.string().trim().min(4).max(10),
+  primary: z.boolean(),
+});
+const billingInvoiceSchema = z.object({
+  id: z.string().trim().min(1).max(80),
+  date: z.string().trim().min(1).max(80),
+  amount: z.string().trim().min(1).max(40),
+  status: z.string().trim().min(1).max(40),
+});
+const billingSettingsSchema = z.object({
+  currentInvoiceAmount: z.string().trim().min(1).max(40),
+  currentInvoiceDue: z.string().trim().min(1).max(80),
+  subscriptionPlan: z.string().trim().min(1).max(80),
+  subscriptionDescription: z.string().trim().min(1).max(200),
+  nextRenewal: z.string().trim().min(1).max(80),
+  paymentMethods: z.array(billingPaymentMethodSchema),
+  invoices: z.array(billingInvoiceSchema),
+});
+const teamMemberSchema = z.object({
+  id: z.string().trim().min(1).max(80),
+  name: z.string().trim().min(1).max(120),
+  email: z.string().trim().email(),
+  role: z.string().trim().min(1).max(40),
+  status: z.string().trim().min(1).max(40),
+});
+const teamSettingsSchema = z.object({
+  members: z.array(teamMemberSchema),
+});
+const dangerSettingsSchema = z.object({
+  lastExportAt: z.string().trim().min(1).max(80).nullable(),
+  lastExportStatus: z.string().trim().min(1).max(40).nullable(),
+  workspaceDisabled: z.boolean(),
+  deletionRequestedAt: z.string().trim().min(1).max(80).nullable(),
+});
 const userSettingsSchema = z.object({
   defaultDashboardView: z.string().trim().min(1).max(40),
   emailNotifications: z.boolean(),
@@ -30,6 +76,10 @@ const userSettingsSchema = z.object({
   teamSize: z.string().trim().min(1).max(40),
   hiringVolume: z.string().trim().min(1).max(40),
   notifications: notificationSettingsSchema.optional(),
+  apiKeys: z.array(apiKeySchema).optional(),
+  billing: billingSettingsSchema.optional(),
+  team: teamSettingsSchema.optional(),
+  danger: dangerSettingsSchema.optional(),
 });
 
 export const authSchemas = {
