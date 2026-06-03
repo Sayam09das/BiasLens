@@ -34,7 +34,7 @@ export default function Navbar() {
         className="sticky top-0 z-50 px-4 pt-4 sm:px-6 lg:px-10"
         initial={{ y: -80, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
       >
         <div className="mx-auto max-w-7xl">
           <nav className="flex items-center justify-between rounded-[1.6rem] border border-[color:var(--border)] bg-white/78 px-4 py-3 shadow-[0_20px_60px_rgba(13,12,34,0.08)] backdrop-blur-xl sm:px-6 lg:px-8">
@@ -43,7 +43,7 @@ export default function Navbar() {
             <motion.div
               initial={{ opacity: 0, x: -16 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.45, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.45, delay: 0.15, ease: [0.22, 1, 0.36, 1] as const }}
             >
               <Link
                 href="/"
@@ -70,7 +70,7 @@ export default function Navbar() {
               className="hidden items-center gap-2 bg-white/72 px-2 py-1 lg:flex"
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45, delay: 0.22, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.45, delay: 0.22, ease: [0.22, 1, 0.36, 1] as const }}
             >
               {navItems.map((item, i) => {
                 const isActive = isNavItemActive(item.href);
@@ -101,7 +101,7 @@ export default function Navbar() {
               className="hidden items-center gap-3 lg:flex"
               initial={{ opacity: 0, x: 16 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.45, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.45, delay: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
             >
               <Button asChild variant="ghost" className="h-10 px-4">
                 <Link href="/login">Sign In</Link>
@@ -167,7 +167,7 @@ export default function Navbar() {
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
-            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] as const }}
             aria-hidden={!mobileOpen}
           >
             {/* Drawer Header */}

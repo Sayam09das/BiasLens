@@ -238,7 +238,7 @@ export default function FeatureComparisonSection() {
               initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] as const }}
               className="rounded-[1.6rem] border border-[#E7E7E9] bg-white/70 p-5 shadow-[0_18px_50px_rgba(13,12,34,0.04)] backdrop-blur-xl"
             >
               <div className="flex items-start justify-between gap-3">

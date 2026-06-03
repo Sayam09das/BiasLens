@@ -39,10 +39,14 @@ function clampScore(value: number, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
 }
 
+function hasStatus(audit: Audit, status: "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED") {
+  return String(audit.status).toUpperCase() === status;
+}
+
 function deriveScores(audit: Audit) {
   const seed = hashString([audit.id, audit.title, audit.jobRole ?? "", audit.resumeText ?? ""].join("|"));
 
-  if (audit.status === "QUEUED" || audit.status === "queued") {
+  if (hasStatus(audit, "QUEUED")) {
     return {
       resumeScore: 0,
       jobFit: 0,
@@ -51,7 +55,7 @@ function deriveScores(audit: Audit) {
     };
   }
 
-  if (audit.status === "FAILED" || audit.status === "failed") {
+  if (hasStatus(audit, "FAILED")) {
     return {
       resumeScore: 0,
       jobFit: 0,
@@ -64,7 +68,7 @@ function deriveScores(audit: Audit) {
   const jobFit = clampScore(resumeScore - 3 - (seed % 6));
   const skillsMatch = clampScore(resumeScore - 5 - (seed % 7));
   const fairnessRisk =
-    audit.status === "PROCESSING" || audit.status === "processing"
+    hasStatus(audit, "PROCESSING")
       ? clampScore(18 + (seed % 14))
       : clampScore(12 + (seed % 22));
 
@@ -77,14 +81,14 @@ function deriveScores(audit: Audit) {
 }
 
 function buildOverview(audit: Audit, scores: ReturnType<typeof deriveScores>) {
-  if (audit.status === "QUEUED" || audit.status === "queued") {
+  if (hasStatus(audit, "QUEUED")) {
     return [
       "Audit created and queued for processing.",
       "Explainability and fairness analysis will appear here once the audit completes.",
     ];
   }
 
-  if (audit.status === "FAILED" || audit.status === "failed") {
+  if (hasStatus(audit, "FAILED")) {
     return [
       "The audit could not complete successfully, so score evidence is incomplete.",
       "Review the uploaded resume formatting and retry the run after correcting any parsing issues.",
@@ -113,11 +117,11 @@ function buildOverview(audit: Audit, scores: ReturnType<typeof deriveScores>) {
 }
 
 function buildExplainabilityInsights(audit: Audit, scores: ReturnType<typeof deriveScores>) {
-  if (audit.status === "QUEUED" || audit.status === "queued") {
+  if (hasStatus(audit, "QUEUED")) {
     return [];
   }
 
-  if (audit.status === "FAILED" || audit.status === "failed") {
+  if (hasStatus(audit, "FAILED")) {
     return [
       {
         title: "Processing interrupted",
@@ -164,7 +168,7 @@ function buildFairnessAnalysis(scores: ReturnType<typeof deriveScores>) {
 }
 
 function buildImprovementSuggestions(audit: Audit, scores: ReturnType<typeof deriveScores>) {
-  if (audit.status === "QUEUED" || audit.status === "queued") {
+  if (hasStatus(audit, "QUEUED")) {
     return [];
   }
 
@@ -189,7 +193,7 @@ function buildTimeline(audit: Audit) {
     },
   ];
 
-  if (audit.status === "PROCESSING" || audit.status === "processing" || audit.status === "COMPLETED" || audit.status === "completed") {
+  if (hasStatus(audit, "PROCESSING") || hasStatus(audit, "COMPLETED")) {
     timeline.push({
       label: "Signals extracted",
       detail: "Skills, role cues, and experience evidence were parsed for scoring.",
@@ -197,7 +201,7 @@ function buildTimeline(audit: Audit) {
     });
   }
 
-  if (audit.status === "COMPLETED" || audit.status === "completed") {
+  if (hasStatus(audit, "COMPLETED")) {
     timeline.push(
       {
         label: "Fairness checked",
@@ -212,7 +216,7 @@ function buildTimeline(audit: Audit) {
     );
   }
 
-  if (audit.status === "FAILED" || audit.status === "failed") {
+  if (hasStatus(audit, "FAILED")) {
     timeline.push({
       label: "Audit failed",
       detail: "The pipeline could not complete scoring for this submission.",

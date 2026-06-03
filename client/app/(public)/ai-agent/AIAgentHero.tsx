@@ -86,7 +86,7 @@ function FloatingCard({
     <motion.div
       initial={{ opacity: 0, y: 14, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] as const }}
       whileHover={{ y: -3 }}
       className={
         "absolute rounded-[1.6rem] border border-[#E7E7E9] bg-white/70 p-4 shadow-[0_20px_70px_rgba(13,12,34,0.10)] backdrop-blur-xl " +
@@ -129,7 +129,7 @@ export default function AIAgentHero() {
             <motion.div
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
               className="flex items-center gap-3"
             >
               <span className="inline-flex items-center gap-2 rounded-full border border-[#E7E7E9] bg-white/70 px-4 py-2 text-xs font-semibold text-[#0D0C22] shadow-sm backdrop-blur-xl">
@@ -141,7 +141,7 @@ export default function AIAgentHero() {
             <motion.h1
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.65, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.65, delay: 0.05, ease: [0.22, 1, 0.36, 1] as const }}
               className="mt-6 text-balance font-semibold tracking-[-0.045em] text-[#0D0C22] text-4xl sm:text-5xl md:text-6xl lg:text-[3.9rem] leading-[1.03]"
             >
               An AI Agent That Understands, Explains, and Audits Resume Decisions
@@ -150,7 +150,7 @@ export default function AIAgentHero() {
             <motion.p
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.6, delay: 0.12, ease: [0.22, 1, 0.36, 1] as const }}
               className="mt-5 max-w-[62ch] text-pretty text-base leading-7 text-[#6E6D7A] sm:text-lg sm:leading-8"
             >
               The BiasLens AI Agent analyzes resumes, evaluates job fit, explains recommendations, detects fairness risks,
@@ -160,7 +160,7 @@ export default function AIAgentHero() {
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.55, delay: 0.18, ease: [0.22, 1, 0.36, 1] as const }}
               className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
             >
               <Link
@@ -183,7 +183,7 @@ export default function AIAgentHero() {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.55, delay: 0.25, ease: [0.22, 1, 0.36, 1] as const }}
               className="mt-8 grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4"
             >
               <Stat value="50K+" label="Resumes Reviewed" />
@@ -197,7 +197,7 @@ export default function AIAgentHero() {
             <motion.div
               initial={{ opacity: 0, y: 18 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.7, delay: 0.08, ease: [0.22, 1, 0.36, 1] as const }}
               className="relative"
             >
               <div aria-hidden="true" className="absolute -inset-x-10 -top-14 h-[420px] rounded-full bg-[#2563EB]/10 blur-3xl" />

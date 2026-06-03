@@ -42,7 +42,7 @@ const fadeUp: Variants = {
   show: (delay: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.45, delay, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 
@@ -61,7 +61,7 @@ const cardVariant: Variants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
@@ -71,7 +71,7 @@ const rowVariant: Variants = {
   show: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 

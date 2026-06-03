@@ -6,6 +6,7 @@ import { AlertCircle, Link2, Loader2, ShieldCheck } from "lucide-react";
 
 import { ReportViewer } from "@/components/reports";
 import { Card } from "@/components/ui/card";
+import type { ExplainabilityQuality, FairnessRisk } from "@/components/reports/ReportViewer";
 import { ApiError, apiFetch } from "@/lib/api";
 
 type SharedReportResponse = {
@@ -27,7 +28,9 @@ function clampScore(value: number, min = 0, max = 100) {
   return Math.max(min, Math.min(max, value));
 }
 
-function parseFairnessRisk(snapshot: unknown) {
+function parseFairnessRisk(
+  snapshot: unknown,
+): { label: FairnessRisk; score: number; notes: string } {
   if (!snapshot || typeof snapshot !== "object") {
     return { label: "Medium" as const, score: 36, notes: "Fairness details were not included in the shared payload." };
   }
@@ -38,7 +41,7 @@ function parseFairnessRisk(snapshot: unknown) {
       ? snapshot.notes
       : "Shared report fairness notes are available for reviewer inspection.";
   const score = clampScore(Number.isFinite(riskValue) ? riskValue : 36);
-  const label =
+  const label: FairnessRisk =
     score <= 25 ? "Low"
     : score <= 45 ? "Medium"
     : "High";
@@ -98,6 +101,9 @@ export default function SharedReportPage() {
     const jobFit = clampScore(probability);
     const skillsMatch = clampScore(probability - 4);
 
+    const explainability: ExplainabilityQuality =
+      probability >= 80 ? "Clear" : probability >= 65 ? "Moderate" : "Limited";
+
     return {
       reportId: report.id,
       candidateName: report.title,
@@ -106,7 +112,7 @@ export default function SharedReportPage() {
       jobFit,
       skillsMatch,
       fairnessRisk: fairness.label,
-      explainability: probability >= 80 ? "Clear" : probability >= 65 ? "Moderate" : "Limited",
+      explainability,
       generatedDate: report.createdAt,
       status: "Ready" as const,
       executiveSummary: {

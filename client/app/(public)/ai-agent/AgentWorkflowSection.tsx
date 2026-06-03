@@ -54,7 +54,7 @@ function StepCard({
       initial={{ opacity: 0, y: 14 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.5, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.5, delay: index * 0.04, ease: [0.22, 1, 0.36, 1] as const }}
       whileHover={{ y: -4 }}
       className={`relative overflow-hidden rounded-[1.6rem] border ${active ? "border-[#2563EB]/30" : "border-[#E7E7E9]"} bg-[#FFFFFF] p-5 shadow-[0_18px_50px_rgba(13,12,34,0.04)]`}
       aria-label={title}
@@ -236,7 +236,7 @@ export default function AgentWorkflowSection() {
               initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }}
               className="relative"
             >
               <div aria-hidden="true" className="absolute -inset-x-10 -top-10 h-[360px] rounded-full bg-[#2563EB]/10 blur-3xl" />

@@ -22,17 +22,8 @@ import {
   Sparkles,
 } from "lucide-react";
 
-type ShapSignal =
-  | "Product Strategy Experience"
-  | "UX Research"
-  | "Leadership Impact"
-  | "Metrics Driven Results"
-  | "Missing Portfolio Link"
-  | "Limited Accessibility Evidence"
-  | "Weak Quantified Outcomes";
-
-type ShapDatum = {
-  signal: ShapSignal;
+export type ShapDatum = {
+  signal: string;
   value: number; // SHAP-like contribution in percentage points
 };
 
@@ -80,7 +71,7 @@ function getSummary(values: ShapDatum[]) {
 type TooltipPayloadItem = {
   value?: number;
   payload?: {
-    signal?: ShapSignal;
+    signal?: string;
   };
 };
 

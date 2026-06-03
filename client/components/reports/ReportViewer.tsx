@@ -45,7 +45,7 @@ type AuditTrailItem = {
   detail?: string;
 };
 
-type ReportData = {
+export type ReportData = {
   reportId: string;
   candidateName: string;
   role: string;

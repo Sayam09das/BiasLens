@@ -28,7 +28,7 @@ export default function Hero() {
           className="flex justify-center pt-16 sm:pt-20 lg:pt-24"
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
         >
           <div className="inline-flex items-center gap-2 rounded-full border border-[#E7E7E9] bg-white/80 px-4 py-2 shadow-[0_4px_24px_rgba(37,99,235,0.10)] backdrop-blur-xl">
             <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#2563EB] text-white">
@@ -48,7 +48,7 @@ export default function Hero() {
           className="mt-6 text-center font-semibold tracking-[-0.04em] text-[#0D0C22] text-4xl sm:text-5xl md:text-6xl lg:text-[4.2rem] leading-[1.06] text-balance"
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
         >
           Understand Every Hiring
           <br className="hidden sm:block" />
@@ -60,7 +60,7 @@ export default function Hero() {
           className="mx-auto mt-5 max-w-[52ch] text-center text-base sm:text-lg leading-7 text-[#6E6D7A]"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.18, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: 0.18, duration: 0.6, ease: [0.22, 1, 0.36, 1] as const }}
         >
           Instantly refine your hiring decisions and stand out from bias with
           our AI-powered resume analysis and fairness auditing platform.
@@ -71,7 +71,7 @@ export default function Hero() {
           className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row"
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.26, duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: 0.26, duration: 0.55, ease: [0.22, 1, 0.36, 1] as const }}
         >
           <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} transition={{ type: "spring", stiffness: 400, damping: 28 }}>
             <Link
@@ -98,7 +98,7 @@ export default function Hero() {
           className="relative mt-14 sm:mt-16"
           initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.32, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ delay: 0.32, duration: 0.75, ease: [0.22, 1, 0.36, 1] as const }}
         >
           {/* Glow behind card */}
           <div
@@ -132,7 +132,7 @@ export default function Hero() {
             className="absolute -right-2 top-8 hidden sm:flex items-center gap-2 rounded-2xl border border-[#E7E7E9] bg-white px-4 py-3 shadow-[0_8px_32px_rgba(13,12,34,0.10)]"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.7, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ delay: 0.7, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
           >
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22C55E]">
               <svg width="10" height="8" viewBox="0 0 10 8" fill="none" aria-hidden="true">
@@ -147,7 +147,7 @@ export default function Hero() {
             className="absolute -right-2 bottom-12 hidden sm:flex items-center gap-2 rounded-2xl border border-[#E7E7E9] bg-white px-4 py-3 shadow-[0_8px_32px_rgba(13,12,34,0.10)]"
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.85, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ delay: 0.85, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
           >
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22C55E]">
               <svg width="10" height="8" viewBox="0 0 10 8" fill="none" aria-hidden="true">
@@ -162,7 +162,7 @@ export default function Hero() {
             className="absolute -left-2 bottom-16 hidden sm:flex items-center gap-2 rounded-2xl border border-[#E7E7E9] bg-white px-4 py-3 shadow-[0_8px_32px_rgba(13,12,34,0.10)]"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1.0, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ delay: 1.0, duration: 0.5, ease: [0.22, 1, 0.36, 1] as const }}
           >
             <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#22C55E]">
               <svg width="10" height="8" viewBox="0 0 10 8" fill="none" aria-hidden="true">

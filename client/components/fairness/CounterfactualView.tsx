@@ -62,7 +62,7 @@ const fadeUp: Variants = {
   hidden: { opacity: 0, y: 18 },
   show: (d: number = 0) => ({
     opacity: 1, y: 0,
-    transition: { duration: 0.44, delay: d, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.44, delay: d, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 
@@ -75,7 +75,7 @@ const cardIn: Variants = {
   hidden: { opacity: 0, y: 20, scale: 0.97 },
   show: {
     opacity: 1, y: 0, scale: 1,
-    transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.42, ease: [0.22, 1, 0.36, 1] as const },
   },
   exit: {
     opacity: 0, y: -10, scale: 0.97,
@@ -85,24 +85,24 @@ const cardIn: Variants = {
 
 const slideLeft: Variants = {
   hidden: { opacity: 0, x: -14 },
-  show:   { opacity: 1, x: 0, transition: { duration: 0.34, ease: [0.22, 1, 0.36, 1] } },
+  show:   { opacity: 1, x: 0, transition: { duration: 0.34, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 const slideRight: Variants = {
   hidden: { opacity: 0, x: 14 },
-  show:   { opacity: 1, x: 0, transition: { duration: 0.34, ease: [0.22, 1, 0.36, 1] } },
+  show:   { opacity: 1, x: 0, transition: { duration: 0.34, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 const popIn: Variants = {
   hidden: { opacity: 0, scale: 0.86 },
-  show:   { opacity: 1, scale: 1, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] } },
+  show:   { opacity: 1, scale: 1, transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 const barFill: Variants = {
   hidden: { scaleX: 0 },
   show: (w: number) => ({
     scaleX: w / 100,
-    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 

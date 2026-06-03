@@ -101,7 +101,7 @@ export default function FeatureOverviewGrid() {
           initial={{ opacity: 0, y: 12 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] as const }}
           className="flex items-center justify-center sm:justify-start"
         >
           <span className="inline-flex items-center gap-2 rounded-full border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-2 text-xs font-semibold text-[#0D0C22] shadow-sm">
@@ -115,7 +115,7 @@ export default function FeatureOverviewGrid() {
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
-          transition={{ duration: 0.6, delay: 0.06, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.6, delay: 0.06, ease: [0.22, 1, 0.36, 1] as const }}
           className="mt-6 text-center sm:text-left"
         >
           <h2 className="text-balance text-3xl font-semibold tracking-[-0.04em] text-[#0D0C22] sm:text-4xl">
@@ -135,7 +135,7 @@ export default function FeatureOverviewGrid() {
               initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-70px" }}
-              transition={{ duration: 0.5, delay: idx * 0.03, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.5, delay: idx * 0.03, ease: [0.22, 1, 0.36, 1] as const }}
               whileHover={{ y: -6 }}
               className="group relative overflow-hidden rounded-[1.6rem] border border-[#E7E7E9] bg-white p-6 shadow-[0_16px_40px_rgba(13,12,34,0.04)]"
             >

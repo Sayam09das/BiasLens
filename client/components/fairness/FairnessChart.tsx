@@ -214,7 +214,9 @@ export default function FairnessChart({ values, className, title, description }:
                             {active && payload && payload.length ? (
                               <div className="rounded-2xl border border-[#E7E7E9] bg-[#FFFFFF] p-3 shadow-[0_16px_48px_rgba(13,12,34,0.08)]">
                                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#2563EB]">{label}</p>
-                                <p className="mt-2 text-sm font-semibold text-[#0D0C22]">Score: {payload[0].value?.toFixed(0)}%</p>
+                                <p className="mt-2 text-sm font-semibold text-[#0D0C22]">
+                                  Score: {typeof payload[0].value === "number" ? payload[0].value.toFixed(0) : payload[0].value}%
+                                </p>
                               </div>
                             ) : null}
                           </div>

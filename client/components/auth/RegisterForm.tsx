@@ -33,8 +33,8 @@ const registerSchema = z
       .regex(/[0-9]/, "Password must include a number.")
       .regex(/[^A-Za-z0-9]/, "Password must include a special character."),
     confirmPassword: z.string().min(1, "Confirm password is required."),
-    acceptTerms: z.literal(true, {
-      errorMap: () => ({ message: "You must accept the terms to continue." }),
+    acceptTerms: z.boolean().refine((value) => value, {
+      message: "You must accept the terms to continue.",
     }),
   })
   .refine((values) => values.password === values.confirmPassword, {

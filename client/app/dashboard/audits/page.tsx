@@ -263,7 +263,7 @@ function BulkActionsBarInner({
 
 export default function AuditsPage() {
 
-  const [selectedAuditIds] = useState<string[]>([]);
+  const [selectedAuditIds, setSelectedAuditIds] = useState<string[]>([]);
 
   useEffect(() => {
     // UI-only: keep selection empty until row selection is wired.

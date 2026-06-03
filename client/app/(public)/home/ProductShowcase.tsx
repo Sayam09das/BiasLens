@@ -30,7 +30,7 @@ const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 24 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-50px" },
-  transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] as const },
 });
 
 const fadeIn = (delay = 0) => ({
@@ -85,7 +85,15 @@ const areaData = [
 ];
 
 /* ── gauge bar ── */
-function GaugeBar({ label, value, color = "#2563EB" }) {
+function GaugeBar({
+  label,
+  value,
+  color = "#2563EB",
+}: {
+  label: string;
+  value: number;
+  color?: string;
+}) {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
@@ -264,7 +272,6 @@ export default function ProductShowcase() {
                         endAngle={-270}
                       >
                         <RadialBar
-                          minAngle={15}
                           dataKey="value"
                           cornerRadius={8}
                           background={{ fill: "#F3F4F6" }}
@@ -466,7 +473,7 @@ export default function ProductShowcase() {
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-50px" }}
-                  transition={{ duration: 0.5, delay: 0.1 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.5, delay: 0.1 + i * 0.1, ease: [0.22, 1, 0.36, 1] as const }}
                   whileHover={{ y: -4, transition: { type: "spring", stiffness: 300, damping: 22 } }}
                   className="group relative overflow-hidden rounded-[1.8rem] border border-[#E7E7E9] bg-[#FFFFFF] p-4 shadow-[0_20px_60px_rgba(13,12,34,0.04)] cursor-default sm:p-5"
                 >

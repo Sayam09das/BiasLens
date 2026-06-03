@@ -63,7 +63,7 @@ function MobileCard({ row }: { row: ComparisonRow }) {
       initial={{ opacity: 0, y: 14 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] as const }}
       className="rounded-[2.2rem] border border-[#E7E7E9] bg-[#FFFFFF] shadow-[0_18px_50px_rgba(13,12,34,0.04)]"
     >
       <div className="flex items-center justify-between gap-3 border-b border-[#E7E7E9] px-5 py-4">

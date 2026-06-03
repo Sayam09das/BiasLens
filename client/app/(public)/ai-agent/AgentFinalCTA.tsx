@@ -53,7 +53,7 @@ function FloatingCard({
       initial={{ opacity: 0, y: 14, scale: 0.98 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.55, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] as const }}
       whileHover={{ y: -4 }}
       className={`pointer-events-none absolute right-5 rounded-[1.4rem] border ${border} bg-white/70 p-4 shadow-[0_20px_70px_rgba(13,12,34,0.08)] backdrop-blur-xl ${
         index === 0 ? "top-6" : index === 1 ? "top-20" : "bottom-6"
@@ -165,7 +165,7 @@ export default function AgentFinalCTA() {
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] as const }}
             >
               <div className="inline-flex items-center gap-2 rounded-full border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-2 text-xs font-semibold text-[#0D0C22] shadow-sm backdrop-blur-xl">
                 <Sparkles className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
@@ -232,7 +232,7 @@ export default function AgentFinalCTA() {
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as const }}
             >
               <DashboardPreview />
             </motion.div>

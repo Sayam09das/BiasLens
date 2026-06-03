@@ -536,7 +536,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   initial={{ x: -SIDEBAR_OPEN_W }}
                   animate={{ x: 0 }}
                   exit={{ x: -SIDEBAR_OPEN_W }}
-                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] as const }}
                 >
                   {/* Close btn */}
                   <button
@@ -572,7 +572,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="flex h-14 shrink-0 items-center gap-3 border-b border-[#e2e8f0] bg-white/90 px-4 backdrop-blur-sm sm:h-16 sm:px-6"
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] as const }}
             >
               {/* Mobile hamburger */}
               <motion.div className="lg:hidden" whileTap={{ scale: 0.9 }}>
@@ -802,7 +802,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className="flex-1 overflow-y-auto"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.38, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.38, delay: 0.12, ease: [0.22, 1, 0.36, 1] as const }}
             >
               <div className="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
                 {children}

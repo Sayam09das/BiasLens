@@ -45,7 +45,7 @@ function CapabilityCard({
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
-      transition={{ duration: 0.55, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.55, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] as const }}
       whileHover={{ y: -6 }}
       className="group relative overflow-hidden rounded-[1.6rem] border border-[#E7E7E9] bg-[#FFFFFF] p-5 shadow-[0_18px_50px_rgba(13,12,34,0.04)]"
     >
@@ -161,7 +161,7 @@ export default function IntegrationsPreviewSection() {
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] as const }}
               className="flex items-center gap-3"
             >
               <SectionBadge
@@ -174,7 +174,7 @@ export default function IntegrationsPreviewSection() {
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.6, delay: 0.04, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.6, delay: 0.04, ease: [0.22, 1, 0.36, 1] as const }}
               className="mt-6 text-balance text-3xl font-semibold tracking-[-0.04em] text-[#0D0C22] sm:text-4xl"
             >
               Connect BiasLens With Your Hiring Workflow
@@ -184,7 +184,7 @@ export default function IntegrationsPreviewSection() {
               initial={{ opacity: 0, y: 14 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] as const }}
               className="mt-4 max-w-[66ch] text-pretty text-base leading-7 text-[#6E6D7A] sm:text-lg sm:leading-8"
             >
               BiasLens is designed for API-first hiring systems, ATS platforms, HR tools, and exportable audit reports so teams can plug explainable resume intelligence into existing workflows.
@@ -212,7 +212,7 @@ export default function IntegrationsPreviewSection() {
               initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.7, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.7, delay: 0.08, ease: [0.22, 1, 0.36, 1] as const }}
               className="relative"
             >
               <div aria-hidden="true" className="absolute -inset-x-10 -top-14 h-[420px] rounded-full bg-[#2563EB]/10 blur-3xl" />
@@ -242,7 +242,7 @@ export default function IntegrationsPreviewSection() {
                       initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-40px" }}
-                      transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] as const }}
                       className="absolute left-4 top-4"
                     >
                       <MetricPill tone="success" icon={<ShieldCheck className="h-4 w-4" aria-hidden="true" />} label="API Ready" />
@@ -252,7 +252,7 @@ export default function IntegrationsPreviewSection() {
                       initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-40px" }}
-                      transition={{ duration: 0.55, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.55, delay: 0.15, ease: [0.22, 1, 0.36, 1] as const }}
                       className="absolute right-4 top-16"
                     >
                       <MetricPill tone="primary" icon={<Plug className="h-4 w-4" aria-hidden="true" />} label="ATS Compatible" />
@@ -262,7 +262,7 @@ export default function IntegrationsPreviewSection() {
                       initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-40px" }}
-                      transition={{ duration: 0.55, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.55, delay: 0.2, ease: [0.22, 1, 0.36, 1] as const }}
                       className="absolute left-6 bottom-6"
                     >
                       <MetricPill tone="success" icon={<FileText className="h-4 w-4" aria-hidden="true" />} label="Reports Exported" />

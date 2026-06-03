@@ -122,7 +122,7 @@ const fadeUp: Variants = {
   show: (delay: number = 0) => ({
     opacity: 1,
     y: 0,
-    transition: { duration: 0.42, delay, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.42, delay, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 
@@ -138,7 +138,7 @@ const cellVariant: Variants = {
   show: {
     opacity: 1,
     scale: 1,
-    transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
@@ -147,19 +147,19 @@ const rowVariant: Variants = {
   show: {
     opacity: 1,
     x: 0,
-    transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
 const tooltipVariant: Variants = {
   hidden: { opacity: 0, y: 8, scale: 0.96 },
-  show:   { opacity: 1, y: 0, scale: 1, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] } },
+  show:   { opacity: 1, y: 0, scale: 1, transition: { duration: 0.18, ease: [0.22, 1, 0.36, 1] as const } },
   exit:   { opacity: 0, y: 6, scale: 0.96, transition: { duration: 0.12 } },
 };
 
 const infoPanelVariant: Variants = {
   hidden: { opacity: 0, y: 10, scale: 0.97 },
-  show:   { opacity: 1, y: 0,  scale: 1, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] } },
+  show:   { opacity: 1, y: 0,  scale: 1, transition: { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const } },
   exit:   { opacity: 0, y: 6,  scale: 0.97, transition: { duration: 0.15 } },
 };
 

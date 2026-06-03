@@ -71,7 +71,7 @@ export default function FeaturesCTA() {
               initial={{ opacity: 0, y: 12 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] as const }}
             >
               <span className="inline-flex items-center gap-2 rounded-full border border-[#E7E7E9] bg-[#F6F8FB] px-4 py-2 text-xs font-semibold text-[#0D0C22] shadow-sm">
                 <Sparkles className="h-4 w-4 text-[#2563EB]" aria-hidden="true" />
@@ -130,7 +130,7 @@ export default function FeaturesCTA() {
               initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.7, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
+              transition={{ duration: 0.7, delay: 0.05, ease: [0.22, 1, 0.36, 1] as const }}
               className="relative"
             >
               <div aria-hidden="true" className="absolute -inset-x-10 -top-14 h-[420px] rounded-full bg-[#2563EB]/10 blur-3xl" />
@@ -189,7 +189,7 @@ export default function FeaturesCTA() {
                       initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-40px" }}
-                      transition={{ duration: 0.55, delay: 0.12, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.55, delay: 0.12, ease: [0.22, 1, 0.36, 1] as const }}
                       className="absolute left-4 bottom-[34%] rounded-[1.4rem] border border-[#E7E7E9] bg-white/70 px-4 py-3 shadow-[0_16px_40px_rgba(13,12,34,0.04)] backdrop-blur-xl"
                     >
                       <div className="flex items-center gap-2">
@@ -204,7 +204,7 @@ export default function FeaturesCTA() {
                       initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-40px" }}
-                      transition={{ duration: 0.55, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.55, delay: 0.18, ease: [0.22, 1, 0.36, 1] as const }}
                       className="absolute right-4 bottom-[34%] rounded-[1.4rem] border border-[#E7E7E9] bg-white/70 px-4 py-3 shadow-[0_16px_40px_rgba(13,12,34,0.04)] backdrop-blur-xl"
                     >
                       <div className="flex items-center gap-2">
@@ -219,7 +219,7 @@ export default function FeaturesCTA() {
                       initial={{ opacity: 0, y: 10 }}
                       whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true, margin: "-40px" }}
-                      transition={{ duration: 0.55, delay: 0.24, ease: [0.22, 1, 0.36, 1] }}
+                      transition={{ duration: 0.55, delay: 0.24, ease: [0.22, 1, 0.36, 1] as const }}
                       className="absolute left-1/2 -translate-x-1/2 bottom-2 rounded-[1.4rem] border border-[#E7E7E9] bg-white/70 px-4 py-3 shadow-[0_16px_40px_rgba(13,12,34,0.04)] backdrop-blur-xl"
                     >
                       <div className="flex items-center gap-2">

@@ -39,7 +39,7 @@ const fadeUp: Variants = {
   hidden: { opacity: 0, y: 18 },
   show: (d: number = 0) => ({
     opacity: 1, y: 0,
-    transition: { duration: 0.44, delay: d, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.44, delay: d, ease: [0.22, 1, 0.36, 1] as const },
   }),
 };
 
@@ -52,18 +52,18 @@ const cardVariant: Variants = {
   hidden: { opacity: 0, y: 16, scale: 0.97 },
   show: {
     opacity: 1, y: 0, scale: 1,
-    transition: { duration: 0.38, ease: [0.22, 1, 0.36, 1] },
+    transition: { duration: 0.38, ease: [0.22, 1, 0.36, 1] as const },
   },
 };
 
 const rowSlide: Variants = {
   hidden: { opacity: 0, x: -14 },
-  show:   { opacity: 1, x: 0, transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] } },
+  show:   { opacity: 1, x: 0, transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 const popIn: Variants = {
   hidden: { opacity: 0, scale: 0.88 },
-  show:   { opacity: 1, scale: 1, transition: { duration: 0.36, ease: [0.22, 1, 0.36, 1] } },
+  show:   { opacity: 1, scale: 1, transition: { duration: 0.36, ease: [0.22, 1, 0.36, 1] as const } },
 };
 
 /* ─────────────────────────────────────────────
@@ -253,7 +253,7 @@ function Gauge({ score, accent }: { score: number; accent: string }) {
           strokeLinecap="round"
           initial={{ strokeDasharray: "0 999" }}
           animate={{ strokeDasharray: `${dash} ${dashGap}` }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] as const, delay: 0.15 }}
         />
 
         {/* Needle */}
@@ -261,7 +261,7 @@ function Gauge({ score, accent }: { score: number; accent: string }) {
           style={{ originX: `${cx}px`, originY: `${cy}px` }}
           initial={{ rotate: -180 }}
           animate={{ rotate: needleAngle }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] as const, delay: 0.15 }}
         >
           <line
             x1={cx} y1={cy}
@@ -378,7 +378,7 @@ function BreakdownRow({
           style={{ background: accent }}
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.7, delay: 0.2 + delay * 0.1, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.7, delay: 0.2 + delay * 0.1, ease: [0.22, 1, 0.36, 1] as const }}
         />
       </div>
     </motion.div>
@@ -475,7 +475,7 @@ export default function BiasSeverityScore({
                 initial={{ opacity: 0, scale: 0.95, y: 8 }}
                 animate={{ opacity: 1, scale: 1,    y: 0 }}
                 exit={{    opacity: 0, scale: 0.95, y: -8 }}
-                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] as const }}
               >
                 <Gauge score={safeScore} accent={accent} />
               </motion.div>

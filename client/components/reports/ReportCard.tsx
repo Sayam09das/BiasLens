@@ -20,6 +20,8 @@ import { Card } from "@/components/ui/card";
 
 export type ReportStatus = "Ready" | "Processing" | "Failed";
 export type ReportType = "Resume Audit" | "Fairness" | "Explainability";
+export type FairnessRisk = "Low" | "Medium" | "High";
+export type ExplainabilityQuality = "Clear" | "Moderate" | "Limited";
 
 type ReportCardProps = {
   reportId: string;
@@ -28,8 +30,8 @@ type ReportCardProps = {
   role: string;
   resumeScore: number; // 0..100
   jobFit: number; // 0..100
-  fairnessRisk: "Low" | "Medium" | "High";
-  explainability: "Clear" | "Moderate" | "Limited";
+  fairnessRisk: FairnessRisk;
+  explainability: ExplainabilityQuality;
   status: ReportStatus;
   createdAt: string | Date;
   reportType: ReportType;

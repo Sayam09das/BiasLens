@@ -15,7 +15,7 @@ const fadeUp = (delay = 0) => ({
   initial: { opacity: 0, y: 26 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-50px" },
-  transition: { duration: 0.58, delay, ease: [0.22, 1, 0.36, 1] },
+  transition: { duration: 0.58, delay, ease: [0.22, 1, 0.36, 1] as const },
 });
 
 const fadeIn = (delay = 0) => ({
@@ -167,7 +167,7 @@ export default function SolutionSection() {
                 initial={{ opacity: 0, scale: 0.97 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.55, delay: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: 0.55, delay: 0.3, ease: [0.22, 1, 0.36, 1] as const }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
