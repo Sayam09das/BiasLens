@@ -2,8 +2,8 @@ import type { Server } from "node:http";
 
 import mongoose from "mongoose";
 
+import { logger } from "../config/logger.js";
 import { disconnectPrisma } from "../config/prisma.js";
-import { logger } from "../lib/logger.js";
 
 export function registerShutdown(server: Server): void {
   const shutdown = async (signal: NodeJS.Signals) => {
