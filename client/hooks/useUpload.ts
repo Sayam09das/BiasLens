@@ -1,7 +1,6 @@
 import { useState, useCallback } from "react";
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "https://biaslens-9wzi.onrender.com";
+const API_BASE_URL = "/api/proxy";
 
 interface UploadState {
   progress: number;

@@ -30,8 +30,7 @@ type RequestOptions = Omit<RequestInit, "body"> & {
   body?: unknown;
 };
 
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL ?? "https://biaslens-9wzi.onrender.com";
+const API_BASE_URL = "/api/proxy";
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 function getCsrfTokenFromCookie() {

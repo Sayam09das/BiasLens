@@ -13,7 +13,7 @@ export type SecurityScanEvent =
   | { type: "complete" }
   | { type: "error"; message: string };
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API_BASE_URL = "/api/proxy";
 
 export function makeSecurityScanSseUrl(baseUrl: string = API_BASE_URL): string {
   return `${baseUrl}/v1/security/scan/stream`;
