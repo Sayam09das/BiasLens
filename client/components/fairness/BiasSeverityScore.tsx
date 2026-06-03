@@ -218,9 +218,7 @@ function Gauge({ score, accent }: { score: number; accent: string }) {
         {zones.map(({ pct: zonePct, color }, i) => {
           const zStart = zoneCursor;
           zoneCursor  += zonePct;
-          const zEnd   = zoneCursor;
           const zDash  = arc * zonePct;
-          const zGap   = arc - arc * zStart - zDash;
           const offset = arc * zStart;
           return (
             <path
