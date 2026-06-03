@@ -20,6 +20,7 @@ class Settings(BaseModel):
     cache_backend: str = Field(default="memory")
     redis_url: str | None = Field(default=None)
     cache_default_ttl_seconds: int = Field(default=300)
+    eager_startup_warmup: bool = Field(default=False)
 
 
 @lru_cache(maxsize=1)
@@ -40,4 +41,6 @@ def get_settings() -> Settings:
         cache_default_ttl_seconds=int(
             os.getenv("BIASLENS_CACHE_DEFAULT_TTL_SECONDS", "300")
         ),
+        eager_startup_warmup=os.getenv("BIASLENS_EAGER_STARTUP_WARMUP", "false").lower()
+        in {"1", "true", "yes", "on"},
     )
