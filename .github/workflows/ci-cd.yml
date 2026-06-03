@@ -1,56 +1,48 @@
-name: CI/CD Pipeline - Production Grade
+name: CI
 
 on:
   push:
     branches:
       - main
-      - staging
       - develop
+      - staging
   pull_request:
     branches:
       - main
-      - staging
       - develop
+      - staging
 
 env:
-  AWS_REGION: us-east-1
-  REGISTRY: 123456789.dkr.ecr.us-east-1.amazonaws.com
-  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  # ============================================================================
-  # STAGE 1: LINT & TYPE CHECK (Fast fail)
-  # ============================================================================
   lint-backend:
     name: Lint Backend
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
         working-directory: backend
         run: npm ci
 
-      - name: Run ESLint
+      - name: Lint
         working-directory: backend
         run: npm run lint
 
-      - name: Type check (tsc)
+      - name: Typecheck
         working-directory: backend
         run: npm run typecheck
 
-      - name: Check for security vulnerabilities
+      - name: Audit
         working-directory: backend
         run: npm audit --omit=dev --audit-level=moderate || true
 
@@ -64,23 +56,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
           cache-dependency-path: client/package-lock.json
 
       - name: Install dependencies
         working-directory: client
         run: npm ci
 
-      - name: Run ESLint
+      - name: Lint
         working-directory: client
         run: npm run lint -- --max-warnings=0
 
-      - name: Type check
+      - name: Typecheck
         working-directory: client
         run: npm run typecheck
 
-      - name: Security audit
+      - name: Audit
         working-directory: client
         run: npm audit --omit=dev --audit-level=moderate || true
 
@@ -94,28 +86,25 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         working-directory: ml-service
         run: pip install -r requirements-dev.txt
 
-      - name: Lint with pylint
+      - name: Lint
         working-directory: ml-service
         run: pylint app/ --exit-zero --max-line-length=100
 
-      - name: Type check with mypy
+      - name: Typecheck
         working-directory: ml-service
         run: mypy app/ --ignore-missing-imports
 
-      - name: Security check
+      - name: Audit
         working-directory: ml-service
         run: bandit -r app/ -ll -f json -o /tmp/bandit.json || true
 
-  # ============================================================================
-  # STAGE 2: UNIT TESTS
-  # ============================================================================
   test-backend:
     name: Test Backend
     runs-on: ubuntu-latest
@@ -141,15 +130,14 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
           cache-dependency-path: backend/package-lock.json
 
       - name: Install dependencies
@@ -168,13 +156,6 @@ jobs:
         working-directory: backend
         run: npm run test:integration || true
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./backend/coverage/coverage-final.json
-          flags: backend
-          fail_ci_if_error: false
-
   test-client:
     name: Test Client
     runs-on: ubuntu-latest
@@ -185,8 +166,8 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
           cache-dependency-path: client/package-lock.json
 
       - name: Install dependencies
@@ -202,12 +183,6 @@ jobs:
             echo "No client unit test script is configured yet."
           fi
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./client/coverage/coverage-final.json
-          flags: client
-
   test-ml-service:
     name: Test ML Service
     runs-on: ubuntu-latest
@@ -218,8 +193,8 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
-          cache: 'pip'
+          python-version: "3.11"
+          cache: "pip"
 
       - name: Install dependencies
         working-directory: ml-service
@@ -230,312 +205,3 @@ jobs:
       - name: Run tests
         working-directory: ml-service
         run: pytest tests/ -v --cov=app --cov-report=xml
-
-      - name: Upload coverage
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./ml-service/coverage.xml
-          flags: ml-service
-
-  # ============================================================================
-  # STAGE 3: BUILD DOCKER IMAGES (Multi-arch, only on main/staging)
-  # ============================================================================
-  build-images:
-    name: Build Docker Images
-    runs-on: ubuntu-latest
-    needs: [lint-backend, lint-client, lint-ml-service, test-backend, test-client, test-ml-service]
-    if: github.event_name == 'push'
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up QEMU (multi-arch)
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Login to Amazon ECR
-        run: aws ecr get-login-password --region ${{ env.AWS_REGION }} | docker login --username AWS --password-stdin ${{ env.REGISTRY }}
-
-      - name: Generate image tag
-        id: meta
-        run: |
-          echo "version=$(echo ${GITHUB_SHA} | cut -c1-7)" >> $GITHUB_OUTPUT
-          echo "date=$(date -u +'%Y-%m-%d')" >> $GITHUB_OUTPUT
-
-      - name: Build & push Backend image
-        uses: docker/build-push-action@v5
-        with:
-          context: backend
-          file: backend/Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/biaslens-backend:${{ steps.meta.outputs.version }}
-            ${{ env.REGISTRY }}/biaslens-backend:latest
-            ${{ env.REGISTRY }}/biaslens-backend:${{ github.ref_name }}
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build & push Client image
-        uses: docker/build-push-action@v5
-        with:
-          context: client
-          file: client/Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/biaslens-client:${{ steps.meta.outputs.version }}
-            ${{ env.REGISTRY }}/biaslens-client:latest
-            ${{ env.REGISTRY }}/biaslens-client:${{ github.ref_name }}
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Build & push ML Service image
-        uses: docker/build-push-action@v5
-        with:
-          context: ml-service
-          file: ml-service/Dockerfile
-          push: true
-          tags: |
-            ${{ env.REGISTRY }}/biaslens-ml-service:${{ steps.meta.outputs.version }}
-            ${{ env.REGISTRY }}/biaslens-ml-service:latest
-            ${{ env.REGISTRY }}/biaslens-ml-service:${{ github.ref_name }}
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Image scan (Trivy)
-        run: |
-          docker pull aquasec/trivy:latest
-          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --exit-code 0 --severity CRITICAL ${{ env.REGISTRY }}/biaslens-backend:${{ steps.meta.outputs.version }}
-
-  # ============================================================================
-  # STAGE 4: DEPLOY TO STAGING (on main/staging branch)
-  # ============================================================================
-  deploy-staging:
-    name: Deploy to Staging
-    runs-on: ubuntu-latest
-    needs: build-images
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
-    environment:
-      name: staging
-      url: https://staging.biaslens.app
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Update kubeconfig
-        run: aws eks update-kubeconfig --cluster-name biaslens-staging --region ${{ env.AWS_REGION }}
-
-      - name: Deploy with Helm
-        run: |
-          helm repo add biaslens s3://biaslens-helm-charts/
-          helm repo update
-          helm upgrade --install biaslens biaslens/biaslens \
-            --namespace staging \
-            --values infra/helm/values-staging.yaml \
-            --set image.tag=$(echo ${GITHUB_SHA} | cut -c1-7) \
-            --wait --timeout 10m
-
-      - name: Run smoke tests
-        run: |
-          kubectl rollout status deployment/biaslens-backend -n staging --timeout=5m
-          kubectl rollout status deployment/biaslens-client -n staging --timeout=5m
-          ./scripts/smoke-tests.sh staging
-
-      - name: Notify Slack
-        if: always()
-        run: |
-          STATUS=$([ "${{ job.status }}" = "success" ] && echo "✅ Staging deployment successful" || echo "❌ Staging deployment failed")
-          curl -X POST ${{ env.SLACK_WEBHOOK }} \
-            -H 'Content-Type: application/json' \
-            -d "{\"text\": \"$STATUS - Commit: ${{ github.sha }}\"}"
-
-  # ============================================================================
-  # STAGE 5: SMOKE TESTS & E2E TESTS
-  # ============================================================================
-  e2e-tests:
-    name: E2E Tests (Staging)
-    runs-on: ubuntu-latest
-    needs: deploy-staging
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: client/package-lock.json
-
-      - name: Install Playwright
-        working-directory: client
-        run: |
-          if npm run | grep -q "test:e2e"; then
-            npx playwright install --with-deps
-          else
-            echo "No client E2E test script is configured yet."
-          fi
-
-      - name: Run E2E tests
-        working-directory: client
-        env:
-          PLAYWRIGHT_TEST_BASE_URL: https://staging.biaslens.app
-        run: |
-          if npm run | grep -q "test:e2e"; then
-            npm run test:e2e
-          else
-            echo "No client E2E test script is configured yet."
-          fi
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v3
-        with:
-          name: playwright-report
-          path: client/playwright-report/
-
-  # ============================================================================
-  # STAGE 6: PERFORMANCE TESTS
-  # ============================================================================
-  performance-tests:
-    name: Performance Tests
-    runs-on: ubuntu-latest
-    needs: deploy-staging
-    if: github.ref == 'refs/heads/main'
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install k6
-        run: sudo apt-get update && sudo apt-get install -y k6
-
-      - name: Run load tests
-        env:
-          BASE_URL: https://staging.biaslens.app/api
-        run: k6 run infra/scripts/load-test.js --vus 100 --duration 5m
-
-  # ============================================================================
-  # STAGE 7: DEPLOY TO PRODUCTION (only on main, blue-green)
-  # ============================================================================
-  deploy-prod-approval:
-    name: Approval for Production
-    runs-on: ubuntu-latest
-    needs: [e2e-tests, performance-tests]
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: production
-    steps:
-      - name: Approved for Production
-        run: echo "✅ Production deployment approved"
-
-  deploy-prod:
-    name: Deploy to Production (Blue-Green)
-    runs-on: ubuntu-latest
-    needs: deploy-prod-approval
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Update kubeconfig (Production)
-        run: aws eks update-kubeconfig --cluster-name biaslens-prod --region ${{ env.AWS_REGION }}
-
-      - name: Get current environment (blue/green)
-        id: current-env
-        run: |
-          CURRENT=$(kubectl get svc biaslens-router -n prod -o jsonpath='{.spec.selector.environment}' || echo "blue")
-          TARGET=$([ "$CURRENT" = "blue" ] && echo "green" || echo "blue")
-          echo "current=$CURRENT" >> $GITHUB_OUTPUT
-          echo "target=$TARGET" >> $GITHUB_OUTPUT
-
-      - name: Deploy to ${{ steps.current-env.outputs.target }} environment
-        run: |
-          helm repo add biaslens s3://biaslens-helm-charts/
-          helm repo update
-          helm upgrade --install biaslens-${{ steps.current-env.outputs.target }} biaslens/biaslens \
-            --namespace prod \
-            --values infra/helm/values-prod.yaml \
-            --set environment=${{ steps.current-env.outputs.target }} \
-            --set image.tag=$(echo ${GITHUB_SHA} | cut -c1-7) \
-            --wait --timeout 15m
-
-      - name: Health checks on target environment
-        run: ./scripts/health-check.sh prod ${{ steps.current-env.outputs.target }} --strict
-
-      - name: Run smoke tests
-        run: ./scripts/smoke-tests.sh prod
-
-      - name: Switch traffic to target environment
-        run: |
-          kubectl patch svc biaslens-router -n prod -p \
-            '{"spec":{"selector":{"environment":"${{ steps.current-env.outputs.target }}"}}}'
-
-      - name: Monitor for 5 minutes
-        run: |
-          for i in {1..30}; do
-            kubectl get pods -n prod -l environment=${{ steps.current-env.outputs.target }}
-            sleep 10
-          done
-
-      - name: Notify deployment success
-        if: success()
-        run: |
-          curl -X POST ${{ env.SLACK_WEBHOOK }} \
-            -H 'Content-Type: application/json' \
-            -d "{\"text\": \"🚀 Production deployment successful to ${{ steps.current-env.outputs.target }} - Commit: ${{ github.sha }}\"}"
-
-      - name: Notify deployment failure
-        if: failure()
-        run: |
-          curl -X POST ${{ env.SLACK_WEBHOOK }} \
-            -H 'Content-Type: application/json' \
-            -d "{\"text\": \"❌ Production deployment FAILED - Immediate rollback required - Commit: ${{ github.sha }}\"}"
-
-  # ============================================================================
-  # STAGE 8: CLEANUP & REPORTING
-  # ============================================================================
-  cleanup:
-    name: Cleanup & Report
-    runs-on: ubuntu-latest
-    if: always()
-    needs: [lint-backend, lint-client, lint-ml-service, test-backend, test-client, test-ml-service]
-    steps:
-      - name: Generate SARIF report
-        run: echo "Security scanning complete"
-
-      - name: Upload SARIF to GitHub Security
-        continue-on-error: true
-        run: echo "SARIF upload skipped"
-
-      - name: Performance report
-        run: echo "Performance testing complete"
