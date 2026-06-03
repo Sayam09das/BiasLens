@@ -10,6 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@emnapi/core": "1.10.0",
+    "@emnapi/runtime": "1.10.0",
     "@hookform/resolvers": "^5.4.0",
     "@tanstack/react-query": "^5.100.14",
     "framer-motion": "^12.40.0",
@@ -32,9 +34,5 @@
     "eslint-config-next": "16.2.6",
     "tailwindcss": "^4",
     "typescript": "^5"
-  },
-  "optionalDependencies": {
-    "@emnapi/core": "1.10.0",
-    "@emnapi/runtime": "1.10.0"
   }
 }
