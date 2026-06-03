@@ -1,6 +1,7 @@
 export const AUTH_CONSTANTS = {
   accessTokenCookieName: "biaslens_access_token",
   refreshTokenCookieName: "biaslens_refresh_token",
+  csrfTokenCookieName: "biaslens_csrf_token",
   accessTokenTtl: "15m",
   refreshTokenTtl: "7d",
   rememberMeRefreshTokenTtl: "30d",

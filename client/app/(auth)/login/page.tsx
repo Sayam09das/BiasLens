@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, BadgeCheck, LockKeyhole, MailCheck, ShieldCheck, Sparkles } from "lucide-react";
 import { useState } from "react";
@@ -21,8 +21,10 @@ const trustBadges = [
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [oauthLoading, setOauthLoading] = useState<"google" | "github" | null>(null);
   const [oauthError, setOauthError] = useState<string | null>(null);
+  const nextPath = searchParams.get("next");
 
   async function handleLogin(values: LoginFormValues) {
     try {
@@ -31,7 +33,7 @@ export default function LoginPage() {
         password: values.password,
         rememberMe: values.rememberMe ?? false,
       });
-      router.push("/dashboard");
+      router.push(nextPath && nextPath.startsWith("/") ? nextPath : "/dashboard");
       return;
     } catch (error) {
       if (error instanceof ApiError && /verify your email/i.test(error.message)) {

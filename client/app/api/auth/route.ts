@@ -17,6 +17,7 @@ import { type NextRequest, NextResponse } from "next/server";
 const BACKEND = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
 const ACCESS_COOKIE = "biaslens_access_token";
 const REFRESH_COOKIE = "biaslens_refresh_token";
+const CSRF_COOKIE = "biaslens_csrf_token";
 
 const ACTION_MAP: Record<string, { path: string; method: string }> = {
   login:    { path: "/v1/auth/login", method: "POST" },
@@ -44,7 +45,14 @@ async function forwardUpstream(
   if (cookie) headers.cookie = cookie;
 
   const csrfToken = req.headers.get("x-csrf-token");
-  if (csrfToken) headers["x-csrf-token"] = csrfToken;
+  if (csrfToken) {
+    headers["x-csrf-token"] = csrfToken;
+  } else if (!isGet) {
+    const cookieToken = req.cookies.get(CSRF_COOKIE)?.value;
+    if (cookieToken) {
+      headers["x-csrf-token"] = cookieToken;
+    }
+  }
 
   const url = new URL(`${BACKEND}${route.path}`);
   req.nextUrl.searchParams.forEach((value, key) => {

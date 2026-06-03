@@ -19,6 +19,7 @@ export const securityMiddleware = {
 export const authConfig = {
   accessTokenCookieName: AUTH_CONSTANTS.accessTokenCookieName,
   refreshTokenCookieName: AUTH_CONSTANTS.refreshTokenCookieName,
+  csrfTokenCookieName: AUTH_CONSTANTS.csrfTokenCookieName,
   accessSecret: process.env.JWT_ACCESS_SECRET ?? "",
   refreshSecret: process.env.JWT_REFRESH_SECRET ?? "",
   accessTokenTtl: AUTH_CONSTANTS.accessTokenTtl,
