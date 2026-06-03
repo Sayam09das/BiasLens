@@ -1,131 +1,123 @@
 # BiasLens
 
-BiasLens is a production-oriented hiring intelligence platform for resume auditing, model explainability, fairness analysis, secure report generation, and decision traceability.
+BiasLens is a multi-service hiring intelligence platform for resume auditing, explainability, fairness analysis, secure reporting, and decision traceability.
 
-It is designed as a multi-service system rather than a single app:
+The repository is structured like a production platform rather than a single demo app. It separates product UI, backend orchestration, ML inference, and infrastructure concerns so each layer can evolve independently.
 
-- a modern frontend for operators, reviewers, and hiring teams
-- an API platform for auth, audits, reports, settings, and orchestration
-- an ML service for inference, scoring, and explanation workflows
-- an infrastructure layer for deployment, observability, security, and operations
+## What BiasLens Solves
 
-## Why BiasLens
+Modern hiring pipelines often struggle with three recurring issues:
 
-Hiring systems are increasingly automated, but most pipelines still fail on the same three problems:
+- decisions are hard to explain
+- fairness risks are hard to inspect
+- operational auditability is weak
 
-- opaque model decisions
-- weak fairness visibility
-- poor operational traceability
+BiasLens is designed to make model-assisted hiring workflows more reviewable, defensible, and easier to operate in real environments.
 
-BiasLens addresses those gaps by combining:
+## Platform Summary
 
-- resume audit workflows
-- explainability monitoring
-- fairness dashboards
-- exportable decision reports
-- authenticated, auditable user and session management
+BiasLens is composed of four primary layers:
 
-The goal is not just to score resumes, but to make those decisions reviewable, defensible, and production-safe.
+- `client/`: Next.js frontend for operators, reviewers, and hiring teams
+- `backend/`: Node.js API for auth, audits, reports, orchestration, and settings
+- `ml-service/`: FastAPI service for scoring, fairness analysis, explainability, and counterfactuals
+- `infra/`: local Compose, Kubernetes, monitoring, scripts, and deployment scaffolding
 
-## Platform Overview
+## Core Capabilities
 
-### Frontend
-
-`client/`
-
-- Next.js application
-- authenticated dashboard
-- audit upload and history flows
-- fairness and explainability views
-- reports and settings surfaces
-- production-oriented auth UX including verification and password recovery
-
-### Backend
-
-`backend/`
-
-- Node.js API platform
-- auth, session, and user management
-- audit lifecycle and report services
-- fairness and explainability aggregation
-- secure cookies, refresh flows, rate limiting, and CSRF protection
-
-### ML Service
-
-`ml-service/`
-
-- Python inference service
-- scoring and explanation workflows
-- ML-facing endpoints used by the backend
-- a foundation for model experiments, monitoring, and rollout
-
-### Infrastructure
-
-`infra/`
-
-- Docker image definitions
-- local and production-style Compose stacks
-- Nginx edge scaffolding
-- Kubernetes base, overlays, and Helm starters
-- Terraform starter layout
-- monitoring, alerting, and operations scripts
+- resume audit workflows with lifecycle visibility
+- fairness monitoring and bias-oriented reviewer signals
+- explainability views for model reasoning and proxy inspection
+- exportable reporting with audit-linked context
+- authenticated user flows with verification, reset, and session handling
+- production-oriented infrastructure scaffolding for deployment and observability
 
 ## Architecture
 
 ```text
-                ┌──────────────────────┐
-                │      Frontend        │
-                │   Next.js Dashboard  │
-                └──────────┬───────────┘
-                           │
-                           ▼
-                ┌──────────────────────┐
-                │       Backend        │
-                │ Auth / Audits / API  │
-                └───────┬───────┬──────┘
-                        │       │
-                        │       ▼
-                        │  ┌──────────────┐
-                        │  │  ML Service  │
-                        │  │ Scoring/XAI  │
-                        │  └──────────────┘
-                        │
-                        ▼
-              ┌────────────────────────────┐
-              │ Postgres / Redis / Storage │
-              └────────────────────────────┘
+┌──────────────────────┐
+│      Frontend        │
+│  Next.js Dashboard   │
+└──────────┬───────────┘
+           │
+           ▼
+┌──────────────────────┐
+│       Backend        │
+│ Auth / Audits / API  │
+└───────┬───────┬──────┘
+        │       │
+        │       ▼
+        │  ┌──────────────┐
+        │  │  ML Service  │
+        │  │ Scoring/XAI  │
+        │  └──────────────┘
+        │
+        ▼
+┌────────────────────────────┐
+│ Data / Cache / File Store  │
+│ Postgres / Redis / Assets  │
+└────────────────────────────┘
 ```
-
-## Core Capabilities
-
-- Resume auditing with structured lifecycle tracking
-- Explainability surfaces for model reasoning and signal inspection
-- Fairness monitoring for risk visibility and reviewer guidance
-- Exportable reports with audit-linked traceability
-- User settings, notifications, and account controls
-- Production-style auth with:
-  - email verification
-  - resend verification
-  - forgot password
-  - reset password
-  - refresh-token session recovery
-  - middleware-based route protection
 
 ## Repository Layout
 
 ```text
 BiasLens/
-├── client/       # Frontend application
-├── backend/      # API and business logic
-├── ml-service/   # ML inference and explanation service
-├── infra/        # Infrastructure, ops, and deployment scaffolding
-├── Makefile      # Operational shortcuts
-└── README.md     # Main project entrypoint
+├── client/                     # Frontend application
+├── backend/                    # API platform and business logic
+├── ml-service/                 # ML inference and analysis service
+├── infra/                      # Infrastructure, operations, deployment assets
+├── Makefile                    # Developer and operational shortcuts
+├── INFRASTRUCTURE_IMPLEMENTATION.md
+└── README.md
 ```
 
-## Quick Start
+## Technology Stack
 
-### 1. Frontend
+### Frontend
+
+- Next.js 16
+- React 19
+- TypeScript
+- Tailwind CSS 4
+- Zustand
+- TanStack Query
+
+### Backend
+
+- Node.js
+- Express 5
+- Prisma
+- Redis
+- Zod
+
+### ML Service
+
+- FastAPI
+- Python 3.11+
+- SHAP and LIME oriented explainability workflows
+- fairness and counterfactual analysis modules
+
+### Infrastructure
+
+- Docker Compose
+- Kubernetes manifests and overlays
+- Helm scaffolding
+- Terraform starter layout
+- Prometheus, Grafana, and Jaeger oriented observability assets
+
+## Local Development
+
+### Prerequisites
+
+- Node.js 22 recommended for the frontend and backend
+- npm
+- Python 3.11 or newer
+- Docker and Docker Compose for the full local stack
+
+### Option 1: Run Services Individually
+
+#### Frontend
 
 ```bash
 cd client
@@ -133,7 +125,7 @@ npm install
 npm run dev
 ```
 
-### 2. Backend
+#### Backend
 
 ```bash
 cd backend
@@ -141,52 +133,111 @@ npm install
 npm run dev
 ```
 
-### 3. ML Service
+#### ML Service
 
 ```bash
 cd ml-service
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 4. Infrastructure Helpers
+### Option 2: Run the Local Platform Stack
 
 ```bash
-make help
 make dev-up
 ```
 
-## Local Endpoints
+Useful companion commands:
 
-- Frontend: `http://localhost:3000`
-- Backend: `http://localhost:4000`
-- ML Service: `http://localhost:8000`
+```bash
+make help
+make dev-logs
+make dev-down
+```
 
-## Engineering Principles
+## Default Local Endpoints
 
-BiasLens is being shaped around the same qualities expected from high-trust product teams:
+- frontend: `http://localhost:3000`
+- backend: `http://localhost:3001` via `make dev-up`
+- backend: `http://localhost:4000` when run directly
+- ml service: `http://localhost:8000`
+- grafana: `http://localhost:3010`
+- jaeger: `http://localhost:16686`
+- prometheus: `http://localhost:9090`
 
-- clear boundaries between product, platform, and ML concerns
-- explicit auth and security controls
-- observable systems over black-box behavior
-- explainable outputs instead of score-only workflows
-- infrastructure that can evolve from local development to staged deployment
+## Service Responsibilities
 
-This repository is meant to feel like a serious platform codebase, not a demo folder.
+### `client/`
 
-## Production Posture
+The frontend provides:
 
-The repository currently contains a mix of:
+- authenticated product surfaces
+- audit upload and review flows
+- fairness and explainability dashboards
+- report viewing and sharing experiences
+- account, security, and notification settings
 
-- implemented product features
-- working service integrations
-- production-oriented scaffolding for infra and observability
+### `backend/`
 
-Some areas are already active in the app today, while others are intentionally scaffolded for staged rollout. The project is structured so it can mature cleanly without needing a full repo rewrite later.
+The backend is responsible for:
+
+- authentication and session lifecycle handling
+- audit orchestration and report coordination
+- user, workspace, and settings management
+- secure API boundaries, rate limiting, and CSRF-aware flows
+- bridging product workflows to the ML service
+
+### `ml-service/`
+
+The ML service provides:
+
+- prediction and scoring endpoints
+- report generation from structured input or raw resume content
+- fairness analysis outputs
+- SHAP and LIME explanation payloads
+- counterfactual and role-comparison workflows
+
+### `infra/`
+
+The infrastructure layer includes:
+
+- local Compose topology
+- deployment scaffolding for staged and production-style environments
+- health checks, backup, restore, and rollout scripts
+- monitoring and observability configuration
+
+## Security and Production Posture
+
+BiasLens is organized around production-minded concerns, including:
+
+- layered service boundaries
+- authenticated access patterns
+- secure session handling
+- reviewable decision outputs
+- operational tooling for health, logs, metrics, and rollback
+
+Not every scaffolded production path is fully active in the current application state, but the repository is intentionally shaped so product, ML, and infrastructure maturity can expand without a structural rewrite.
+
+## Operational Shortcuts
+
+The root [Makefile](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/Makefile) includes commands for:
+
+- local environment startup and teardown
+- health checks and logs
+- scaling and rollout helpers
+- database backup and restore
+- unit, e2e, and load testing
+- observability access
+
+Start with:
+
+```bash
+make help
+```
 
 ## Documentation Map
 
-For deeper details, start with:
+Use these documents for deeper service-specific detail:
 
 - [client/README.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/client/README.md:1>)
 - [backend/README.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/backend/README.md:1>)
@@ -194,13 +245,23 @@ For deeper details, start with:
 - [infra/README.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/infra/README.md:1>)
 - [INFRASTRUCTURE_IMPLEMENTATION.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/INFRASTRUCTURE_IMPLEMENTATION.md:1>)
 
+## Engineering Principles
+
+BiasLens is being built around a few core ideas:
+
+- explainability should be first-class, not bolted on
+- fairness visibility should be operational, not theoretical
+- product, platform, and ML concerns should stay clearly separated
+- local development and production deployment should share a coherent shape
+- the repository should feel maintainable under real team ownership
+
 ## Current Direction
 
-BiasLens is evolving toward a platform that can support:
+The platform is moving toward:
 
-- human-in-the-loop hiring workflows
-- explainable ML governance
-- fairness-aware decision review
-- enterprise-style deployment and observability
+- human-in-the-loop hiring review workflows
+- explainable and fairness-aware model governance
+- stronger reporting and traceability for decision review
+- more complete deployment, observability, and operational readiness
 
-The repo now reflects that direction at the application, service, and infrastructure levels.
+BiasLens is not positioned here as a toy demo. It is a serious platform codebase with active application logic, service integrations, and production-oriented scaffolding across the stack.
