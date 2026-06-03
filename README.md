@@ -4,6 +4,19 @@ BiasLens is a multi-service hiring intelligence platform for resume auditing, ex
 
 The repository is structured like a production platform rather than a single demo app. It separates product UI, backend orchestration, ML inference, and infrastructure concerns so each layer can evolve independently.
 
+## Documentation
+
+The repo now includes a production-oriented top-level documentation system in [docs/README.md](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/docs/README.md). It is organized for engineering, ML, platform, and operations workflows rather than only local development.
+
+Suggested entry points:
+
+- [System Overview](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/docs/architecture/00-system-overview.md)
+- [API Docs](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/docs/api/README.md)
+- [Security Model](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/docs/security/security-model.md)
+- [Testing Strategy](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/docs/testing/testing-strategy.md)
+- [Deployment Guide](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/docs/deployment/deployment-guide.md)
+- [Developer Guide](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/docs/onboarding/developer-guide.md)
+
 ## What BiasLens Solves
 
 Modern hiring pipelines often struggle with three recurring issues:
@@ -121,6 +134,7 @@ BiasLens/
 ├── client/                     # Frontend application
 ├── backend/                    # API platform and business logic
 ├── ml-service/                 # ML inference and analysis service
+├── docs/                       # Enterprise documentation and operating guides
 ├── infra/                      # Infrastructure, operations, deployment assets
 ├── Makefile                    # Developer and operational shortcuts
 ├── INFRASTRUCTURE_IMPLEMENTATION.md
@@ -290,10 +304,25 @@ Start with:
 make help
 ```
 
+## Documentation System
+
+BiasLens now includes a dedicated `docs/` strategy intended to match the expectations of a production AI platform:
+
+- architecture and system design documentation
+- ADRs for major technical decisions
+- API and contract documentation
+- operations, incident, and rollback runbooks
+- security and compliance-oriented references
+- research, evaluation, and limitations notes
+- deployment, scaling, monitoring, and onboarding guides
+
+The goal is to keep the repository usable by engineers, researchers, reviewers, and operators without requiring tribal knowledge.
+
 ## Documentation Map
 
 Use these documents for deeper service-specific detail:
 
+- [docs/README.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/docs/README.md:1>)
 - [client/README.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/client/README.md:1>)
 - [backend/README.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/backend/README.md:1>)
 - [ml-service/README.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/ml-service/README.md:1>)
@@ -321,6 +350,16 @@ The platform is moving toward:
 - more complete deployment, observability, and operational readiness
 
 BiasLens is not positioned here as a toy demo. It is a serious platform codebase with active application logic, service integrations, and production-oriented scaffolding across the stack.
+
+## Project Posture
+
+BiasLens is being shaped to feel like the kind of repository you would expect from a research-forward, infrastructure-aware AI team:
+
+- clear separation between product, platform, and ML concerns
+- strong emphasis on evaluation, interpretability, and auditability
+- documentation that supports operations, not just development
+- delivery paths that can mature from local experimentation to governed deployment
+- artifacts that are readable by both builders and reviewers
 
 ## License
 
