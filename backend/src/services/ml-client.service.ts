@@ -2,7 +2,9 @@ import { withRetry } from "../utils/retry.js";
 import { CircuitBreaker } from "../utils/circuit-breaker.js";
 
 const breaker = new CircuitBreaker();
-const defaultMlServiceBaseUrl = process.env.ML_SERVICE_URL?.trim() || "http://127.0.0.1:8000";
+const defaultMlServiceBaseUrl =
+  process.env.ML_SERVICE_URL?.trim() ||
+  "https://biaslens-ml-service.onrender.com";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return breaker.execute(async () =>

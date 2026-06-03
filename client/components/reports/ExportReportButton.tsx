@@ -124,7 +124,7 @@ export default function ExportReportButton({
         // JSON download via existing download endpoint
         const targetId = ids[0];
         await triggerDownload(
-          `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000"}/v1/reports/${targetId}/download`,
+          `${process.env.NEXT_PUBLIC_API_URL ?? "https://biaslens-9wzi.onrender.com"}/v1/reports/${targetId}/download`,
           `biaslens-report-${targetId}.json`
         );
         setFeedback({ type: "success", message: "JSON downloaded." });

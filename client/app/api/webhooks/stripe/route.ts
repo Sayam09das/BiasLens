@@ -8,7 +8,8 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 
-const BACKEND            = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const BACKEND =
+  process.env.NEXT_PUBLIC_API_URL ?? "https://biaslens-9wzi.onrender.com";
 const WEBHOOK_SECRET     = process.env.STRIPE_WEBHOOK_SECRET ?? "";
 const BACKEND_STRIPE_PATH = "/v1/webhooks/stripe";
 

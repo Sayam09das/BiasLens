@@ -4,7 +4,7 @@ import "../styles/globals.css";
 import { Providers } from "../providers/Providers";
 
 const appUrl =
-  process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://bias-lens-omega.vercel.app";
 
 const monaSans = localFont({
   src: [

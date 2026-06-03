@@ -4,7 +4,8 @@ import { logger } from "../config/logger.js";
 import { ForbiddenError, NotFoundError } from "../utils/errors.js";
 import { reportService } from "./report.service.js";
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL ?? "https://bias-lens-omega.vercel.app";
 
 function generateToken(): string {
   return randomBytes(32).toString("hex");

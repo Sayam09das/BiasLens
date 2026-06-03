@@ -8,7 +8,8 @@
 
 import { type NextRequest, NextResponse } from "next/server";
 
-const BACKEND          = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const BACKEND =
+  process.env.NEXT_PUBLIC_API_URL ?? "https://biaslens-9wzi.onrender.com";
 const ML_WEBHOOK_SECRET = process.env.ML_WEBHOOK_SECRET ?? "";
 const BACKEND_ML_PATH  = "/v1/webhooks/ml-service";
 
