@@ -16,10 +16,12 @@ function setAuthCookies(
   refreshToken: string,
   rememberMe = false,
 ): void {
+  const isProduction = process.env.NODE_ENV === "production";
+  const sameSite: "lax" | "none" = isProduction ? "none" : "lax";
   const baseCookieConfig = {
     httpOnly: true,
-    sameSite: "lax" as const,
-    secure: process.env.NODE_ENV === "production",
+    sameSite,
+    secure: isProduction,
     path: "/",
   };
   const refreshTokenMaxAge = rememberMe
@@ -38,8 +40,16 @@ function setAuthCookies(
 }
 
 function clearAuthCookies(response: Response): void {
-  response.clearCookie(authConfig.accessTokenCookieName, { path: "/" });
-  response.clearCookie(authConfig.refreshTokenCookieName, { path: "/" });
+  const isProduction = process.env.NODE_ENV === "production";
+  const sameSite: "lax" | "none" = isProduction ? "none" : "lax";
+  const cookieOptions = {
+    path: "/",
+    sameSite,
+    secure: isProduction,
+  };
+
+  response.clearCookie(authConfig.accessTokenCookieName, cookieOptions);
+  response.clearCookie(authConfig.refreshTokenCookieName, cookieOptions);
 }
 
 function getAuthenticatedUser(response: Response): AuthenticatedRequestUser {

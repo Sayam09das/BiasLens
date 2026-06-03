@@ -15,10 +15,11 @@ function ensureCsrfCookie(request: Request, response: Response): string {
   }
 
   const token = crypto.randomBytes(24).toString("hex");
+  const isProduction = process.env.NODE_ENV === "production";
   response.cookie(authConfig.csrfTokenCookieName, token, {
     httpOnly: false,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    sameSite: isProduction ? "none" : "lax",
+    secure: isProduction,
     path: "/",
   });
 

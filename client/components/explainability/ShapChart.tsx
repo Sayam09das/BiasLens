@@ -174,7 +174,7 @@ export default function ShapChart({ values, className, title, description }: Sha
 
               <div className="mt-3 h-[320px] min-w-0" role="img" aria-label="Horizontal bar chart of SHAP contributions">
                 {data.length > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={1}>
                   <BarChart
                     data={data.map((d) => ({ ...d, label: d.signal }))}
                     layout="vertical"

@@ -9,7 +9,9 @@ export const env = cleanEnv(process.env, {
     default: "development",
   }),
   PORT: port({ default: 4000 }),
-  CLIENT_ORIGIN: str({ default: "https://bias-lens-omega.vercel.app" }),
+  CLIENT_ORIGIN: str({
+    default: "https://bias-lens-omega.vercel.app,http://localhost:3000",
+  }),
   MONGODB_URI: str(),
   JWT_ACCESS_SECRET: str(),
   JWT_REFRESH_SECRET: str(),

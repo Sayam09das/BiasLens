@@ -203,7 +203,7 @@ export default function FairnessChart({ values, className, title, description }:
                 </div>
 
                 <div className="mt-4 h-[260px] min-w-0" role="img" aria-label="Bar chart comparing group fairness scores">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={1}>
                     <BarChart data={barData} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(231,231,233,1)" />
                       <XAxis dataKey="group" stroke={BRAND.mutedText} tick={{ fontSize: 12 }} />
@@ -241,7 +241,7 @@ export default function FairnessChart({ values, className, title, description }:
                 </div>
 
                 <div className="mt-4 h-[260px] min-w-0" role="img" aria-label="Line chart showing fairness trend">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={1}>
                     <LineChart data={lineData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(231,231,233,1)" />
                       <XAxis dataKey="label" stroke={BRAND.mutedText} tick={{ fontSize: 12 }} />

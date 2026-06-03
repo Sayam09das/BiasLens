@@ -261,7 +261,7 @@ export default function ProductShowcase() {
                 >
                   <p className="mb-1 text-xs font-semibold text-[#0D0C22]">Score Overview</p>
                   <div className="h-44 min-w-0">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={1}>
                       <RadialBarChart
                         cx="50%"
                         cy="50%"
@@ -360,7 +360,7 @@ export default function ProductShowcase() {
                     <span className="text-xs text-[#6E6D7A]">Last 6 weeks</span>
                   </div>
                   <div className="h-32 min-w-0">
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={1}>
                       <AreaChart data={areaData} margin={{ top: 0, right: 0, left: -28, bottom: 0 }}>
                         <defs>
                           <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
