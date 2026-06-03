@@ -66,6 +66,10 @@ export default function VerifyEmailPage() {
 
   const isLoading = state.status === "loading";
   const isSuccess = state.status === "success";
+  const message =
+    state.status === "loading"
+      ? "We are validating your secure verification link now."
+      : state.message;
 
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#FFFFFF_0%,#F6F8FB_100%)] px-4 py-6 sm:px-6 lg:px-8">
@@ -93,7 +97,7 @@ export default function VerifyEmailPage() {
                 {isLoading ? "Verifying your email" : isSuccess ? "Email verified" : "Verification needed"}
               </h1>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-[#6E6D7A] sm:text-base">
-                {state.message}
+                {message}
               </p>
 
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
