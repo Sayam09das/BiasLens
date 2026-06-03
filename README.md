@@ -14,6 +14,61 @@ Modern hiring pipelines often struggle with three recurring issues:
 
 BiasLens is designed to make model-assisted hiring workflows more reviewable, defensible, and easier to operate in real environments.
 
+## Research Framing
+
+The project is also grounded in the system design described in [Source/ieee_biaslens_research_paper.md](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/Source/ieee_biaslens_research_paper.md), which frames BiasLens as an algorithmic bias auditing system for AI-based hiring pipelines.
+
+That paper positions BiasLens around five core ideas:
+
+- hiring bias often appears through proxy variables, not only explicit protected attributes
+- group fairness metrics alone are not enough for robust auditing
+- counterfactual resume perturbations provide stronger evidence of discriminatory behavior
+- explainability is needed for root-cause analysis, not just reporting
+- enterprise adoption requires governance, traceability, and deployment discipline
+
+## Problem Statement
+
+The central problem BiasLens addresses is this:
+
+AI-assisted hiring systems can assign different outcomes to equally qualified candidates when protected or proxy attributes change, even if job-relevant qualifications stay fixed.
+
+In practical terms, that means hiring models may behave unfairly because of signals such as:
+
+- gender indicators
+- ethnicity-linked cues
+- location
+- institution names
+- graduation year
+- employment gaps
+- language or socioeconomic proxies
+
+The main auditing question, adapted from the research paper, is:
+
+> Does the predicted hiring outcome remain stable when protected or proxy attributes are modified while relevant qualifications remain unchanged?
+
+If the answer is no, the pipeline may exhibit direct or proxy discrimination.
+
+## Solution Approach
+
+BiasLens addresses that problem by combining product workflows with a research-oriented audit architecture:
+
+- proxy ATS modeling to approximate hiring-system behavior in a controlled environment
+- counterfactual resume generation to test prediction stability under protected-attribute changes
+- fairness metrics such as demographic parity, equalized odds, and consistency analysis
+- explainability layers to identify which features drive risky outcomes
+- governance-ready reports so findings are reviewable by technical, policy, and operational stakeholders
+
+At a system level, the solution is built around these modules:
+
+- resume data ingestion and feature engineering
+- ATS proxy scoring models
+- counterfactual fairness engine
+- explainability and proxy-bias detection
+- fairness evaluation engine
+- reporting and dashboard workflows
+
+This is why BiasLens is not just a scoring application. It is an audit system intended to surface instability, identify proxy discrimination, and make model-assisted hiring behavior easier to inspect.
+
 ## Platform Summary
 
 BiasLens is composed of four primary layers:
@@ -244,6 +299,7 @@ Use these documents for deeper service-specific detail:
 - [ml-service/README.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/ml-service/README.md:1>)
 - [infra/README.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/infra/README.md:1>)
 - [INFRASTRUCTURE_IMPLEMENTATION.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/INFRASTRUCTURE_IMPLEMENTATION.md:1>)
+- [Source/ieee_biaslens_research_paper.md](</Users/sayamdas/Documents/Programming/Mern Stack/My Website/BiasLens/Source/ieee_biaslens_research_paper.md:1>)
 
 ## Engineering Principles
 
@@ -265,3 +321,7 @@ The platform is moving toward:
 - more complete deployment, observability, and operational readiness
 
 BiasLens is not positioned here as a toy demo. It is a serious platform codebase with active application logic, service integrations, and production-oriented scaffolding across the stack.
+
+## License
+
+This repository is licensed under the MIT License. See [LICENSE](/Users/sayamdas/Documents/Programming/Mern%20Stack/My%20Website/BiasLens/LICENSE) for details.
