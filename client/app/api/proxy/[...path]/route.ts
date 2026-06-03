@@ -5,6 +5,7 @@ const BACKEND =
 
 const HOP_BY_HOP_HEADERS = new Set([
   "connection",
+  "content-encoding",
   "content-length",
   "host",
   "keep-alive",
@@ -33,6 +34,9 @@ function buildUpstreamHeaders(req: NextRequest) {
     if (HOP_BY_HOP_HEADERS.has(normalized)) {
       return;
     }
+    if (normalized === "accept-encoding") {
+      return;
+    }
     headers.set(key, value);
   });
 
@@ -53,6 +57,9 @@ function applyUpstreamHeaders(response: NextResponse, upstream: Response) {
 
     response.headers.set(key, value);
   });
+
+  response.headers.delete("content-encoding");
+  response.headers.delete("content-length");
 }
 
 async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {

@@ -138,7 +138,7 @@ export default function AnalyticsTracker() {
             </CardDescription>
           </CardHeader>
           <CardContent className="min-w-0 p-6 pt-4">
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="100%" height={220} minWidth={0} minHeight={1}>
               <AreaChart
                 data={activityData}
                 margin={{ top: 4, right: 4, left: -24, bottom: 0 }}
