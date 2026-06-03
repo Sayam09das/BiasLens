@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowRight, BadgeCheck, MailCheck, ShieldCheck, Sparkles } from "lucide-react";
 
@@ -14,6 +15,9 @@ const nextSteps = [
 ] as const;
 
 export default function VerifyEmailSentPage() {
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email")?.trim() ?? "";
+
   return (
     <main className="min-h-screen bg-[linear-gradient(180deg,#FFFFFF_0%,#F6F8FB_100%)] px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto grid min-h-[calc(100vh-3rem)] max-w-6xl gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(380px,0.9fr)]">
@@ -46,6 +50,11 @@ export default function VerifyEmailSentPage() {
                 Your account was created successfully. Please check your email and verify your
                 address before signing in to BiasLens.
               </p>
+              {email ? (
+                <p className="mt-3 text-sm font-medium text-[#2563EB]">
+                  Verification destination: {email}
+                </p>
+              ) : null}
 
               <div className="mt-8 space-y-4">
                 {nextSteps.map((step, index) => (
@@ -73,7 +82,9 @@ export default function VerifyEmailSentPage() {
                   variant="outline"
                   className="h-12 rounded-2xl border-[#E7E7E9] bg-white px-6 text-[#0D0C22] hover:bg-[#F6F8FB]"
                 >
-                  <Link href="/register">Use a different email</Link>
+                  <Link href={email ? `/resend-verification?email=${encodeURIComponent(email)}` : "/register"}>
+                    {email ? "Resend verification" : "Use a different email"}
+                  </Link>
                 </Button>
               </div>
             </CardContent>

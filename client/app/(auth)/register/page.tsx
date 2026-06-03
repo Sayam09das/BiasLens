@@ -198,7 +198,7 @@ export default function RegisterPage() {
       });
 
       window.setTimeout(() => {
-        router.push("/verify-email-sent");
+        router.push(`/verify-email-sent?email=${encodeURIComponent(payload.email)}`);
       }, 900);
     } catch (error) {
       const message =

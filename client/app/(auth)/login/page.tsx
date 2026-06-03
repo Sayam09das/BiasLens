@@ -34,6 +34,11 @@ export default function LoginPage() {
       router.push("/dashboard");
       return;
     } catch (error) {
+      if (error instanceof ApiError && /verify your email/i.test(error.message)) {
+        router.push(`/verify-email-sent?email=${encodeURIComponent(values.email.trim())}`);
+        return;
+      }
+
       return {
         error:
           error instanceof ApiError

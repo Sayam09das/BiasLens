@@ -108,7 +108,7 @@ async function sendVerificationEmail(input: {
   token: string;
   request: Request;
 }) {
-  const verificationUrl = `${getBaseUrl(input.request)}/v1/auth/verify-email?token=${input.token}`;
+  const verificationUrl = `${getClientOrigin(input.request)}/verify-email?token=${input.token}`;
   const template = renderVerificationEmailTemplate({
     recipientName: input.fullName,
     actionUrl: verificationUrl,

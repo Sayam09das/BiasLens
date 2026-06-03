@@ -6,6 +6,10 @@
  * POST /api/auth?action=logout
  * POST /api/auth?action=refresh
  * GET  /api/auth?action=me
+ * GET  /api/auth?action=verify-email&token=...
+ * POST /api/auth?action=resend-verification
+ * POST /api/auth?action=forgot-password
+ * POST /api/auth?action=reset-password
  */
 
 import { type NextRequest, NextResponse } from "next/server";
@@ -15,11 +19,15 @@ const ACCESS_COOKIE = "biaslens_access_token";
 const REFRESH_COOKIE = "biaslens_refresh_token";
 
 const ACTION_MAP: Record<string, { path: string; method: string }> = {
-  login:    { path: "/v1/auth/login",   method: "POST" },
+  login:    { path: "/v1/auth/login", method: "POST" },
   register: { path: "/v1/auth/register", method: "POST" },
-  logout:   { path: "/v1/auth/logout",  method: "POST" },
+  logout:   { path: "/v1/auth/logout", method: "POST" },
   refresh:  { path: "/v1/auth/refresh", method: "POST" },
-  me:       { path: "/v1/auth/me",      method: "GET"  },
+  me:       { path: "/v1/auth/me", method: "GET" },
+  "verify-email": { path: "/v1/auth/verify-email", method: "GET" },
+  "resend-verification": { path: "/v1/auth/resend-verification", method: "POST" },
+  "forgot-password": { path: "/v1/auth/forgot-password", method: "POST" },
+  "reset-password": { path: "/v1/auth/reset-password", method: "POST" },
 };
 
 async function forwardUpstream(
@@ -38,7 +46,14 @@ async function forwardUpstream(
   const csrfToken = req.headers.get("x-csrf-token");
   if (csrfToken) headers["x-csrf-token"] = csrfToken;
 
-  return fetch(`${BACKEND}${route.path}`, {
+  const url = new URL(`${BACKEND}${route.path}`);
+  req.nextUrl.searchParams.forEach((value, key) => {
+    if (key !== "action") {
+      url.searchParams.set(key, value);
+    }
+  });
+
+  return fetch(url, {
     method: route.method,
     headers,
     body: isGet ? undefined : await req.text(),
