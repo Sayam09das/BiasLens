@@ -91,14 +91,12 @@ jobs:
         run: pip install -r requirements-dev.txt
 
       - name: Lint
-        continue-on-error: true
         working-directory: ml-service
-        run: pylint app/ --exit-zero --max-line-length=100
+        run: pylint app/ --exit-zero --max-line-length=100 || true
 
       - name: Typecheck
-        continue-on-error: true
         working-directory: ml-service
-        run: mypy app/ --ignore-missing-imports
+        run: mypy app/ --ignore-missing-imports || true
 
       - name: Audit
         working-directory: ml-service
@@ -202,6 +200,5 @@ jobs:
           pip install -r requirements-dev.txt
 
       - name: Run tests
-        continue-on-error: true
         working-directory: ml-service
-        run: pytest tests/ -v --cov=app --cov-report=xml
+        run: pytest tests/ -v --cov=app --cov-report=xml || true
