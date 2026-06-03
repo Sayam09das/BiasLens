@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: biaslens-ml-service
+  namespace: biaslens
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: biaslens-ml-service
+  template:
+    metadata:
+      labels:
+        app: biaslens-ml-service
+    spec:
+      containers:
+        - name: ml-service
+          image: ghcr.io/example/biaslens-ml-service:latest
+          ports:
+            - containerPort: 8000

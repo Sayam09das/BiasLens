@@ -1,0 +1,6 @@
+groups:
+  - name: biaslens-backend
+    rules:
+      - alert: HighBackendErrorRate
+        expr: rate(http_requests_total{job="biaslens-backend",status=~"5.."}[5m]) > 1
+        for: 5m

@@ -1,0 +1,8 @@
+resources:
+  - ../../base
+  - ../../services/backend/deployment.yml
+  - ../../services/backend/service.yml
+  - ../../services/frontend/deployment.yml
+  - ../../services/frontend/service.yml
+  - ../../services/ml-service/deployment.yml
+  - ../../services/ml-service/service.yml

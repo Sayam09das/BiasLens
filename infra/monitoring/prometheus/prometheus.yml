@@ -1,0 +1,257 @@
+# Global configuration
+global:
+  scrape_interval: 30s       # Scrape targets every 30 seconds
+  evaluation_interval: 30s   # Evaluate rules every 30 seconds
+  external_labels:
+    environment: 'production'
+    cluster: 'biaslens-prod'
+    region: 'us-east-1'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - '/etc/prometheus/recording-rules.yml'
+  - '/etc/prometheus/backend-alerts.yml'
+  - '/etc/prometheus/ml-service-alerts.yml'
+  - '/etc/prometheus/infrastructure-alerts.yml'
+  - '/etc/prometheus/slo-alerts.yml'
+
+# Scrape configurations
+scrape_configs:
+  # ============================================================================
+  # Prometheus self-monitoring
+  # ============================================================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ============================================================================
+  # Backend API Metrics
+  # ============================================================================
+  - job_name: 'backend'
+    scheme: http
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - biaslens-prod
+    relabel_configs:
+      # Only scrape pods with annotation prometheus.io/scrape=true
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: 'true'
+      
+      # Read scrape port from annotation
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        target_label: __scheme__
+        replacement: http
+      
+      # Read scrape path from annotation
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        replacement: /metrics
+      
+      # Extract pod name
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod
+      
+      # Add namespace label
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+      
+      # Add app label
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: replace
+        target_label: app
+
+  # ============================================================================
+  # Frontend Metrics (from Node.js)
+  # ============================================================================
+  - job_name: 'frontend'
+    scheme: http
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - biaslens-prod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: 'frontend'
+      
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod
+      
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+
+  # ============================================================================
+  # ML Service Metrics
+  # ============================================================================
+  - job_name: 'ml-service'
+    scheme: http
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - biaslens-prod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: 'ml-service'
+      
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod
+      
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+
+  # ============================================================================
+  # PostgreSQL Exporter
+  # ============================================================================
+  - job_name: 'postgres'
+    scheme: http
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # ============================================================================
+  # Redis Exporter
+  # ============================================================================
+  - job_name: 'redis'
+    scheme: http
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+
+  # ============================================================================
+  # Kubernetes Metrics
+  # ============================================================================
+  - job_name: 'kubernetes-apiservers'
+    scheme: https
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    ssl_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    kubernetes_sd_configs:
+      - role: endpoints
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name]
+        action: keep
+        regex: 'kubernetes'
+      
+      - source_labels: [__meta_kubernetes_endpoint_port_name]
+        action: keep
+        regex: 'https'
+
+  # ============================================================================
+  # Kubernetes Nodes
+  # ============================================================================
+  - job_name: 'kubernetes-nodes'
+    scheme: https
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    ssl_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    kubernetes_sd_configs:
+      - role: node
+    relabel_configs:
+      - action: labelmap
+        regex: __meta_kubernetes_node_label_(.+)
+
+  # ============================================================================
+  # Kubernetes Pods (cAdvisor)
+  # ============================================================================
+  - job_name: 'kubernetes-pods'
+    scheme: https
+    bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+    ssl_config:
+      ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+        action: keep
+        regex: 'true'
+      
+      - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+        action: replace
+        target_label: __metrics_path__
+        replacement: /metrics
+      
+      - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+        action: replace
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2
+        target_label: __address__
+      
+      - action: labelmap
+        regex: __meta_kubernetes_pod_label_(.+)
+      
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: kubernetes_namespace
+      
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: kubernetes_pod_name
+
+  # ============================================================================
+  # AWS CloudWatch Exporter (for RDS, ELB, etc.)
+  # ============================================================================
+  - job_name: 'cloudwatch'
+    scheme: http
+    static_configs:
+      - targets: ['cloudwatch-exporter:9106']
+    scrape_interval: 5m  # CloudWatch has 5-minute granularity
+
+  # ============================================================================
+  # NGINX Metrics (Ingress Controller)
+  # ============================================================================
+  - job_name: 'nginx-ingress'
+    scheme: http
+    kubernetes_sd_configs:
+      - role: service
+        namespaces:
+          names:
+            - ingress-nginx
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name]
+        action: keep
+        regex: 'nginx-ingress-controller'
+      
+      - source_labels: [__meta_kubernetes_service_port_name]
+        action: keep
+        regex: 'metrics'
+
+  # ============================================================================
+  # Jaeger/Otel-Collector Metrics
+  # ============================================================================
+  - job_name: 'otel-collector'
+    scheme: http
+    static_configs:
+      - targets: ['otel-collector:8888']
+
+  # ============================================================================
+  # Grafana Metrics
+  # ============================================================================
+  - job_name: 'grafana'
+    scheme: http
+    static_configs:
+      - targets: ['grafana:3000']

@@ -1,0 +1,3 @@
+resources:
+  - ../../overlays/dev
+  - ../../services/backend/hpa.yml

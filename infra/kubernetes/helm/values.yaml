@@ -1,0 +1,11 @@
+global:
+  namespace: biaslens
+
+backend:
+  image: ghcr.io/example/biaslens-backend:latest
+
+frontend:
+  image: ghcr.io/example/biaslens-frontend:latest
+
+mlService:
+  image: ghcr.io/example/biaslens-ml-service:latest

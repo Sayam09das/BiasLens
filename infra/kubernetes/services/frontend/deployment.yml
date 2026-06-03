@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: biaslens-frontend
+  namespace: biaslens
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: biaslens-frontend
+  template:
+    metadata:
+      labels:
+        app: biaslens-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: ghcr.io/example/biaslens-frontend:latest
+          ports:
+            - containerPort: 3000

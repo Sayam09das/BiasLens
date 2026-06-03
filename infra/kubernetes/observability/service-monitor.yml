@@ -1,0 +1,9 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: biaslens-services
+  namespace: biaslens
+spec:
+  selector: {}
+  endpoints:
+    - port: http

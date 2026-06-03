@@ -1,0 +1,343 @@
+version: '3.9'
+
+# Production-grade Docker Compose for local development
+# Mirrors production K8s topology with PostgreSQL, Redis, Prometheus, Grafana, Jaeger
+# Usage: docker-compose -f infra/compose/docker-compose.dev.yml up
+
+services:
+  # ============================================================================
+  # BACKEND SERVICE
+  # ============================================================================
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: biaslens-backend-dev
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://dev:dev@postgres:5432/biaslens_dev
+      REDIS_URL: redis://redis:6379
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev-secret-change-in-production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev-secret-change-in-production}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_SERVICE_NAME: biaslens-backend
+      LOG_LEVEL: debug
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    volumes:
+      - ../../backend/src:/app/src
+      - ../../backend/node_modules:/app/node_modules
+    networks:
+      - biaslens
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # ============================================================================
+  # CLIENT / FRONTEND
+  # ============================================================================
+  client:
+    build:
+      context: ../../client
+      dockerfile: Dockerfile
+      target: development
+    container_name: biaslens-client-dev
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
+      NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN:-}
+      NODE_ENV: development
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ../../client:/app
+      - ../../client/node_modules:/app/node_modules
+    networks:
+      - biaslens
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  # ============================================================================
+  # ML SERVICE
+  # ============================================================================
+  ml-service:
+    build:
+      context: ../../ml-service
+      dockerfile: Dockerfile
+    container_name: biaslens-ml-service-dev
+    environment:
+      PYTHONUNBUFFERED: 1
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+      OTEL_SERVICE_NAME: biaslens-ml-service
+      LOG_LEVEL: DEBUG
+      REDIS_URL: redis://redis:6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      redis:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    volumes:
+      - ../../ml-service/app:/app/app
+      - ../../ml-service/data:/app/data
+    networks:
+      - biaslens
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  # ============================================================================
+  # POSTGRESQL (PRIMARY)
+  # ============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: biaslens-postgres-dev
+    environment:
+      POSTGRES_USER: dev
+      POSTGRES_PASSWORD: dev
+      POSTGRES_DB: biaslens_dev
+      POSTGRES_INITDB_ARGS: "-c max_connections=100 -c shared_buffers=256MB -c log_statement=all"
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ../../backend/prisma/migrations:/docker-entrypoint-initdb.d
+    networks:
+      - biaslens
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dev -d biaslens_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: |
+      postgres
+      -c log_min_duration_statement=100
+      -c log_connections=on
+      -c log_disconnections=on
+
+  # ============================================================================
+  # REDIS (CACHE & SESSION STORE)
+  # ============================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: biaslens-redis-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - biaslens
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+
+  # ============================================================================
+  # OBSERVABILITY STACK
+  # ============================================================================
+
+  # Jaeger - Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: biaslens-jaeger-dev
+    environment:
+      COLLECTOR_OTLP_ENABLED: 'true'
+    ports:
+      - "6831:6831/udp"  # Jaeger compact thrift
+      - "16686:16686"    # Jaeger UI
+      - "4317:4317"      # OTLP gRPC receiver
+      - "4318:4318"      # OTLP HTTP receiver
+    networks:
+      - biaslens
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:14268/api/traces"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Prometheus - Metrics Collection & Storage
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: biaslens-prometheus-dev
+    volumes:
+      - ../../infra/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../../infra/monitoring/prometheus/recording-rules.yml:/etc/prometheus/recording-rules.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - biaslens
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Grafana - Dashboards & Alerting
+  grafana:
+    image: grafana/grafana:latest
+    container_name: biaslens-grafana-dev
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_SECURITY_ADMIN_USER: admin
+      GF_INSTALL_PLUGINS: grafana-piechart-panel,grafana-clock-panel
+    ports:
+      - "3010:3000"
+    volumes:
+      - ../../infra/monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ../../infra/monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - biaslens
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Loki - Log Aggregation
+  loki:
+    image: grafana/loki:latest
+    container_name: biaslens-loki-dev
+    ports:
+      - "3100:3100"
+    volumes:
+      - ../../infra/monitoring/loki/loki.yml:/etc/loki/local-config.yml
+      - loki_data:/loki
+    networks:
+      - biaslens
+    command: -config.file=/etc/loki/local-config.yml
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3100/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # Promtail - Log Shipper (collects logs from containers)
+  promtail:
+    image: grafana/promtail:latest
+    container_name: biaslens-promtail-dev
+    volumes:
+      - ../../infra/monitoring/loki/promtail.yml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - biaslens
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+
+  # Tempo - Distributed Tracing Backend
+  tempo:
+    image: grafana/tempo:latest
+    container_name: biaslens-tempo-dev
+    ports:
+      - "3200:3200"   # tempo
+      - "4317:4317"   # otlp grpc
+    volumes:
+      - ../../infra/monitoring/tempo/tempo.yml:/etc/tempo.yml
+      - tempo_data:/var/tempo
+    networks:
+      - biaslens
+    command: -config.file=/etc/tempo.yml
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3200/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # AlertManager - Alert Routing & Deduplication
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: biaslens-alertmanager-dev
+    ports:
+      - "9093:9093"
+    volumes:
+      - ../../infra/monitoring/alerts/alertmanager.yml:/etc/alertmanager/config.yml
+      - alertmanager_data:/alertmanager
+    networks:
+      - biaslens
+    command: --config.file=/etc/alertmanager/config.yml
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9093/-/healthy"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ============================================================================
+  # NGINX REVERSE PROXY
+  # ============================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: biaslens-nginx-dev
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../../infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../infra/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../../infra/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - client
+      - backend
+      - ml-service
+    networks:
+      - biaslens
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  loki_data:
+    driver: local
+  tempo_data:
+    driver: local
+  alertmanager_data:
+    driver: local
+
+networks:
+  biaslens:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16

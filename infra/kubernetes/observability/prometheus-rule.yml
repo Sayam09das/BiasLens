@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: biaslens-alerts
+  namespace: biaslens
+spec:
+  groups:
+    - name: biaslens.rules
+      rules:
+        - alert: BackendDown
+          expr: up{job="biaslens-backend"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: Backend service is down

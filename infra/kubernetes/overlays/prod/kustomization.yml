@@ -1,0 +1,4 @@
+resources:
+  - ../../overlays/staging
+  - ../../observability/service-monitor.yml
+  - ../../observability/prometheus-rule.yml

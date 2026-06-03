@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: biaslens-backend
+  namespace: biaslens
+spec:
+  selector:
+    app: biaslens-backend
+  ports:
+    - port: 4000
+      targetPort: 4000

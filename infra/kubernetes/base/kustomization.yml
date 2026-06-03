@@ -1,0 +1,5 @@
+resources:
+  - namespace.yml
+  - configmap.yml
+  - secrets.example.yml
+  - network-policies.yml

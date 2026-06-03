@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  backend-test:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.backend
+    command: npm test
+    environment:
+      NODE_ENV: test
+
+  frontend-test:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.frontend
+    command: npm run lint
+
+  ml-test:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.ml-service
+    command: pytest
