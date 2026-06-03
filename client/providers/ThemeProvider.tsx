@@ -15,13 +15,18 @@ const ThemeContext = createContext<ThemeContextValue>({
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>("system");
+  const [theme, setThemeState] = useState<Theme>(() => {
+    if (typeof window === "undefined") {
+      return "system";
+    }
+
+    const stored = localStorage.getItem("theme");
+    return stored === "light" || stored === "dark" || stored === "system" ? stored : "system";
+  });
 
   useEffect(() => {
-    const stored = (localStorage.getItem("theme") as Theme) ?? "system";
-    setThemeState(stored);
-    applyTheme(stored);
-  }, []);
+    applyTheme(theme);
+  }, [theme]);
 
   const setTheme = (t: Theme) => {
     setThemeState(t);
@@ -37,6 +42,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 }
 
 function applyTheme(theme: Theme) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
   const isDark =
     theme === "dark" ||
     (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);

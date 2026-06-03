@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import Link from "next/link";
 import { Activity, ArrowRight, Plus, Search } from "lucide-react";
@@ -46,7 +46,7 @@ function BulkActionsBar(_props: {
   selectedIds: string[];
   onClearSelection: () => void;
 }) {
-  const { selectedCount, onClearSelection } = _props;
+  const { selectedCount } = _props;
   if (selectedCount <= 0) return null;
 
 
@@ -261,13 +261,9 @@ function BulkActionsBarInner({
   );
 }
 
-
-
-
-
 export default function AuditsPage() {
 
-  const [selectedAuditIds, setSelectedAuditIds] = useState<string[]>([]);
+  const [selectedAuditIds] = useState<string[]>([]);
 
   useEffect(() => {
     // UI-only: keep selection empty until row selection is wired.
@@ -279,23 +275,23 @@ export default function AuditsPage() {
   const { history, isLoading, error } = useAuditStore();
   const [search, setSearch] = useState("");
 
-  const [status, setStatus] = useState<string>("All");
-  const [fairnessRisk, setFairnessRisk] = useState<string>("All");
-  const [reportStatus, setReportStatus] = useState<string>("All");
-  const [role, setRole] = useState<string>("All");
-  const [dateRange, setDateRange] = useState<string>("All");
-  const [resumeScoreMin, setResumeScoreMin] = useState<number>(0);
-  const [resumeScoreMax, setResumeScoreMax] = useState<number>(100);
+  const [status] = useState<string>("All");
+  const [fairnessRisk] = useState<string>("All");
+  const [reportStatus] = useState<string>("All");
+  const [role] = useState<string>("All");
+  const [dateRange] = useState<string>("All");
+  const [resumeScoreMin] = useState<number>(0);
+  const [resumeScoreMax] = useState<number>(100);
 
   const debouncedSearch = useDebounce(search, 250);
 
   const filtered = useMemo(() => {
     const q = debouncedSearch.toLowerCase().trim();
 
-    const roleField = (a: any) => (a.jobRole ?? "").toLowerCase();
-    const candidateField = (a: any) => (a.candidateName ?? a.title ?? "").toLowerCase();
-    const idField = (a: any) => String(a.id ?? "").toLowerCase();
-    const statusField = (a: any) => (a.status ?? "").toLowerCase();
+    const roleField = (a: (typeof history)[number]) => (a.jobRole ?? "").toLowerCase();
+    const candidateField = (a: (typeof history)[number]) => a.title.toLowerCase();
+    const idField = (a: (typeof history)[number]) => String(a.id ?? "").toLowerCase();
+    const statusField = (a: (typeof history)[number]) => (a.status ?? "").toLowerCase();
 
     let out = history;
 

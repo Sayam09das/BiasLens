@@ -145,7 +145,7 @@ export default function ResumeUploader() {
 
     try {
       // 1. Upload the file to get a stored reference
-      let resumeText = "";
+      const resumeText = "";
       if (resumeFile) {
         await upload("/v1/upload/resume", resumeFile);
       }

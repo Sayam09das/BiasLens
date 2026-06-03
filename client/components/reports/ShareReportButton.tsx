@@ -77,11 +77,32 @@ export default function ShareReportButton({
   // Load existing shares when modal opens
   useEffect(() => {
     if (!open) return;
-    setLoadingShares(true);
-    apiFetch<ShareLink[]>(`/v1/reports/${reportId}/shares`)
-      .then(setShares)
-      .catch(() => setShares([]))
-      .finally(() => setLoadingShares(false));
+
+    let cancelled = false;
+
+    async function loadShares() {
+      setLoadingShares(true);
+      try {
+        const result = await apiFetch<ShareLink[]>(`/v1/reports/${reportId}/shares`);
+        if (!cancelled) {
+          setShares(result);
+        }
+      } catch {
+        if (!cancelled) {
+          setShares([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingShares(false);
+        }
+      }
+    }
+
+    void loadShares();
+
+    return () => {
+      cancelled = true;
+    };
   }, [open, reportId]);
 
   // Close on Escape
